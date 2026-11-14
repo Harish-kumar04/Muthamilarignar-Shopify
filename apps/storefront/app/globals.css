@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Brand palette (from the publisher logo) */
+  --brand-red: 229 35 32; /* #E52320 */
+  --brand-black: 0 0 0; /* #000000 */
+  --brand-white: 255 255 255; /* #FFFFFF */
+
+  --background: var(--brand-white);
+  --foreground: var(--brand-black);
+  --card: var(--brand-white);
+  --card-foreground: var(--brand-black);
+  --muted: 246 246 247;
+  --muted-foreground: 92 92 98;
+  --border: 232 232 235;
+  --input: 226 226 230;
+  --ring: var(--brand-red);
+  --accent: var(--brand-red);
+  --accent-foreground: var(--brand-white);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
+  min-height: 100vh;
+}
+
+/* Visible, on-brand focus ring */
+*:focus-visible {
+  outline: 2px solid rgb(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ---- Zero-JS bilingual text (components/i18n/t.tsx) ---- */
+html[lang="en"] .i18n-ta,
+html:not([lang="en"]) .i18n-en {
+  display: none;
+}
+
+@layer components {
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-black focus:px-5 focus:py-3 focus:text-[14px] focus:font-bold focus:text-white focus:shadow-lg;
+  }
+  .container-site {
+    @apply mx-auto w-full max-w-site px-4 sm:px-6 lg:px-10;
+  }
+  /* Soft-shadow card with subtle lift & red glow on hover */
+  .card-glow {
+    @apply rounded-2xl border border-black/[0.08] bg-white shadow-card transition-[box-shadow,transform,border-color] duration-200;
+  }
+  .card-glow:hover {
+    @apply -translate-y-1 border-brand-red/30 shadow-glow;
+  }
+  /* Primary black pill button (21:1 contrast) */
+  .btn-black {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 font-semibold text-white transition-colors hover:bg-brand-red-dark focus-visible:outline-offset-4;
+  }
+  /* Brand red CTA pill (WCAG AA >= 4.5:1 contrast with white text) */
+  .btn-red {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[#D11D1A] px-6 font-semibold text-white transition-colors hover:bg-brand-red-dark focus-visible:outline-offset-4;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-black/20 bg-white px-6 font-semibold text-black transition-colors hover:border-brand-red-dark hover:text-brand-red-dark;
+  }
+  /* WCAG AA >= 4.5:1 small red eyebrow text on white/grey */
+  .eyebrow {
+    @apply text-[12px] font-bold uppercase tracking-[0.18em] text-brand-red-dark;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .cv-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
+  }
+  /* (b) Thin red diagonal stripe divider */
+  .pattern-red-stripes {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(229, 35, 32, 0.2) 0px,
+      rgba(229, 35, 32, 0.2) 2px,
+      transparent 2px,
+      transparent 10px
+    );
+  }
+  /* (c) Subtle red dotted-grid on light banners */
+  .pattern-red-dots {
+    background-image: radial-gradient(rgba(229, 35, 32, 0.14) 1.25px, transparent 1.25px);
+    background-size: 18px 18px;
+  }
+  /* (c) Subtle red/white dotted-grid on black banners and footer */
+  .pattern-white-dots {
+    background-image:
+      radial-gradient(rgba(229, 35, 32, 0.28) 1.25px, transparent 1.25px),
+      radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-position: 0 0, 9px 9px;
+    background-size: 18px 18px;
+  }
+}
+
+@keyframes pen-write {
+  0% {
+    stroke-dashoffset: 84;
+    opacity: 0.35;
+  }
+  55% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -84;
+    opacity: 0.25;
+  }
+}
+
+@keyframes pen-glide {
+  0% {
+    transform: translate(-9px, 1px) rotate(-4deg);
+  }
+  50% {
+    transform: translate(18px, -2px) rotate(4deg);
+  }
+  100% {
+    transform: translate(-9px, 1px) rotate(-4deg);
+  }
+}
+
+.pen-ink {
+  stroke-dasharray: 84;
+  stroke-dashoffset: 84;
+  animation: pen-write 1.2s ease-in-out infinite;
+}
+
+.pen-nib {
+  transform-origin: 20px 20px;
+  animation: pen-glide 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pen-ink {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+    opacity: 1 !important;
+  }
+  .pen-nib {
+    animation: none !important;
+    transform: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

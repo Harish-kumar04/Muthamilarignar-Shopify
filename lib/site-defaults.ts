@@ -11,7 +11,7 @@ export const SITE_URL = (
 ).replace(/\/$/, "");
 
 /** ISR window (seconds) for catalogue pages. */
-export const REVALIDATE_SECONDS = 60;
+export const REVALIDATE_SECONDS = 120;
 
 export const BRAND = {
   nameTa: "முத்தமிழறிஞர் பதிப்பகம்",
@@ -197,7 +197,7 @@ function isDateActive(starts_at?: string, ends_at?: string): boolean {
   return true;
 }
 
-export function getSocial(store: any): SocialConfig {
+export function getSocial(store?: any): SocialConfig {
   const s = themeConfig(store).social || {};
   const whatsapp = str(s.whatsapp)?.replace(/\D/g, "") || DEFAULT_SOCIAL.whatsapp;
   return {
@@ -215,7 +215,7 @@ export function getSocial(store: any): SocialConfig {
 }
 
 /** Active admin slides (max 6), or the built-in brand slides when none are configured. */
-export function getSlides(store: any): { slides: HomeSlide[]; isDefault: boolean } {
+export function getSlides(store?: any): { slides: HomeSlide[]; isDefault: boolean } {
   const raw = themeConfig(store).home_slides;
   const list: HomeSlide[] = Array.isArray(raw)
     ? raw
@@ -229,7 +229,7 @@ export function getSlides(store: any): { slides: HomeSlide[]; isDefault: boolean
   return list.length > 0 ? { slides: list, isDefault: false } : { slides: DEFAULT_SLIDES, isDefault: true };
 }
 
-export function getNotifications(store: any): NotificationItem[] {
+export function getNotifications(store?: any): NotificationItem[] {
   const raw = themeConfig(store).notifications;
   if (!Array.isArray(raw)) return [];
   return raw.filter((item: any) => {
@@ -239,7 +239,7 @@ export function getNotifications(store: any): NotificationItem[] {
   });
 }
 
-export function getPopup(store: any): PopupConfig {
+export function getPopup(store?: any): PopupConfig {
   const p = themeConfig(store).popup;
   if (!p || typeof p !== "object") return DEFAULT_POPUP;
   const delay = Number(p.delay_seconds);
@@ -274,7 +274,7 @@ export interface AnnouncementConfig {
   link?: string | null;
 }
 
-export function getAnnouncement(store: any): AnnouncementConfig {
+export function getAnnouncement(store?: any): AnnouncementConfig {
   const tc = themeConfig(store);
   const raw = tc.announcement;
   if (raw && typeof raw === "object") {

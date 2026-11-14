@@ -208,26 +208,42 @@ export function buildBookJsonLd({ product }: { product: any }) {
 
   const [nameTa, nameEn] = splitBilingual(product.name, "|");
   const [descTa, descEn] = splitBilingual(product.description, "||");
-  const effectivePriceCents =
-    product.sale_price_cents && product.sale_price_cents < product.price_cents
-      ? product.sale_price_cents
-      : product.price_cents;
-  const inStock = Number(product.inventory_quantity ?? product.inventory ?? 1) > 0;
-  const image = absoluteUrl(product.image_url || product.images?.[0]);
+  const effectivePriceRupees =
+    typeof product.priceRupees === "number"
+      ? product.priceRupees
+      : ((product.sale_price_cents && product.sale_price_cents < product.price_cents
+          ? product.sale_price_cents
+          : product.price_cents) || 0) / 100;
+  const inStock =
+    typeof product.availableForSale === "boolean"
+      ? product.availableForSale
+      : Number(product.inventory_quantity ?? product.inventory ?? 1) > 0;
+
+  const rawImages: string[] = Array.isArray(product.images) && product.images.length > 0
+    ? product.images
+    : product.image_url
+      ? [product.image_url]
+      : [];
+  const images = rawImages
+    .map((u) => absoluteUrl(u))
+    .filter((u): u is string => Boolean(u));
 
   const bookMeta = product.dimensions_json?.book || {};
-  const rawAuthor =
-    product.author ||
-    bookMeta.author ||
-    (typeof product.safety_info === "string" && !product.safety_info.includes("•")
-      ? product.safety_info
-      : null);
-  const cleanIsbn = normalizeIsbn(bookMeta.isbn || product.isbn || product.sku);
-  const pages = Number(bookMeta.pages || 0);
-  const isHardcover =
-    String(bookMeta.binding || product.safety_info || "")
-      .toLowerCase()
-      .includes("hardcover");
+  const rawAuthor = product.author || bookMeta.author || null;
+  const rawPublisher = product.publisher || bookMeta.publisher || null;
+  const rawLanguage = String(product.language || bookMeta.language || "").toLowerCase();
+  const inLanguage = rawLanguage.includes("english") && rawLanguage.includes("tamil")
+    ? ["ta", "en"]
+    : rawLanguage.includes("english") || rawLanguage === "en"
+      ? "en"
+      : "ta";
+  const cleanIsbn = normalizeIsbn(product.isbn || bookMeta.isbn || product.sku);
+  const pages = Number(product.pages ?? bookMeta.pages ?? 0);
+  const rawYear = String(product.year || bookMeta.year || "").trim();
+  const isHardcover = String(product.binding || bookMeta.binding || "")
+    .toLowerCase()
+    .includes("hardcover");
+  const currencyCode = product.currencyCode || "INR";
 
   // Only include AggregateRating when genuine verified review metrics exist.
   const reviewCount = Number(product.review_count ?? product.reviews_count ?? 0);
@@ -241,32 +257,33 @@ export function buildBookJsonLd({ product }: { product: any }) {
     name: nameTa,
     ...(nameEn && nameEn !== nameTa ? { alternateName: nameEn } : {}),
     description: descTa || descEn || `${nameTa} — published by ${PUBLISHER_ENTITY.nameEn}`,
-    ...(image ? { image: [image] } : {}),
-    sku: product.sku || String(product.id),
+    ...(images.length > 0 ? { image: images } : {}),
+    sku: product.sku || String(product.slug || product.id),
     ...(cleanIsbn ? { isbn: cleanIsbn } : {}),
-    inLanguage: "ta",
+    inLanguage,
     bookFormat: isHardcover
       ? "https://schema.org/Hardcover"
       : "https://schema.org/Paperback",
     ...(pages > 0 ? { numberOfPages: pages } : {}),
+    ...(rawYear ? { datePublished: rawYear } : {}),
     author: rawAuthor
       ? { "@type": "Person", name: String(rawAuthor) }
       : { "@type": "Organization", name: PUBLISHER_ENTITY.nameEn, "@id": orgId },
     publisher: {
       "@type": "Organization",
       "@id": orgId,
-      name: `${PUBLISHER_ENTITY.nameTa} | ${PUBLISHER_ENTITY.nameEn}`,
+      name: rawPublisher || `${PUBLISHER_ENTITY.nameTa} | ${PUBLISHER_ENTITY.nameEn}`,
       url: homeUrl,
     },
     brand: {
       "@type": "Brand",
-      name: PUBLISHER_ENTITY.nameEn,
+      name: product.vendor || PUBLISHER_ENTITY.nameEn,
     },
     offers: {
       "@type": "Offer",
       url: canonicalUrl,
-      priceCurrency: "INR",
-      price: ((effectivePriceCents || 0) / 100).toFixed(2),
+      priceCurrency: currencyCode,
+      price: effectivePriceRupees.toFixed(2),
       availability: inStock
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",

@@ -1,21 +1,25 @@
 import type { MetadataRoute } from "next";
-import {
-  fetchBooksSafe,
-  getCategoriesWithFallback,
-} from "@/lib/catalog-fallback";
+import { listCollections, listProducts } from "@/lib/shopify";
 import { SITE_URL } from "@/lib/site-defaults";
 import { AUTHORS, POLICY_LAST_UPDATED_ISO } from "@/lib/aeo-data";
 
-export const revalidate = 3600;
+export const revalidate = 120;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [booksRes, categories] = await Promise.all([
-    fetchBooksSafe(),
-    getCategoriesWithFallback(),
-  ]);
-  const publishedBooks = booksRes.isFallback
-    ? []
-    : (booksRes.books as any[]).filter((b) => b?.id || b?.slug);
+  let publishedBooks: { slug: string; updated_at?: string }[] = [];
+  let categories: { slug: string; updated_at?: string }[] = [];
+
+  try {
+    const [prodRes, colRes] = await Promise.all([
+      listProducts({ first: 250 }),
+      listCollections({ first: 100 }),
+    ]);
+    publishedBooks = prodRes.products.filter((b) => Boolean(b?.slug));
+    categories = colRes.collections.filter((c) => Boolean(c?.slug));
+  } catch {
+    // Emit static routes cleanly when Shopify is temporarily unavailable
+  }
+
   const now = new Date();
   const policyDate = new Date(POLICY_LAST_UPDATED_ISO);
 
@@ -37,16 +41,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "yearly" as const,
       priority: 0.5,
     })),
-    ...(categories as any[])
-      .filter((c) => c?.slug)
-      .map((c) => ({
-        url: `${SITE_URL}/categories/${encodeURIComponent(String(c.slug))}`,
-        lastModified: c.updated_at ? new Date(c.updated_at) : now,
-        changeFrequency: "weekly" as const,
-        priority: 0.7,
-      })),
+    ...categories.map((c) => ({
+      url: `${SITE_URL}/categories/${encodeURIComponent(String(c.slug))}`,
+      lastModified: c.updated_at ? new Date(c.updated_at) : now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
     ...publishedBooks.map((b) => ({
-      url: `${SITE_URL}/books/${encodeURIComponent(String(b.slug || b.id))}`,
+      url: `${SITE_URL}/books/${encodeURIComponent(String(b.slug))}`,
       lastModified: b.updated_at ? new Date(b.updated_at) : now,
       changeFrequency: "weekly" as const,
       priority: 0.8,

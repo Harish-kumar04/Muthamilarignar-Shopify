@@ -15,11 +15,7 @@ import {
   SunburstBackdrop,
 } from "@/components/brand/patterns";
 import ProductCard, { toCardProduct, type CardProduct } from "@/components/product/product-card";
-import {
-  fetchBooksSafe,
-  getCategoriesWithFallback,
-  getStoreWithFallback,
-} from "@/lib/catalog-fallback";
+import { getCatalogSummarySafe, listProducts } from "@/lib/shopify";
 import { splitBilingual } from "@/lib/i18n";
 import {
   BRAND,
@@ -34,31 +30,45 @@ import {
 import { buildHomeJsonLd } from "@/lib/seo-schema";
 import { STORE_FAQS, buildFaqJsonLd } from "@/lib/aeo-data";
 
-// ISR: static HTML, refreshed in the background every 60 seconds.
-export const revalidate = 60;
+export const revalidate = 120;
 
 const fetchHomeData = cache(async () => {
-  const [booksRes, store, categories] = await Promise.all([
-    fetchBooksSafe(),
-    getStoreWithFallback(),
-    getCategoriesWithFallback(),
-  ]);
+  const summary = await getCatalogSummarySafe();
+  if (!summary.ok) {
+    return {
+      products: [],
+      newestProducts: [],
+      categories: [],
+      apiUnavailable: true,
+    };
+  }
+  let newestProducts = [...summary.products].reverse();
+  try {
+    const newestRes = await listProducts({
+      first: 8,
+      sortKey: "CREATED_AT",
+      reverse: true,
+    });
+    if (newestRes.products.length > 0) {
+      newestProducts = newestRes.products;
+    }
+  } catch {
+    // Keep reversed summary list if secondary sort query fails
+  }
   return {
-    products: booksRes.books as any[],
-    isFallback: booksRes.isFallback,
-    store,
-    categories: categories as any[],
+    products: summary.products,
+    newestProducts,
+    categories: summary.collections,
+    apiUnavailable: false,
   };
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const store = await getStoreWithFallback();
   const title = `${BRAND.nameTa} | ${BRAND.nameEn} — Official Tamil & English Bookstore`;
   const description =
-    store?.description ||
     "முத்தமிழறிஞர் பதிப்பகம் — திராவிட இயக்க வரலாறு, சமூகநீதி மற்றும் கலைஞர் படைப்புகள் | Official Bookstore of Muthamilarignar Pathipagam with Pan-India COD & online delivery.";
   const url = SITE_URL;
-  const ogImg = getShareLogoUrl(store);
+  const ogImg = getShareLogoUrl();
   return {
     title,
     description,
@@ -81,11 +91,18 @@ function renderTabGrid(list: CardProduct[], apiUnavailable: boolean) {
     return (
       <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-6 py-14 text-center">
         <p className="text-[16px] font-bold text-black">
-          Store is temporarily unavailable, try again
+          Store is temporarily unavailable
         </p>
         <p className="mt-1 text-[14px] text-black/65">
           சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்.
         </p>
+      </div>
+    );
+  }
+  if (list.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-black/15 px-6 py-14 text-center text-[15px] text-black/65">
+        நூல்கள் விரைவில் சேர்க்கப்படும் / Books will appear here soon.
       </div>
     );
   }
@@ -103,11 +120,9 @@ function renderTabGrid(list: CardProduct[], apiUnavailable: boolean) {
 }
 
 export default async function HomePage() {
-  const { products, isFallback, store, categories } = await fetchHomeData();
+  const { products, newestProducts, categories, apiUnavailable } = await fetchHomeData();
 
-  const cards = products.map((p) =>
-    toCardProduct(isFallback ? { ...p, is_fallback: true } : p),
-  );
+  const cards = products.map((p) => toCardProduct(p));
   const seenCoverUrls = new Set<string>();
   const withCovers = cards.filter((c) => {
     if (!c.image_url) return false;
@@ -117,8 +132,7 @@ export default async function HomePage() {
   });
   const total = cards.length;
 
-  // Admin-configured 3-image Offer Slider (or built-in brand slides decorated with distinct non-hero covers)
-  const { slides, isDefault } = getSlides(store);
+  const { slides, isDefault } = getSlides();
   const sliderPool = withCovers.slice(3);
   const slideViews: SlideView[] = slides.map((s, i) => {
     const href = resolveLink(s.link);
@@ -142,51 +156,55 @@ export default async function HomePage() {
     };
   });
 
-  // Tabbed product groups from real catalog data
-  const newArrivals = [...cards].reverse().slice(0, 8);
+  const newArrivals = newestProducts.map((p) => toCardProduct(p)).slice(0, 8);
   const bestSellers = cards.slice(0, 8);
   const saleBooks = cards.filter(
     (c) => c.sale_price_cents && c.price_cents > 0 && c.sale_price_cents < c.price_cents,
   );
   const offers = (saleBooks.length > 0 ? saleBooks : cards).slice(0, 8);
 
-  const kalaignarCatIds = new Set(
-    categories
-      .filter((cat: any) =>
-        /kalaignar|karunanidhi|கலைஞர்/i.test(`${cat.name || ""} ${cat.slug || ""}`),
-      )
-      .map((cat: any) => String(cat.id)),
-  );
+  const kalaignarCatKeys = new Set<string>();
+  for (const cat of categories) {
+    if (/kalaignar|karunanidhi|கலைஞர்/i.test(`${cat.name || ""} ${cat.slug || ""}`)) {
+      kalaignarCatKeys.add(String(cat.id));
+      if (cat.slug) kalaignarCatKeys.add(String(cat.slug));
+    }
+  }
   const kalaignarMatches = cards.filter(
     (c) =>
-      (c.category_id && kalaignarCatIds.has(c.category_id)) ||
+      (c.category_id && kalaignarCatKeys.has(c.category_id)) ||
+      c.collection_ids?.some((id) => kalaignarCatKeys.has(id)) ||
+      c.collection_handles?.some((h) => kalaignarCatKeys.has(h)) ||
       /kalaignar|karunanidhi|கலைஞர்/i.test(`${c.name} ${c.author || ""}`),
   );
   const kalaignarWorks = (kalaignarMatches.length > 0 ? kalaignarMatches : cards).slice(0, 8);
 
-  const logoUrl = getLogoUrl(store);
+  const logoUrl = getLogoUrl();
   const jsonLd = buildHomeJsonLd(logoUrl);
 
   return (
     <>
-      {/* Fallback Notice Banner when API is temporarily unreachable */}
-      {Boolean(isFallback) && (
-        <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-xs font-semibold text-amber-950">
-          சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும் — Store is temporarily unavailable, try again.
+      {apiUnavailable && (
+        <div
+          role="alert"
+          className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-center text-xs font-semibold text-amber-950"
+        >
+          சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை — Store is temporarily unavailable
         </div>
       )}
 
-      {/* 1. Brand Landing Hero (Red Arch + Tilted Covers + Floating Real Badges + Real Stats Row) */}
+      {/* 1. Brand Landing Hero */}
       <BrandHero
         heroBooks={withCovers.length > 0 ? withCovers : cards}
         totalBooks={total}
         categoryCount={categories.length}
+        apiUnavailable={apiUnavailable}
       />
 
-      {/* 2. Trust Badges (COD, Razorpay Secure, Official Publisher, Pan-India Delivery) */}
+      {/* 2. Trust Badges */}
       <TrustBar />
 
-      {/* 3. Category Tiles with Custom Icons (#FAFAFA) */}
+      {/* 3. Category Tiles from Shopify Collections */}
       <CategoryTiles categories={categories} />
 
       {/* 4. Tabbed Product Rows (New Arrivals | Best Sellers | Offers | Kalaignar Works) */}
@@ -200,31 +218,31 @@ export default async function HomePage() {
           />
         }
         panels={{
-          new: renderTabGrid(newArrivals, Boolean(isFallback)),
-          bestsellers: renderTabGrid(bestSellers, Boolean(isFallback)),
-          offers: renderTabGrid(offers, Boolean(isFallback)),
-          kalaignar: renderTabGrid(kalaignarWorks, Boolean(isFallback)),
+          new: renderTabGrid(newArrivals, apiUnavailable),
+          bestsellers: renderTabGrid(bestSellers, apiUnavailable),
+          offers: renderTabGrid(offers, apiUnavailable),
+          kalaignar: renderTabGrid(kalaignarWorks, apiUnavailable),
         }}
       />
 
       <DiagonalStripeDivider />
 
-      {/* 5. Admin-Controlled 3-Image Offer Slider */}
+      {/* 5. Offer Slider */}
       <HeroSlider slides={slideViews} />
 
-      {/* 6. Author & Publisher Story (#FAFAFA) */}
+      {/* 6. Author & Publisher Story */}
       <PublisherStory totalBooks={total} logoUrl={logoUrl} />
 
       <DiagonalStripeDivider />
 
-      {/* 7. Reader Testimonials (#FFFFFF) */}
+      {/* 7. Reader Testimonials */}
       <Testimonials />
 
-      {/* 8. Crawlable FAQ Section + FAQPage JSON-LD (AEO / GEO) */}
+      {/* 8. Crawlable FAQ Section + FAQPage JSON-LD */}
       <FaqSection />
 
-      {/* 9. Newsletter with Visible Inline Success (#FAFAFA) */}
-      <NewsletterSection storeId={store?.id} />
+      {/* 9. Newsletter */}
+      <NewsletterSection />
 
       {/* JSON-LD Structured Data */}
       <script

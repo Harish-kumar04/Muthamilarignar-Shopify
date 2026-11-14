@@ -17,8 +17,6 @@ export interface SearchBookItem {
   image_url?: string | null;
 }
 
-const searchCatalogCache: SearchBookItem[] = [];
-
 export default function HeaderSearch({
   books = [],
 }: {
@@ -28,14 +26,10 @@ export default function HeaderSearch({
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [lazyBooks] = useState<SearchBookItem[]>(() => searchCatalogCache);
+  const [remoteResults, setRemoteResults] = useState<SearchBookItem[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const activeBooks = books.length > 0 ? books : lazyBooks;
-
-  const ensureCatalogLoaded = () => {
-    // TODO shopify: query Shopify Storefront `predictiveSearch(query: $query, types: [PRODUCT])`
-  };
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -48,17 +42,61 @@ export default function HeaderSearch({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Debounced live Shopify search via /api/search
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setRemoteResults(null);
+      setUnavailable(false);
+      setLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setLoading(true);
+    const timer = window.setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(trimmed)}`, {
+        signal: controller.signal,
+      })
+        .then(async (res) => {
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || data.unavailable) {
+            setUnavailable(true);
+            setRemoteResults([]);
+            return;
+          }
+          setUnavailable(false);
+          setRemoteResults(Array.isArray(data.books) ? data.books : []);
+        })
+        .catch((err) => {
+          if (err?.name !== "AbortError") {
+            setUnavailable(true);
+            setRemoteResults([]);
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setLoading(false);
+        });
+    }, 200);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
   const results = useMemo(() => {
+    if (remoteResults !== null) return remoteResults;
     const q = query.trim().toLowerCase();
     if (!q || q.length < 2) return [];
-    return activeBooks
+    return books
       .filter((b) => {
         const nameMatch = b.name.toLowerCase().includes(q);
         const authorMatch = b.author ? b.author.toLowerCase().includes(q) : false;
         return nameMatch || authorMatch;
       })
       .slice(0, 6);
-  }, [query, activeBooks]);
+  }, [query, books, remoteResults]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,12 +115,10 @@ export default function HeaderSearch({
           aria-label={t("நூல் அல்லது ஆசிரியர் தேடுக", "Search books or author")}
           value={query}
           onChange={(e) => {
-            ensureCatalogLoaded();
             setQuery(e.target.value);
             setIsOpen(true);
           }}
           onFocus={() => {
-            ensureCatalogLoaded();
             if (query.trim().length >= 2) setIsOpen(true);
           }}
           placeholder={t("நூல் அல்லது ஆசிரியர் தேடுக…", "Search books or author…")}
@@ -103,7 +139,15 @@ export default function HeaderSearch({
       {/* Results Dropdown */}
       {isOpen && query.trim().length >= 2 && (
         <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-96 overflow-y-auto rounded-2xl border border-black/10 bg-white p-2 shadow-glow">
-          {results.length === 0 ? (
+          {loading && remoteResults === null ? (
+            <div className="p-4 text-center text-[13px] text-black/55">
+              {t("தேடுகிறது…", "Searching…")}
+            </div>
+          ) : unavailable ? (
+            <div className="p-4 text-center text-[13px] font-medium text-amber-900">
+              {t("சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை", "Store is temporarily unavailable")}
+            </div>
+          ) : results.length === 0 ? (
             <div className="p-4 text-center text-[13px] text-black/50">
               {t("நூல்கள் எதுவும் கிடைக்கவில்லை", "No books found")}
             </div>

@@ -32,7 +32,8 @@ export default function CardAddButton({
   const [buying, setBuying] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const unavailable = Boolean(isFallback) || !isUuidProductId(productId);
+  const isShopifyId = typeof productId === "string" && productId.startsWith("gid://shopify/");
+  const unavailable = Boolean(isFallback) || (!isShopifyId && !isUuidProductId(productId));
   const busy = adding || buying;
 
   if (!inStock) {

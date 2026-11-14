@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import BookDetailView from "@/components/product/book-detail-view";
-import { fetchBookById, getBooksWithFallback } from "@/lib/catalog-fallback";
+import {
+  getBookByHandleSafe,
+  getCatalogSummarySafe,
+  getProductRecommendations,
+  type ShopifyBook,
+} from "@/lib/shopify";
 import { splitBilingual } from "@/lib/i18n";
 import { BRAND, LOGO_ALT, getShareLogoUrl } from "@/lib/site-defaults";
 import {
@@ -17,12 +22,11 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export const revalidate = 120;
 
 export async function generateStaticParams() {
-  const books = (await getBooksWithFallback()) as any[];
-  return books
-    .filter((b) => b?.slug || b?.id)
-    .map((b) => ({
-      slug: String(b.slug || b.id),
-    }));
+  const summary = await getCatalogSummarySafe();
+  if (!summary.ok) return [];
+  return summary.products
+    .filter((b) => b?.slug)
+    .map((b) => ({ slug: String(b.slug) }));
 }
 
 export async function generateMetadata({
@@ -30,13 +34,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const lookup = await fetchBookById(params.slug);
-  if (lookup.status === "gone") {
-    return {
-      title: `நூல் பதிப்பில் இல்லை | Edition Unavailable — ${BRAND.nameEn}`,
-      robots: { index: false, follow: true },
-    };
-  }
+  const lookup = await getBookByHandleSafe(params.slug);
   if (lookup.status !== "ok") {
     return {
       title: `நூல் | Book — ${BRAND.nameEn}`,
@@ -86,40 +84,37 @@ export async function generateMetadata({
   };
 }
 
+async function resolveRelatedBooks(product: ShopifyBook): Promise<ShopifyBook[]> {
+  try {
+    const recs = await getProductRecommendations(product.id);
+    if (recs.length > 0) return recs.slice(0, 4);
+  } catch {
+    // Fall back to collection peers if recommendations query fails
+  }
+  const summary = await getCatalogSummarySafe();
+  if (!summary.ok) return [];
+  const sameCollection = summary.products.filter(
+    (b) =>
+      b.id !== product.id &&
+      ((product.category_id && b.category_id === product.category_id) ||
+        b.collection_handles.some((h) => product.collection_handles.includes(h))),
+  );
+  const pool =
+    sameCollection.length > 0
+      ? sameCollection
+      : summary.products.filter((b) => b.id !== product.id);
+  return pool.slice(0, 4);
+}
+
 export default async function BookSlugDetailPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const [lookup, allBooks] = await Promise.all([
-    fetchBookById(params.slug),
-    getBooksWithFallback(),
-  ]);
+  const lookup = await getBookByHandleSafe(params.slug);
 
   if (lookup.status === "not_found") {
     notFound();
-  }
-
-  // HTTP 410 Gone handling for discontinued / archived books
-  if (lookup.status === "gone") {
-    return (
-      <div className="container-site py-20 text-center">
-        <div className="mx-auto max-w-lg rounded-2xl border border-black/15 bg-[#FAFAFA] p-8 shadow-card">
-          <p className="eyebrow">410 • பதிப்பில் இல்லை / Edition Discontinued</p>
-          <h1 className="mt-2 text-[26px] font-extrabold text-black">
-            இந்த நூல் தற்போது பதிப்பில் இல்லை
-          </h1>
-          <p className="mt-2 text-[14.5px] leading-relaxed text-black/70">
-            This edition has been archived and is no longer available for purchase. Explore our active Muthamilarignar Pathipagam catalog below.
-          </p>
-          <div className="mt-6 flex justify-center">
-            <Link href="/books" className="btn-red h-12 px-7 text-[14.5px]">
-              அனைத்து நூல்களையும் காண்க / Browse Active Books
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   if (lookup.status !== "ok") {
@@ -127,7 +122,7 @@ export default async function BookSlugDetailPage({
       <div className="container-site py-20 text-center">
         <div className="mx-auto max-w-md rounded-2xl border border-amber-500/30 bg-white p-8 shadow-sm">
           <h1 className="text-[22px] font-extrabold text-black">
-            Store is temporarily unavailable, try again
+            Store is temporarily unavailable
           </h1>
           <p className="mt-3 text-[13.5px] leading-relaxed text-black/65">
             சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்.
@@ -154,19 +149,16 @@ export default async function BookSlugDetailPage({
   const product = lookup.product;
   const canonicalSlug = bookSlugOrId(product);
 
-  // Deduplicate: redirect raw UUID visits on /books/<uuid> to clean /books/<slug>
-  if (UUID_RE.test(params.slug) && product.slug && params.slug !== canonicalSlug) {
+  if (
+    (UUID_RE.test(params.slug) || params.slug.startsWith("gid://shopify/")) &&
+    product.slug &&
+    params.slug !== canonicalSlug
+  ) {
     permanentRedirect(`/books/${encodeURIComponent(canonicalSlug)}`);
   }
 
+  const relatedBooks = await resolveRelatedBooks(product);
   const jsonLd = buildBookJsonLd({ product });
-  const relatedBooks = (allBooks as any[])
-    .filter(
-      (b) =>
-        b.id !== product.id &&
-        (b.category_id === product.category_id || b.category === product.category),
-    )
-    .slice(0, 4);
 
   return (
     <>
@@ -174,10 +166,7 @@ export default async function BookSlugDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <BookDetailView
-        product={product}
-        relatedBooks={relatedBooks}
-      />
+      <BookDetailView product={product} relatedBooks={relatedBooks} />
     </>
   );
 }

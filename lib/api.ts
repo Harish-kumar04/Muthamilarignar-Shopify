@@ -24,9 +24,11 @@ export class StorefrontApi {
   // ---- Public catalog, store, pages, categories ----
 
   async getStore(): Promise<any> {
-    // TODO shopify: query `shop { name description brand { logo { image { url } } } }`
-    const { FALLBACK_STORE } = await import("./catalog-fallback");
-    return FALLBACK_STORE;
+    return {
+      name: "Muthamilarignar Pathipagam",
+      currency: "INR",
+      razorpay_enabled: false,
+    };
   }
 
   async getPages(): Promise<any[]> {
@@ -35,19 +37,15 @@ export class StorefrontApi {
   }
 
   async getProducts(_params?: Record<string, string>): Promise<any[]> {
-    // TODO shopify: query `products(first: 50)`
     return [];
   }
 
   async getProduct(_id: string): Promise<any | null> {
-    // TODO shopify: query `product(handle: ...)` or `product(id: ...)`
     return null;
   }
 
   async getCategories(): Promise<any[]> {
-    // TODO shopify: query `collections(first: 20)`
-    const { FALLBACK_CATEGORIES } = await import("./catalog-fallback");
-    return FALLBACK_CATEGORIES;
+    return [];
   }
 
   async getProductVariants(_productId: string): Promise<any[]> {

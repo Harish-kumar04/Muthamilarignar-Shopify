@@ -4,35 +4,50 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ProductCard, { toCardProduct } from "@/components/product/product-card";
 import { useLanguage } from "@/components/language-provider";
 import { T } from "@/components/i18n/t";
+import PenLoader from "@/components/ui/pen-loader";
 
 type Category = { id: string; name: string; slug?: string };
 type SortKey = "default" | "newest" | "price-asc" | "price-desc";
+type PageInfo = { hasNextPage: boolean; endCursor: string | null };
+
 const VALID_SORTS: readonly SortKey[] = ["default", "newest", "price-asc", "price-desc"];
 
-/** `?category=` may hold a category slug (preferred) or id. */
 function findCategory(categories: Category[], key: string | null): Category | undefined {
-  if (!key) return undefined;
+  if (!key || key === "all") return undefined;
   const k = key.toLowerCase();
-  return categories.find((c) => (c.slug || "").toLowerCase() === k || String(c.id).toLowerCase() === k);
+  return categories.find(
+    (c) => (c.slug || "").toLowerCase() === k || String(c.id).toLowerCase() === k,
+  );
 }
 
 export default function BooksCatalogClient({
   products,
   categories,
+  initialPageInfo = { hasNextPage: false, endCursor: null },
   apiUnavailable = false,
 }: {
   products: any[];
   categories: Category[];
+  initialPageInfo?: PageInfo;
   apiUnavailable?: boolean;
 }) {
   const { t, localizeName } = useLanguage();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortKey>("default");
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [saleOnly, setSaleOnly] = useState(false);
+
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [cursorHistory, setCursorHistory] = useState<(string | null)[]>([]);
+  const [items, setItems] = useState<any[]>(products);
+  const [pageInfo, setPageInfo] = useState<PageInfo>(initialPageInfo);
+  const [loading, setLoading] = useState(false);
+  const [unavailable, setUnavailable] = useState(apiUnavailable);
+  const hydratedRef = useRef(false);
 
   const sortOptions: { value: SortKey; label: string }[] = useMemo(
     () => [
@@ -47,25 +62,176 @@ export default function BooksCatalogClient({
   const selectedSortLabel =
     sortOptions.find((opt) => opt.value === sortBy)?.label ?? sortOptions[0].label;
 
-  // Sync category, sale, sort, and search from URL params without making the page dynamic
+  const syncUrlParams = useCallback(
+    (next: {
+      q?: string;
+      category?: string;
+      sort?: SortKey;
+      sale?: boolean;
+      stock?: boolean;
+      after?: string | null;
+    }) => {
+      if (typeof window === "undefined") return;
+      const url = new URL(window.location.href);
+      const qVal = (next.q ?? "").trim();
+      if (qVal) url.searchParams.set("q", qVal);
+      else {
+        url.searchParams.delete("q");
+        url.searchParams.delete("search");
+      }
+
+      if (next.category && next.category !== "all") {
+        url.searchParams.set("category", next.category);
+      } else {
+        url.searchParams.delete("category");
+      }
+
+      if (next.sort && next.sort !== "default") {
+        url.searchParams.set("sort", next.sort);
+      } else {
+        url.searchParams.delete("sort");
+      }
+
+      if (next.sale) url.searchParams.set("sale", "1");
+      else url.searchParams.delete("sale");
+
+      if (next.stock) url.searchParams.set("stock", "1");
+      else url.searchParams.delete("stock");
+
+      if (next.after) url.searchParams.set("after", next.after);
+      else url.searchParams.delete("after");
+
+      window.history.replaceState(window.history.state, "", url.toString());
+    },
+    [],
+  );
+
+  // Hydrate initial filter/sort/cursor from URL query string
   useEffect(() => {
     const apply = () => {
       const params = new URLSearchParams(window.location.search);
       const catKey = params.get("category");
-      setSelectedCategory(findCategory(categories, catKey)?.id ?? "all");
+      const matchedCat = findCategory(categories, catKey);
+      setSelectedCategory(matchedCat?.slug || matchedCat?.id || (catKey ? catKey : "all"));
 
       const sortParam = params.get("sort") as SortKey | null;
-      if (sortParam && VALID_SORTS.includes(sortParam)) {
-        setSortBy(sortParam);
-      }
-      if (params.get("sale") === "1") setSaleOnly(true);
-      const q = params.get("q") || params.get("search");
-      if (q && q !== "1") setSearch(q);
+      setSortBy(sortParam && VALID_SORTS.includes(sortParam) ? sortParam : "default");
+
+      setSaleOnly(params.get("sale") === "1");
+      setInStockOnly(params.get("stock") === "1");
+
+      const q = params.get("q") || params.get("search") || "";
+      const cleanQ = q === "1" ? "" : q;
+      setSearch(cleanQ);
+      setDebouncedSearch(cleanQ);
+
+      const afterParam = params.get("after");
+      setCursor(afterParam || null);
+      hydratedRef.current = true;
     };
     apply();
     window.addEventListener("popstate", apply);
     return () => window.removeEventListener("popstate", apply);
   }, [categories]);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = search.trim();
+      setDebouncedSearch((prev) => {
+        if (prev !== trimmed) {
+          setCursor(null);
+          setCursorHistory([]);
+        }
+        return trimmed;
+      });
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Fetch Shopify products via /api/books when filters, sort, search, or cursor are active
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+
+    const isDefaultQuery =
+      !debouncedSearch &&
+      selectedCategory === "all" &&
+      sortBy === "default" &&
+      !inStockOnly &&
+      !saleOnly &&
+      !cursor;
+
+    syncUrlParams({
+      q: debouncedSearch,
+      category: selectedCategory,
+      sort: sortBy,
+      sale: saleOnly,
+      stock: inStockOnly,
+      after: cursor,
+    });
+
+    if (isDefaultQuery) {
+      setItems(products);
+      setPageInfo(initialPageInfo);
+      setUnavailable(apiUnavailable);
+      setLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setLoading(true);
+
+    const qs = new URLSearchParams();
+    if (debouncedSearch) qs.set("q", debouncedSearch);
+    if (selectedCategory !== "all") qs.set("category", selectedCategory);
+    if (sortBy !== "default") qs.set("sort", sortBy);
+    if (inStockOnly) qs.set("stock", "1");
+    if (saleOnly) qs.set("sale", "1");
+    if (cursor) qs.set("after", cursor);
+
+    fetch(`/api/books?${qs.toString()}`, { signal: controller.signal })
+      .then(async (res) => {
+        const data = await res.json().catch(() => null);
+        if (!res.ok || data?.unavailable) {
+          setUnavailable(true);
+          setItems([]);
+          setPageInfo({ hasNextPage: false, endCursor: null });
+          return;
+        }
+        setUnavailable(false);
+        setItems(Array.isArray(data?.products) ? data.products : []);
+        setPageInfo(
+          data?.pageInfo ?? {
+            hasNextPage: false,
+            endCursor: null,
+          },
+        );
+      })
+      .catch((err) => {
+        if (err?.name === "AbortError") return;
+        setUnavailable(true);
+        setItems([]);
+        setPageInfo({ hasNextPage: false, endCursor: null });
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [
+    debouncedSearch,
+    selectedCategory,
+    sortBy,
+    inStockOnly,
+    saleOnly,
+    cursor,
+    products,
+    initialPageInfo,
+    apiUnavailable,
+    syncUrlParams,
+  ]);
 
   useEffect(() => {
     if (!sortOpen) return;
@@ -88,61 +254,50 @@ export default function BooksCatalogClient({
   const selectSort = (value: SortKey) => {
     setSortBy(value);
     setSortOpen(false);
-    const url = new URL(window.location.href);
-    if (value !== "default") url.searchParams.set("sort", value);
-    else url.searchParams.delete("sort");
-    window.history.replaceState(window.history.state, "", url.toString());
+    setCursor(null);
+    setCursorHistory([]);
   };
 
-  const selectCategory = useCallback(
-    (id: string) => {
-      setSelectedCategory(id);
-      const url = new URL(window.location.href);
-      const cat = categories.find((c) => c.id === id);
-      if (cat) url.searchParams.set("category", cat.slug || cat.id);
-      else url.searchParams.delete("category");
-      window.history.replaceState(window.history.state, "", url.toString());
-    },
-    [categories],
-  );
+  const selectCategory = useCallback((slugOrId: string) => {
+    setSelectedCategory(slugOrId);
+    setCursor(null);
+    setCursorHistory([]);
+  }, []);
 
   const toggleSale = () => {
-    const next = !saleOnly;
-    setSaleOnly(next);
-    const url = new URL(window.location.href);
-    if (next) url.searchParams.set("sale", "1");
-    else url.searchParams.delete("sale");
-    window.history.replaceState(window.history.state, "", url.toString());
+    setSaleOnly((prev) => !prev);
+    setCursor(null);
+    setCursorHistory([]);
   };
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    let list = products.filter((p) => {
-      if (selectedCategory !== "all" && p.category_id !== selectedCategory) return false;
-      if (inStockOnly && (p.inventory !== undefined ? p.inventory <= 0 : p.inventory_quantity <= 0)) {
-        return false;
-      }
-      if (saleOnly && !(p.sale_price_cents && p.sale_price_cents < p.price_cents)) {
-        return false;
-      }
-      if (!q) return true;
-      const name = String(p.name || "").toLowerCase();
-      const desc = String(p.description || "").toLowerCase();
-      const sku = String(p.sku || "").toLowerCase();
-      const author = String(p.author || p.dimensions_json?.book?.author || "").toLowerCase();
-      return name.includes(q) || desc.includes(q) || sku.includes(q) || author.includes(q);
-    });
+  const toggleInStock = () => {
+    setInStockOnly((prev) => !prev);
+    setCursor(null);
+    setCursorHistory([]);
+  };
 
-    const priceOf = (p: any) => p.sale_price_cents ?? p.price_cents;
-    if (sortBy === "price-asc") {
-      list = [...list].sort((a, b) => priceOf(a) - priceOf(b));
-    } else if (sortBy === "price-desc") {
-      list = [...list].sort((a, b) => priceOf(b) - priceOf(a));
-    } else if (sortBy === "newest") {
-      list = [...list].reverse();
+  const goNextPage = () => {
+    if (!pageInfo.hasNextPage || !pageInfo.endCursor) return;
+    setCursorHistory((prev) => [...prev, cursor]);
+    setCursor(pageInfo.endCursor);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    return list;
-  }, [products, search, selectedCategory, sortBy, inStockOnly, saleOnly]);
+  };
+
+  const goPrevPage = () => {
+    if (cursorHistory.length === 0) {
+      setCursor(null);
+      return;
+    }
+    const nextStack = [...cursorHistory];
+    const prevCursor = nextStack.pop() ?? null;
+    setCursorHistory(nextStack);
+    setCursor(prevCursor);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   const pill = (active: boolean) =>
     `inline-flex min-h-[44px] items-center whitespace-nowrap rounded-full px-4 py-2 text-[13.5px] font-semibold transition-all ${
@@ -150,6 +305,9 @@ export default function BooksCatalogClient({
         ? "bg-[#D11D1A] text-white shadow-glow"
         : "border border-black/15 bg-white text-black hover:border-brand-red-dark hover:text-brand-red-dark"
     }`;
+
+  const pageNumber = cursor ? cursorHistory.length + 2 : 1;
+  const hasPrevPage = Boolean(cursor);
 
   return (
     <div className="container-site py-10 sm:py-14">
@@ -163,15 +321,15 @@ export default function BooksCatalogClient({
         <div aria-hidden="true" className="mt-3 h-1 w-14 rounded-full bg-brand-red" />
         <p className="mt-3 max-w-2xl text-[15px] text-black/70 sm:text-[16px]">
           <T
-            ta={`முத்தமிழறிஞர் பதிப்பகத்தின் ${products.length} அதிகாரப்பூர்வ வெளியீடுகள் — திராவிட இயக்க வரலாறு, சமூகநீதி, திராவிட மாடல் மற்றும் கலைஞர் படைப்புகள்.`}
-            en={`All ${products.length} official publications from Muthamilarignar Pathipagam — Dravidian history, social justice, the Dravidian Model and Kalaignar's works.`}
+            ta="முத்தமிழறிஞர் பதிப்பகத்தின் அதிகாரப்பூர்வ வெளியீடுகள் — திராவிட இயக்க வரலாறு, சமூகநீதி, திராவிட மாடல் மற்றும் கலைஞர் படைப்புகள்."
+            en="Official publications from Muthamilarignar Pathipagam — Dravidian history, social justice, the Dravidian Model and Kalaignar's works."
           />
         </p>
       </header>
 
       {/* Search and Sort Row */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row items-center">
-        <div className="relative flex-1 w-full">
+      <div className="mb-6 flex flex-col items-center gap-3 sm:flex-row">
+        <div className="relative w-full flex-1">
           <label htmlFor="catalog-search" className="sr-only">
             {t("நூல்களைத் தேடுக", "Search books")}
           </label>
@@ -200,21 +358,21 @@ export default function BooksCatalogClient({
           </svg>
         </div>
 
-        {/* Sort selector showing selected option */}
+        {/* Sort selector */}
         <div ref={sortRef} className="relative w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setSortOpen((v) => !v)}
             aria-haspopup="listbox"
             aria-expanded={sortOpen}
-            className={`flex h-12 w-full sm:w-auto items-center justify-between gap-2.5 rounded-full border px-5 text-[14px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-brand-red/20 ${
+            className={`flex h-12 w-full items-center justify-between gap-2.5 rounded-full border px-5 text-[14px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-brand-red/20 sm:w-auto ${
               sortBy !== "default"
                 ? "border-brand-red bg-brand-red/5 text-brand-red-dark"
                 : "border-black/20 bg-white text-black hover:border-black/40"
             }`}
           >
             <span className="truncate">
-              <span className="text-black/65 font-medium mr-1">
+              <span className="mr-1 font-medium text-black/65">
                 {t("வரிசை:", "Sort:")}
               </span>
               <span>{selectedSortLabel}</span>
@@ -237,7 +395,7 @@ export default function BooksCatalogClient({
             <ul
               role="listbox"
               aria-label={t("வரிசைப்படுத்து", "Sort options")}
-              className="absolute right-0 z-30 mt-2 w-full sm:w-64 overflow-hidden rounded-2xl border border-black/10 bg-white py-1.5 shadow-xl"
+              className="absolute right-0 z-30 mt-2 w-full overflow-hidden rounded-2xl border border-black/10 bg-white py-1.5 shadow-xl sm:w-64"
             >
               {sortOptions.map((opt) => {
                 const active = opt.value === sortBy;
@@ -254,7 +412,7 @@ export default function BooksCatalogClient({
                     >
                       <span>{opt.label}</span>
                       {active && (
-                        <span aria-hidden="true" className="text-brand-red-dark font-extrabold">
+                        <span aria-hidden="true" className="font-extrabold text-brand-red-dark">
                           ✓
                         </span>
                       )}
@@ -269,7 +427,6 @@ export default function BooksCatalogClient({
 
       {/* Category Chips and Toggles Row */}
       <div className="mb-8 space-y-3">
-        {/* Category Pills */}
         {categories.length > 0 && (
           <div
             role="group"
@@ -282,23 +439,29 @@ export default function BooksCatalogClient({
               aria-pressed={selectedCategory === "all"}
               className={pill(selectedCategory === "all")}
             >
-              {t(`அனைத்தும் (${products.length})`, `All (${products.length})`)}
+              {t("அனைத்தும்", "All")}
             </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => selectCategory(cat.id)}
-                aria-pressed={selectedCategory === cat.id}
-                className={pill(selectedCategory === cat.id)}
-              >
-                {localizeName(cat.name)}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const key = cat.slug || cat.id;
+              const active =
+                selectedCategory.toLowerCase() === key.toLowerCase() ||
+                selectedCategory.toLowerCase() === String(cat.id).toLowerCase();
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => selectCategory(key)}
+                  aria-pressed={active}
+                  className={pill(active)}
+                >
+                  {localizeName(cat.name)}
+                </button>
+              );
+            })}
           </div>
         )}
 
-        {/* Filters: In-stock and Sale */}
+        {/* Filters: On Sale & In Stock */}
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <button
             type="button"
@@ -318,7 +481,7 @@ export default function BooksCatalogClient({
 
           <button
             type="button"
-            onClick={() => setInStockOnly(!inStockOnly)}
+            onClick={toggleInStock}
             aria-pressed={inStockOnly}
             className={`inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
               inStockOnly
@@ -329,35 +492,52 @@ export default function BooksCatalogClient({
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-green-600" />
             {t("கையிருப்பில் உள்ளவை மட்டும்", "In Stock Only")}
           </button>
+
+          {loading && (
+            <span className="ml-2 inline-flex items-center gap-2 text-[13px] font-medium text-black/65">
+              <PenLoader size="sm" label={t("ஏற்றுகிறது", "Loading")} />
+            </span>
+          )}
         </div>
       </div>
 
-      <h2 className="sr-only">
-        {t("நூல் பட்டியல்", "Books catalog")}
-      </h2>
+      <h2 className="sr-only">{t("நூல் பட்டியல்", "Books catalog")}</h2>
       <p className="sr-only" role="status" aria-live="polite">
-        {t(`${filtered.length} நூல்கள்`, `${filtered.length} books`)}
+        {t(`${items.length} நூல்கள்`, `${items.length} books`)}
       </p>
 
-      {/* Book Grid or Empty State */}
-      {apiUnavailable && filtered.length === 0 ? (
+      {/* Book Grid, Unavailable State, or Empty State */}
+      {unavailable ? (
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-6 py-16 text-center">
           <p className="text-[17px] font-bold text-black">
-            {t("சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்", "Store is temporarily unavailable, try again")}
+            Store is temporarily unavailable
+          </p>
+          <p className="mt-1.5 text-[14px] text-black/65">
+            {t(
+              "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்.",
+              "Please try again shortly.",
+            )}
           </p>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : items.length === 0 && !loading ? (
         <div className="rounded-2xl border border-dashed border-black/15 px-6 py-20 text-center">
-          <p className="text-black/60 text-[16px]">
-            {t("உங்கள் தேடலுக்குப் பொருந்தும் நூல்கள் எதுவும் கிடைக்கவில்லை.", "No books matched your search or filter.")}
+          <p className="text-[16px] text-black/60">
+            {t(
+              "உங்கள் தேடலுக்குப் பொருந்தும் நூல்கள் எதுவும் கிடைக்கவில்லை.",
+              "No books matched your search or filter.",
+            )}
           </p>
           <button
             type="button"
             onClick={() => {
               setSearch("");
+              setDebouncedSearch("");
               setSelectedCategory("all");
+              setSortBy("default");
               setSaleOnly(false);
               setInStockOnly(false);
+              setCursor(null);
+              setCursorHistory([]);
             }}
             className="btn-red mt-5 h-11 text-[14px]"
           >
@@ -365,15 +545,53 @@ export default function BooksCatalogClient({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 xl:grid-cols-5">
-          {filtered.map((p: any) => (
-            <ProductCard
-              key={p.id}
-              product={toCardProduct(p)}
-              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 260px"
-            />
-          ))}
-        </div>
+        <>
+          <div
+            className={`grid grid-cols-2 gap-4 transition-opacity sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 xl:grid-cols-5 ${
+              loading ? "opacity-60" : "opacity-100"
+            }`}
+          >
+            {items.map((p: any) => (
+              <ProductCard
+                key={p.id}
+                product={toCardProduct(p)}
+                sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 260px"
+              />
+            ))}
+          </div>
+
+          {/* Cursor Pagination Controls */}
+          {(hasPrevPage || pageInfo.hasNextPage) && (
+            <nav
+              aria-label={t("பக்க வழிசெலுத்தல்", "Catalog pagination")}
+              className="mt-10 flex items-center justify-center gap-4 border-t border-black/10 pt-8"
+            >
+              <button
+                type="button"
+                onClick={goPrevPage}
+                disabled={!hasPrevPage || loading}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-black/20 bg-white px-5 py-2 text-[14px] font-bold text-black transition-colors hover:border-brand-red-dark hover:text-brand-red-dark disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <span aria-hidden="true">←</span>
+                <span>{t("முந்தைய பக்கம்", "Previous")}</span>
+              </button>
+
+              <span className="text-[13.5px] font-semibold text-black/70">
+                {t(`பக்கம் ${pageNumber}`, `Page ${pageNumber}`)}
+              </span>
+
+              <button
+                type="button"
+                onClick={goNextPage}
+                disabled={!pageInfo.hasNextPage || !pageInfo.endCursor || loading}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-black px-5 py-2 text-[14px] font-bold text-white transition-colors hover:bg-[#D11D1A] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <span>{t("அடுத்த பக்கம்", "Next")}</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </nav>
+          )}
+        </>
       )}
     </div>
   );

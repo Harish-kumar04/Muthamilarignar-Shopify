@@ -2,17 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import BookDetailView from "@/components/product/book-detail-view";
-import { fetchBookById, getBooksWithFallback } from "@/lib/catalog-fallback";
+import {
+  getBookByHandleSafe,
+  getCatalogSummarySafe,
+  getProductRecommendations,
+  type ShopifyBook,
+} from "@/lib/shopify";
 import { splitBilingual } from "@/lib/i18n";
 import { BRAND, LOGO_ALT, getShareLogoUrl } from "@/lib/site-defaults";
 import { absoluteUrl, bookCanonicalUrl, buildBookJsonLd } from "@/lib/seo-schema";
 
-// ISR: book detail pages cached for 120 s and revalidated via /api/revalidate tags.
 export const revalidate = 120;
 
 export async function generateStaticParams() {
-  const books = (await getBooksWithFallback()) as any[];
-  return books.filter((b) => b?.id).map((b) => ({ id: String(b.id) }));
+  const summary = await getCatalogSummarySafe();
+  if (!summary.ok) return [];
+  return summary.products
+    .filter((b) => b?.slug)
+    .map((b) => ({ id: String(b.slug) }));
 }
 
 export async function generateMetadata({
@@ -20,7 +27,7 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }): Promise<Metadata> {
-  const lookup = await fetchBookById(params.id);
+  const lookup = await getBookByHandleSafe(params.id);
   if (lookup.status !== "ok") {
     return { title: `Book | ${BRAND.nameEn}`, robots: { index: false, follow: true } };
   }
@@ -49,33 +56,23 @@ export async function generateMetadata({
   };
 }
 
+async function resolveRelatedBooks(product: ShopifyBook): Promise<ShopifyBook[]> {
+  try {
+    const recs = await getProductRecommendations(product.id);
+    if (recs.length > 0) return recs.slice(0, 4);
+  } catch {
+    // Fall back to collection peers
+  }
+  const summary = await getCatalogSummarySafe();
+  if (!summary.ok) return [];
+  return summary.products.filter((b) => b.id !== product.id).slice(0, 4);
+}
+
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-  const [lookup, allBooks] = await Promise.all([
-    fetchBookById(params.id),
-    getBooksWithFallback(),
-  ]);
+  const lookup = await getBookByHandleSafe(params.id);
 
   if (lookup.status === "not_found") {
     notFound();
-  }
-
-  if (lookup.status === "gone") {
-    return (
-      <div className="container-site py-20 text-center">
-        <div className="mx-auto max-w-lg rounded-2xl border border-black/15 bg-[#FAFAFA] p-8 shadow-card">
-          <p className="eyebrow">410 • பதிப்பில் இல்லை / Edition Discontinued</p>
-          <h1 className="mt-2 text-[26px] font-extrabold text-black">இந்த நூல் தற்போது பதிப்பில் இல்லை</h1>
-          <p className="mt-2 text-[14.5px] leading-relaxed text-black/70">
-            This edition has been archived and is no longer available for purchase.
-          </p>
-          <div className="mt-6 flex justify-center">
-            <Link href="/books" className="btn-red h-12 px-7 text-[14.5px]">
-              அனைத்து நூல்களையும் காண்க / Browse Active Books
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   if (lookup.status !== "ok") {
@@ -83,7 +80,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
       <div className="container-site py-20 text-center">
         <div className="mx-auto max-w-md rounded-2xl border border-amber-500/30 bg-white p-8 shadow-sm">
           <h1 className="text-[22px] font-extrabold text-[#111]">
-            Store is temporarily unavailable, try again
+            Store is temporarily unavailable
           </h1>
           <p className="mt-3 text-[13.5px] leading-relaxed text-black/60">
             சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்.
@@ -108,23 +105,13 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   }
 
   const product = lookup.product;
+  const relatedBooks = await resolveRelatedBooks(product);
   const jsonLd = buildBookJsonLd({ product });
-
-  const relatedBooks = (allBooks as any[])
-    .filter(
-      (b) =>
-        b.id !== product.id &&
-        (b.category_id === product.category_id || b.category === product.category),
-    )
-    .slice(0, 4);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <BookDetailView
-        product={product}
-        relatedBooks={relatedBooks}
-      />
+      <BookDetailView product={product} relatedBooks={relatedBooks} />
     </>
   );
 }

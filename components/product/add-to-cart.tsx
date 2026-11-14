@@ -21,10 +21,19 @@ export default function AddToCart({
   const [variantsLoading, setVariantsLoading] = useState(false);
   const [variantError, setVariantError] = useState<string | null>(null);
   const maxQty = Number(product.inventory ?? product.inventory_quantity ?? 99);
-  const isFallback = Boolean(product.is_fallback) || !isUuidProductId(product.id);
+  const isShopifyId = typeof product.id === "string" && product.id.startsWith("gid://shopify/");
+  const isFallback =
+    Boolean(product.is_fallback) || (!isShopifyId && !isUuidProductId(product.id));
 
   useEffect(() => {
     if (isFallback) return;
+    if (Array.isArray(product.variants) && product.variants.length > 0) {
+      setVariants(product.variants);
+      const first =
+        product.variants.find((v: any) => v.is_available !== false) || product.variants[0];
+      if (first?.id) setSelectedVariant(first.id);
+      return;
+    }
     let cancelled = false;
     setVariantsLoading(true);
     setVariantError(null);
@@ -50,7 +59,7 @@ export default function AddToCart({
     return () => {
       cancelled = true;
     };
-  }, [product.id, isFallback]);
+  }, [product.id, product.variants, isFallback]);
 
   const hasVariants = variants.length > 0;
   const canAdd =

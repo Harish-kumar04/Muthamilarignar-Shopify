@@ -1,16 +1,13 @@
-import { fetchBooksSafe, getCategoriesWithFallback } from "@/lib/catalog-fallback";
+import { getCatalogSummarySafe } from "@/lib/shopify";
 import { splitBilingual } from "@/lib/i18n";
 import { SITE_URL } from "@/lib/site-defaults";
 import { PUBLISHER_ENTITY } from "@/lib/seo-schema";
 import { AUTHORS, POLICY_LAST_UPDATED_ISO } from "@/lib/aeo-data";
 
 export async function buildLlmsMarkdown(baseOrigin = SITE_URL): Promise<string> {
-  const [booksRes, categories] = await Promise.all([
-    fetchBooksSafe(),
-    getCategoriesWithFallback(),
-  ]);
+  const { products, collections: categories } = await getCatalogSummarySafe();
   const home = baseOrigin.replace(/\/$/, "");
-  const books = (booksRes.books as any[]).slice(0, 40);
+  const books = products.slice(0, 40);
 
   const lines: string[] = [
     `# ${PUBLISHER_ENTITY.nameEn} (${PUBLISHER_ENTITY.nameTa})`,

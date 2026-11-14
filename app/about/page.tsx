@@ -15,13 +15,12 @@ import {
   buildOrganizationNodes,
 } from "@/lib/seo-schema";
 import { AUTHORS, POLICY_LAST_UPDATED_EN, POLICY_LAST_UPDATED_ISO, POLICY_LAST_UPDATED_TA } from "@/lib/aeo-data";
-import { fetchBooksSafe, getStoreWithFallback } from "@/lib/catalog-fallback";
+import { getCatalogSummarySafe } from "@/lib/shopify";
 
-export const revalidate = 3600;
+export const revalidate = 120;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const store = await getStoreWithFallback();
-  const shareLogo = getShareLogoUrl(store);
+  const shareLogo = getShareLogoUrl();
   const title = `எங்களைப் பற்றி | About ${BRAND.nameTa} (${BRAND.nameEn})`;
   const description =
     "Official publisher profile for Muthamilarignar Pathipagam (முத்தமிழறிஞர் பதிப்பகம்), Anna Arivalayam Campus, Teynampet, Chennai — publishing Dravidian history, social justice, and Kalaignar's works.";
@@ -36,12 +35,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AboutPublisherPage() {
-  const [booksRes, store] = await Promise.all([
-    fetchBooksSafe(),
-    getStoreWithFallback(),
-  ]);
-  const logoUrl = getLogoUrl(store);
-  const totalBooks = booksRes.books.length;
+  const summary = await getCatalogSummarySafe();
+  const logoUrl = getLogoUrl();
+  const totalBooks = summary.products.length;
   const pageUrl = `${SITE_URL}/about`;
 
   const jsonLd = {

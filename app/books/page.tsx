@@ -1,27 +1,25 @@
 import type { Metadata } from "next";
 import BooksCatalogClient from "@/components/product/books-catalog-client";
 import {
-  fetchBooksSafe,
-  getBooksWithFallback,
-  getCategoriesWithFallback,
-  getStoreWithFallback,
-} from "@/lib/catalog-fallback";
+  getCatalogSummarySafe,
+  listCollections,
+  listProducts,
+  type ShopifyPageInfo,
+} from "@/lib/shopify";
 import { BRAND, LOGO_ALT, SITE_URL, getShareLogoUrl } from "@/lib/site-defaults";
 import { absoluteUrl, buildListingJsonLd, PUBLISHER_ENTITY } from "@/lib/seo-schema";
 
-export const revalidate = 60;
+export const revalidate = 120;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [books, store] = await Promise.all([
-    getBooksWithFallback(),
-    getStoreWithFallback(),
-  ]);
+  const summary = await getCatalogSummarySafe();
+  const books = summary.products;
   const title = `அனைத்து நூல்கள் | All Books — ${BRAND.nameTa} | ${BRAND.nameEn}`;
-  const description = `முத்தமிழறிஞர் பதிப்பகத்தின் ${books.length} அதிகாரப்பூர்வ வெளியீடுகள் — திராவிட இயக்க வரலாறு, சமூகநீதி, திராவிட மாடல் மற்றும் கலைஞர் படைப்புகள். Browse all ${books.length} official Tamil & English books from ${BRAND.nameEn}.`;
+  const countCopy = books.length > 0 ? `${books.length} ` : "";
+  const description = `முத்தமிழறிஞர் பதிப்பகத்தின் ${countCopy}அதிகாரப்பூர்வ வெளியீடுகள் — திராவிட இயக்க வரலாறு, சமூகநீதி, திராவிட மாடல் மற்றும் கலைஞர் படைப்புகள். Browse all ${countCopy}official Tamil & English books from ${BRAND.nameEn}.`;
   const url = `${SITE_URL}/books`;
   const leadCover =
-    absoluteUrl((books[0] as any)?.image_url || (books[0] as any)?.images?.[0]) ||
-    getShareLogoUrl(store);
+    absoluteUrl(books[0]?.image_url || books[0]?.images?.[0]) || getShareLogoUrl();
 
   return {
     title,
@@ -46,26 +44,49 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function BooksCatalogPage() {
-  const [booksRes, categories] = await Promise.all([
-    fetchBooksSafe(),
-    getCategoriesWithFallback(),
-  ]);
+  let apiUnavailable = false;
+  let rawProducts: any[] = [];
+  let rawCategories: any[] = [];
+  let pageInfo: ShopifyPageInfo = { hasNextPage: false, endCursor: null };
 
-  const slim = (booksRes.books as any[]).map((p) => ({
+  try {
+    const [prodRes, colRes] = await Promise.all([
+      listProducts({ first: 24 }),
+      listCollections({ first: 50 }),
+    ]);
+    rawProducts = prodRes.products;
+    pageInfo = prodRes.pageInfo;
+    rawCategories = colRes.collections;
+  } catch {
+    apiUnavailable = true;
+  }
+
+  const slim = rawProducts.map((p) => ({
     id: p.id,
     slug: p.slug ?? null,
+    handle: p.handle ?? p.slug ?? null,
     name: p.name,
     sku: p.sku,
+    author: p.author ?? null,
     category_id: p.category_id,
+    category_slug: p.category_slug ?? null,
+    collection_ids: p.collection_ids ?? [],
+    collection_handles: p.collection_handles ?? [],
     description: p.description,
+    priceRupees: p.priceRupees,
+    compareAtPriceRupees: p.compareAtPriceRupees,
     price_cents: p.price_cents,
     sale_price_cents: p.sale_price_cents ?? null,
+    availableForSale: p.availableForSale,
+    quantityAvailable: p.quantityAvailable,
     inventory: p.inventory_quantity ?? p.inventory,
     inventory_quantity: p.inventory_quantity ?? p.inventory,
     image_url: p.image_url || p.images?.[0] || null,
-    is_fallback: Boolean(booksRes.isFallback || p.is_fallback),
+    images: p.images ?? [],
+    dimensions_json: p.dimensions_json,
   }));
-  const cats = (categories as any[]).map((c) => ({
+
+  const cats = rawCategories.map((c) => ({
     id: c.id,
     name: c.name,
     slug: c.slug,
@@ -88,15 +109,19 @@ export default async function BooksCatalogPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {booksRes.isFallback && (
-        <div className="bg-amber-500/10 border-b border-amber-500/30 text-amber-900 px-4 py-2 text-center text-xs font-medium">
-          சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும் — Store is temporarily unavailable, try again.
+      {apiUnavailable && (
+        <div
+          role="alert"
+          className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-center text-xs font-medium text-amber-950"
+        >
+          சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை — Store is temporarily unavailable
         </div>
       )}
       <BooksCatalogClient
         products={slim}
         categories={cats}
-        apiUnavailable={booksRes.isFallback}
+        initialPageInfo={pageInfo}
+        apiUnavailable={apiUnavailable}
       />
     </>
   );

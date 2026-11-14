@@ -4,11 +4,11 @@ import { notFound } from "next/navigation";
 import { T } from "@/components/i18n/t";
 import ProductCard, { toCardProduct } from "@/components/product/product-card";
 import { AUTHORS, buildPersonJsonLd } from "@/lib/aeo-data";
-import { fetchBooksSafe } from "@/lib/catalog-fallback";
+import { getCatalogSummarySafe } from "@/lib/shopify";
 import { BRAND, SITE_URL } from "@/lib/site-defaults";
 import { PUBLISHER_ENTITY } from "@/lib/seo-schema";
 
-export const revalidate = 3600;
+export const revalidate = 120;
 
 export function generateStaticParams() {
   return AUTHORS.map((a) => ({ slug: a.slug }));
@@ -40,8 +40,8 @@ export default async function AuthorDetailPage({
   const author = AUTHORS.find((a) => a.slug === params.slug);
   if (!author) notFound();
 
-  const booksRes = await fetchBooksSafe();
-  const allBooks = booksRes.books as any[];
+  const summary = await getCatalogSummarySafe();
+  const allBooks = summary.products;
   const matched = allBooks.filter((b) =>
     author.keywords.test(
       `${b.name || ""} ${b.description || ""} ${b.author || ""} ${b.dimensions_json?.book?.author || ""}`,
@@ -100,19 +100,19 @@ export default async function AuthorDetailPage({
         <h2 className="mb-6 text-[24px] font-extrabold text-black">
           <T ta="வெளியிடப்பட்ட நூல்கள்" en="Available Editions in Our Catalog" />
         </h2>
-        {booksRes.isFallback ? (
+        {!summary.ok ? (
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-6 py-14 text-center">
             <p className="text-[16px] font-bold text-black">
-              <T ta="சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்" en="Store is temporarily unavailable, try again" />
+              Store is temporarily unavailable
+            </p>
+            <p className="mt-1 text-[14px] text-black/65">
+              சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
             {displayBooks.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={toCardProduct(p)}
-              />
+              <ProductCard key={p.id} product={toCardProduct(p)} />
             ))}
           </div>
         )}

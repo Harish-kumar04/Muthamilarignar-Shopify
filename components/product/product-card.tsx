@@ -7,6 +7,12 @@ import WishlistButton from "./wishlist-button";
 
 const UUID_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+export function isStoreProductId(id: unknown): boolean {
+  if (typeof id !== "string") return false;
+  const trimmed = id.trim();
+  return trimmed.startsWith("gid://shopify/") || UUID_ID_RE.test(trimmed);
+}
+
 /** The only product fields a card needs (keeps RSC/client payloads small). */
 export interface CardProduct {
   id: string;
@@ -14,6 +20,8 @@ export interface CardProduct {
   name: string;
   author?: string | null;
   category_id?: string | null;
+  collection_ids?: string[];
+  collection_handles?: string[];
   price_cents: number;
   sale_price_cents?: number | null;
   inventory?: number;
@@ -37,10 +45,12 @@ export function toCardProduct(p: any): CardProduct {
 
   return {
     id: rawId,
-    slug: p.slug ? String(p.slug) : null,
+    slug: p.slug ? String(p.slug) : p.handle ? String(p.handle) : null,
     name: String(p.name ?? ""),
     author: author ? String(author) : null,
     category_id: p.category_id ? String(p.category_id) : null,
+    collection_ids: Array.isArray(p.collection_ids) ? p.collection_ids : undefined,
+    collection_handles: Array.isArray(p.collection_handles) ? p.collection_handles : undefined,
     price_cents: Number(p.price_cents) || 0,
     sale_price_cents: p.sale_price_cents ?? null,
     inventory: p.inventory !== undefined ? Number(p.inventory) : Number(p.inventory_quantity ?? 10),
@@ -48,7 +58,7 @@ export function toCardProduct(p: any): CardProduct {
     images: Array.isArray(p.images) ? p.images : null,
     rating_avg: ratingAvg > 0 ? ratingAvg : null,
     review_count: reviewCount > 0 ? reviewCount : null,
-    isFallback: Boolean(p.is_fallback || p.isFallback) || !UUID_ID_RE.test(rawId.trim()),
+    isFallback: Boolean(p.is_fallback || p.isFallback) || !isStoreProductId(rawId),
   };
 }
 

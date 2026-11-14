@@ -11,7 +11,7 @@ import WhatsAppFloat from "@/components/whatsapp-float";
 import NotificationManager from "@/components/notification-manager-lazy";
 import MiniCart from "@/components/cart/mini-cart-lazy";
 import MobileBottomBar from "@/components/header/mobile-bottom-bar";
-import { getBooksWithFallback, getStoreWithFallback } from "@/lib/catalog-fallback";
+import { getCatalogSummarySafe } from "@/lib/shopify";
 import { LANG_BOOT_SCRIPT } from "@/lib/i18n";
 import {
   DEFAULT_LOGO_URL,
@@ -74,15 +74,13 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [store, books] = await Promise.all([
-    getStoreWithFallback(),
-    getBooksWithFallback(),
-  ]);
-  const social = getSocial(store);
-  const popup = getPopup(store);
-  const notifications = getNotifications(store);
-  const announcement = getAnnouncement(store);
-  const logoUrl = getLogoUrl(store);
+  const summary = await getCatalogSummarySafe();
+  const books = summary.products;
+  const social = getSocial();
+  const popup = getPopup();
+  const notifications = getNotifications();
+  const announcement = getAnnouncement();
+  const logoUrl = getLogoUrl();
 
   return (
     <html

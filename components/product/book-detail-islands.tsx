@@ -300,7 +300,8 @@ export function BookPurchaseIslands({
   const [adding, setAdding] = useState(false);
   const [buying, setBuying] = useState(false);
 
-  const unavailable = Boolean(isFallback) || !isUuidProductId(productId);
+  const isShopifyId = typeof productId === "string" && productId.startsWith("gid://shopify/");
+  const unavailable = Boolean(isFallback) || (!isShopifyId && !isUuidProductId(productId));
   const primaryTitle = localizeName(productName);
   const cap = typeof maxStock === "number" && maxStock > 0 ? maxStock : 99;
 

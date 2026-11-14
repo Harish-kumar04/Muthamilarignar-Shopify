@@ -17,10 +17,12 @@ export default function BrandHero({
   heroBooks,
   totalBooks,
   categoryCount,
+  apiUnavailable = false,
 }: {
   heroBooks: CardProduct[];
   totalBooks: number;
   categoryCount: number;
+  apiUnavailable?: boolean;
 }) {
   const seenHeroCovers = new Set<string>();
   const covers = heroBooks
@@ -56,12 +58,12 @@ export default function BrandHero({
 
   const stats = [
     {
-      value: totalBooks > 0 ? `${totalBooks}` : "25+",
+      value: totalBooks > 0 ? `${totalBooks}` : "—",
       ta: "வெளியிடப்பட்ட நூல்கள்",
       en: "Published Titles",
     },
     {
-      value: categoryCount > 0 ? `${categoryCount}` : "6",
+      value: categoryCount > 0 ? `${categoryCount}` : "—",
       ta: "நூல் பிரிவுகள்",
       en: "Subject Categories",
     },
@@ -220,8 +222,15 @@ export default function BrandHero({
                   })}
                 </div>
               ) : (
-                <div className="relative z-10 flex h-56 w-44 items-center justify-center rounded-2xl border-2 border-white bg-[#F4F4F5] p-4 text-center text-sm font-bold text-black/60 shadow-xl">
-                  <T ta="படம் இல்லை" en="No cover" />
+                <div className="relative z-10 flex h-56 w-52 items-center justify-center rounded-2xl border-2 border-white bg-[#F4F4F5] p-4 text-center text-sm font-bold text-black/70 shadow-xl">
+                  {apiUnavailable ? (
+                    <T
+                      ta="சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை"
+                      en="Store is temporarily unavailable"
+                    />
+                  ) : (
+                    <T ta="படம் இல்லை" en="No cover" />
+                  )}
                 </div>
               )}
             </div>

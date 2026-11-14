@@ -2,8 +2,10 @@ import Link from "next/link";
 import Image from "@/components/ui/img";
 import { BiName, BiSubName, T } from "@/components/i18n/t";
 import { splitBilingual } from "@/lib/i18n";
-import { isDatabaseProductId } from "@/lib/catalog-fallback";
-import ProductCard, { toCardProduct } from "@/components/product/product-card";
+import ProductCard, {
+  isStoreProductId,
+  toCardProduct,
+} from "@/components/product/product-card";
 import { SectionHeading } from "@/components/brand/patterns";
 import {
   BookGalleryIsland,
@@ -45,9 +47,12 @@ export default function BookDetailView({
         ),
       )
     : 0;
-  const stockCount = Number(product.inventory_quantity ?? product.inventory ?? 10);
-  const inStock = stockCount > 0;
-  const isFallback = Boolean(product.is_fallback) || !isDatabaseProductId(product.id);
+  const stockCount =
+    product.availableForSale === false
+      ? 0
+      : Number(product.inventory_quantity ?? product.inventory ?? 10);
+  const inStock = product.availableForSale === false ? false : stockCount > 0;
+  const isFallback = Boolean(product.is_fallback) || !isStoreProductId(product.id);
 
   const [nameTa, nameEn] = splitBilingual(product.name, "|");
   const hasDistinctSubName = Boolean(nameEn && nameEn !== nameTa);

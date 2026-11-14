@@ -63,6 +63,7 @@ export default async function BooksCatalogPage() {
 
   const slim = rawProducts.map((p) => ({
     id: p.id,
+    variant_id: p.variant_id ?? null,
     slug: p.slug ?? null,
     handle: p.handle ?? p.slug ?? null,
     name: p.name,

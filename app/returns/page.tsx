@@ -1,141 +1,145 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { storefrontApi } from "@/lib/api";
-import AuthGate from "@/components/auth-gate";
+import { T } from "@/components/i18n/t";
+import { getShopifyHostedAccountUrls } from "@/lib/shopify-cart";
+import { BRAND, DEFAULT_SOCIAL, SITE_URL, whatsappHref } from "@/lib/site-defaults";
 
-type ReturnRecord = {
-  id: string;
-  order_id: string;
-  reason: string;
-  status: string;
-  items: Array<{ product_id: string; quantity: number }>;
+export const metadata: Metadata = {
+  title: `மாற்று & பணம் திரும்பத் தகவல் | Returns & Replacements — ${BRAND.nameTa} | ${BRAND.nameEn}`,
+  description:
+    "7-day replacement and return information for damaged, misprinted, or incorrect books ordered from Muthamilarignar Pathipagam.",
+  alternates: { canonical: `${SITE_URL}/returns` },
 };
 
-export default function ReturnsPage() {
-  return (
-    <AuthGate>
-      <ReturnsList />
-    </AuthGate>
-  );
-}
-
-function ReturnsList() {
-  const [returns, setReturns] = useState<ReturnRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const list = (await storefrontApi.getReturns()) as any[];
-        if (cancelled) return;
-        setReturns(
-          list.map((o: any) => ({
-            id: String(o.id),
-            order_id: String(o.id),
-            reason: o.return_reason || o.reason || "Return requested",
-            status: String(o.status || "pending").toLowerCase(),
-            items: Array.isArray(o.return_items) ? o.return_items : [],
-          }))
-        );
-      } catch (err: any) {
-        if (cancelled) return;
-        const msg = err?.response?.data?.detail || err?.message || "Failed to load returns";
-        setError(typeof msg === "string" ? msg : "Failed to load returns");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+export default function ReturnsInfoPage() {
+  const hosted = getShopifyHostedAccountUrls();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-      <header className="mb-8">
-        <p className="text-[12px] uppercase tracking-[0.18em] text-gray-500">
-          After-sales
+    <div className="container-site max-w-4xl py-12 sm:py-16">
+      <nav
+        aria-label="Breadcrumb"
+        className="mb-6 flex items-center gap-1.5 text-[13px] text-black/70"
+      >
+        <Link href="/" prefetch={false} className="hover:text-brand-red-dark">
+          <T ta="முகப்பு" en="Home" />
+        </Link>
+        <span aria-hidden="true" className="opacity-40">
+          /
+        </span>
+        <span className="font-semibold text-black">
+          <T ta="மாற்று & பணம் திரும்ப" en="Returns & Replacements" />
+        </span>
+      </nav>
+
+      <header className="border-b border-black/10 pb-6">
+        <p className="eyebrow">
+          <T ta="வாசகர் சேவை வழிகாட்டி" en="Reader Support & Returns Guide" />
         </p>
-        <h1 className="mt-2 text-[36px] sm:text-[44px] font-semibold tracking-tight text-gray-900">
-          My returns
+        <h1 className="mt-2 text-[32px] font-extrabold tracking-tight text-black sm:text-[42px]">
+          <T
+            ta="நூல் மாற்று & பணம் திரும்பப் பெறுதல்"
+            en="Returns, Replacements & Refunds"
+          />
         </h1>
-        <p className="mt-2 text-[15px] text-gray-500">
-          Track the status of every return you&apos;ve requested.
+        <div aria-hidden="true" className="mt-3 h-1 w-14 rounded-full bg-brand-red" />
+        <p className="mt-4 rounded-2xl border border-brand-red/20 bg-brand-red-light p-4 text-[14.5px] font-medium leading-relaxed text-black">
+          <T
+            ta="நூல் கிடைத்த 7 நாட்களுக்குள் அச்சுப் பிழை, பக்கக் குறைபாடு, போக்குவரத்துச் சேதம் அல்லது தவறான நூல் அனுப்பப்பட்டிருந்தால் இலவச மாற்றுப் பிரதி அல்லது முழுப் பணம் திரும்ப வழங்கப்படும்."
+            en="Report transit damage, binding/printing defects, or wrong titles within 7 days of delivery for a free replacement copy or full refund."
+          />
         </p>
       </header>
 
-      {loading && (
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 text-[14px] text-gray-500">
-          Loading…
-        </div>
-      )}
+      <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <section className="rounded-2xl border border-black/10 bg-[#FAFAFA] p-6">
+          <h2 className="text-[18px] font-extrabold text-black">
+            <T ta="தகுதியான காரணங்கள்" en="What Qualifies for Free Replacement" />
+          </h2>
+          <ul className="mt-3 list-inside list-disc space-y-2 text-[14.5px] leading-relaxed text-black/80">
+            <li>
+              <T
+                ta="கூரியர் போக்குவரத்தின் போது ஏற்பட்ட கடுமையான சேதம்"
+                en="Severe physical damage sustained during courier transit"
+              />
+            </li>
+            <li>
+              <T
+                ta="அச்சுக் குறைபாடு, வெற்றுப் பக்கங்கள் அல்லது பைண்டிங் பிரிதல்"
+                en="Missing/blank pages, misprints, or binding defects"
+              />
+            </li>
+            <li>
+              <T
+                ta="ஆர்டர் செய்த நூலுக்குப் பதிலாக வேறு நூல் வந்திருந்தால்"
+                en="Incorrect book or edition delivered against your order"
+              />
+            </li>
+          </ul>
+        </section>
 
-      {error && !loading && (
-        <div className="rounded-2xl border border-brand-red-soft bg-brand-red-light p-4 text-[14px] text-brand-red-dark">
-          {error}
-        </div>
-      )}
+        <section className="rounded-2xl border border-black/10 bg-[#FAFAFA] p-6">
+          <h2 className="text-[18px] font-extrabold text-black">
+            <T ta="விண்ணப்பிக்கும் முறை (3 படிகள்)" en="How to Request a Return (3 Steps)" />
+          </h2>
+          <ol className="mt-3 list-inside list-decimal space-y-2 text-[14.5px] leading-relaxed text-black/80">
+            <li>
+              <T
+                ta="நூல் கிடைத்த 7 நாட்களுக்குள் ஆர்டர் எண்ணைக் குறிப்பிடவும்."
+                en="Note your Shopify order number within 7 days of delivery."
+              />
+            </li>
+            <li>
+              <T
+                ta="சேதமடைந்த பகுதி மற்றும் உறையின் தெளிவான புகைப்படம் எடுக்கவும்."
+                en="Take a clear photo of the outer parcel label and the affected pages/cover."
+              />
+            </li>
+            <li>
+              <T
+                ta="கீழே உள்ள வாட்ஸ்அப், மின்னஞ்சல் அல்லது Shopify கணக்கு வழியாக அனுப்பவும்."
+                en="Submit via your Shopify customer account or send directly to our support team below."
+              />
+            </li>
+          </ol>
+        </section>
+      </div>
 
-      {!loading && !error && returns.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-gray-300 py-16 px-6 text-center bg-white">
-          <p className="text-[15px] text-gray-700">
-            No returns yet.
-          </p>
-          <p className="mt-1 text-[13px] text-gray-500">
-            When you request a return on an order, it will show up here.
-          </p>
-          <Link
-            href="/orders"
-            className="mt-6 inline-flex h-11 px-6 items-center justify-center rounded-full bg-gray-900 text-white text-[14px] font-medium hover:opacity-90 transition-opacity"
+      <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6 shadow-card">
+        <h2 className="text-[18px] font-extrabold text-black">
+          <T ta="பணம் திரும்பப் பெறும் கால அளவு" en="Refund Processing Timeline" />
+        </h2>
+        <p className="mt-2 text-[14.5px] leading-relaxed text-black/75">
+          <T
+            ta="மாற்றுப் பிரதி கையிருப்பில் இல்லையெனில், ஒப்புதல் அளிக்கப்பட்ட 5–7 வணிக நாட்களுக்குள் நீங்கள் செலுத்திய அதே கட்டண முறையில் (UPI / Card / NetBanking) அல்லது வங்கிக் கணக்கில் (COD ஆர்டர்களுக்கு) முழுத் தொகையும் திருப்பிச் செலுத்தப்படும்."
+            en="Approved refunds are credited within 5–7 business days to your original payment method (UPI / Card / NetBanking) or via bank/UPI transfer for Cash on Delivery orders."
+          />
+        </p>
+
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          {hosted && (
+            <a
+              href={hosted.ordersUrl}
+              className="btn-black h-11 px-6 text-[14px] font-bold"
+            >
+              <T ta="Shopify கணக்கில் ஆர்டரைத் திறக்க →" en="Open Orders on Shopify →" />
+            </a>
+          )}
+          <a
+            href={whatsappHref(DEFAULT_SOCIAL)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-red h-11 px-6 text-[14px] font-bold"
           >
-            View your orders
+            WhatsApp +91 {DEFAULT_SOCIAL.whatsappDisplay}
+          </a>
+          <Link
+            href="/policies/returns"
+            className="btn-outline h-11 px-5 text-[13.5px] font-bold"
+          >
+            <T ta="முழுக் கொள்கை விவரம்" en="Full Returns Policy" />
           </Link>
         </div>
-      )}
-
-      {!loading && !error && returns.length > 0 && (
-        <ul className="space-y-3">
-          {returns.map((r) => (
-            <li key={r.id} className="rounded-2xl border border-gray-100 bg-white p-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="font-semibold text-[14px] text-gray-900">
-                    Return for order #{r.order_id.slice(0, 8)}
-                  </p>
-                  <p className="text-[12px] text-gray-500 mt-1">Reason: {r.reason}</p>
-                  {r.items.length > 0 && (
-                    <ul className="mt-2 text-[12px] text-gray-600 list-disc list-inside">
-                      {r.items.map((it, idx) => (
-                        <li key={idx}>
-                          Product {String(it.product_id).slice(0, 8)} — qty {it.quantity}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <span className="text-[11px] px-2.5 py-1 rounded-full bg-orange-100 text-orange-800 capitalize">
-                  {r.status}
-                </span>
-              </div>
-              <div className="mt-3">
-                <Link
-                  href={`/orders/${r.order_id}`}
-                  className="text-[12px] text-brand-red hover:underline"
-                >
-                  View order →
-                </Link>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      </section>
     </div>
   );
 }

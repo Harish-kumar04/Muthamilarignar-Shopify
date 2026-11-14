@@ -2,21 +2,28 @@
 
 import { useLanguage } from "@/components/language-provider";
 
-export const FREE_SHIPPING_THRESHOLD_CENTS = 50000; // Rs. 500
+export const DEFAULT_FREE_SHIPPING_RUPEES = 500;
 
 export default function FreeShippingBar({
   subtotalCents,
+  thresholdRupees = DEFAULT_FREE_SHIPPING_RUPEES,
   className = "",
 }: {
   subtotalCents: number;
+  thresholdRupees?: number;
   className?: string;
 }) {
   const { t } = useLanguage();
+  const safeThresholdRupees =
+    Number.isFinite(thresholdRupees) && thresholdRupees > 0
+      ? thresholdRupees
+      : DEFAULT_FREE_SHIPPING_RUPEES;
+  const thresholdCents = Math.round(safeThresholdRupees * 100);
   const clamped = Math.max(0, subtotalCents || 0);
-  const unlocked = clamped >= FREE_SHIPPING_THRESHOLD_CENTS;
-  const remainingCents = Math.max(0, FREE_SHIPPING_THRESHOLD_CENTS - clamped);
+  const unlocked = clamped >= thresholdCents;
+  const remainingCents = Math.max(0, thresholdCents - clamped);
   const remainingRupees = Math.ceil(remainingCents / 100);
-  const pct = Math.min(100, Math.round((clamped / FREE_SHIPPING_THRESHOLD_CENTS) * 100));
+  const pct = Math.min(100, Math.round((clamped / thresholdCents) * 100));
 
   return (
     <div
@@ -34,8 +41,8 @@ export default function FreeShippingBar({
                 "✓ You've unlocked FREE pan-India delivery!",
               )
             : t(
-                `மேலும் ₹${remainingRupees} சேர்த்தால் இலவச விநியோகம்!`,
-                `Add ₹${remainingRupees} more for FREE delivery!`,
+                `மேலும் ₹${remainingRupees.toLocaleString("en-IN")} சேர்த்தால் இலவச விநியோகம்!`,
+                `Add ₹${remainingRupees.toLocaleString("en-IN")} more for FREE delivery!`,
               )}
         </span>
         <span className="text-[11.5px] font-bold text-black/70">{pct}%</span>
@@ -44,9 +51,9 @@ export default function FreeShippingBar({
       <div
         role="progressbar"
         aria-label={t("இலவச விநியோக நிலை", "Free shipping progress")}
-        aria-valuenow={Math.min(500, Math.round(clamped / 100))}
+        aria-valuenow={Math.min(safeThresholdRupees, Math.round(clamped / 100))}
         aria-valuemin={0}
-        aria-valuemax={500}
+        aria-valuemax={Math.round(safeThresholdRupees)}
         className="mt-2 h-2 w-full overflow-hidden rounded-full bg-black/10"
       >
         <div

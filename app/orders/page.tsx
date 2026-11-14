@@ -1,123 +1,77 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { storefrontApi } from "@/lib/api";
-import AuthGate from "@/components/auth-gate";
-import PenLoader from "@/components/ui/pen-loader";
+import { T } from "@/components/i18n/t";
+import { getShopifyHostedAccountUrls } from "@/lib/shopify-cart";
+import { BRAND } from "@/lib/site-defaults";
 
-export default function OrdersListPage() {
-  return (
-    <AuthGate>
-      <OrdersList />
-    </AuthGate>
-  );
-}
+export const metadata: Metadata = {
+  title: `எனது ஆர்டர்கள் | My Orders — ${BRAND.nameTa} | ${BRAND.nameEn}`,
+  robots: { index: false, follow: false },
+};
 
-function OrdersList() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const list = await storefrontApi.listOrders();
-        if (cancelled) return;
-        setOrders(Array.isArray(list) ? list : []);
-      } catch (err: any) {
-        if (cancelled) return;
-        const msg = err?.response?.data?.detail || err?.message || "Failed to load orders";
-        setError(typeof msg === "string" ? msg : "Failed to load orders");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+export default function OrdersPage() {
+  const hosted = getShopifyHostedAccountUrls();
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <div className="container-site max-w-3xl py-12 sm:py-16">
       <header className="mb-8">
-        <p className="text-[12px] uppercase tracking-[0.18em] text-gray-500">
-          Order history
+        <p className="eyebrow">
+          <T ta="ஆர்டர் வரலாறு" en="Order History" />
         </p>
-        <h1 className="mt-2 text-[36px] sm:text-[44px] font-semibold tracking-tight text-gray-900">
-          My orders
+        <h1 className="mt-2 text-[32px] font-extrabold tracking-tight text-black sm:text-[42px]">
+          <T ta="எனது ஆர்டர்கள்" en="My Orders" />
         </h1>
-        <p className="mt-2 text-[15px] text-gray-500">
-          Every order you&apos;ve placed. Click into one to see shipment
-          status, download an invoice, or request a return.
+        <div aria-hidden="true" className="mt-3 h-1 w-14 rounded-full bg-brand-red" />
+        <p className="mt-3 text-[15px] leading-relaxed text-black/75">
+          <T
+            ta="உங்கள் அனைத்து ஆர்டர்கள், கூரியர் கண்காணிப்பு எண்கள் மற்றும் விலைப்பட்டியல்கள் Shopify வாடிக்கையாளர் கணக்கில் பாதுகாப்பாக உள்ளன."
+            en="Your complete order history, courier tracking numbers, and downloadable receipts are available in Shopify's hosted customer account."
+          />
         </p>
       </header>
 
-      {loading && (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-gray-100 bg-white py-12 text-[14px] text-gray-500">
-          <PenLoader size="md" label="Loading orders" />
-          <span>Loading your orders…</span>
-        </div>
-      )}
+      <div className="rounded-3xl border border-black/10 bg-[#FAFAFA] p-6 shadow-card sm:p-10">
+        {hosted ? (
+          <div className="space-y-5">
+            <p className="text-[14.5px] leading-relaxed text-black/80">
+              <T
+                ta="ஆர்டர் செய்யும்போது பயன்படுத்திய மின்னஞ்சல் முகவரி மூலம் உள்நுழைந்து உங்கள் ஆர்டர்களைப் பார்க்கவும்."
+                en="Sign in with the email address you used at checkout to view all orders and live shipment updates."
+              />
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <a
+                href={hosted.ordersUrl}
+                className="btn-red h-12 px-7 text-[14.5px] font-bold shadow-glow"
+              >
+                <T ta="Shopify கணக்கில் ஆர்டர்களைக் காண்க →" en="View Orders on Shopify →" />
+              </a>
+              <Link
+                href="/track"
+                className="btn-outline h-12 px-6 text-[14px] font-bold"
+              >
+                <T ta="ஆர்டர் நிலை அறிதல்" en="Track an Order" />
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-amber-400/40 bg-amber-50 px-5 py-4 text-[14px] font-semibold text-amber-950">
+            <T
+              ta="சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை — Store is temporarily unavailable"
+              en="Store is temporarily unavailable"
+            />
+          </div>
+        )}
+      </div>
 
-      {error && !loading && (
-        <div className="rounded-2xl border border-brand-red-soft bg-brand-red-light p-4 text-[14px] text-brand-red-dark">
-          {error}
-        </div>
-      )}
-
-      {!loading && !error && orders.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-gray-300 py-16 px-6 text-center bg-white">
-          <p className="text-[15px] text-gray-700">
-            You haven&apos;t placed any orders yet.
-          </p>
-          <p className="mt-1 text-[13px] text-gray-500">
-            When you do, they&apos;ll appear here with status, tracking and
-            invoice download.
-          </p>
-          <Link
-            href="/books"
-            className="mt-6 inline-flex h-11 px-6 items-center justify-center rounded-full bg-gray-900 text-white text-[14px] font-medium hover:opacity-90 transition-opacity"
-          >
-            Start shopping
-          </Link>
-        </div>
-      )}
-
-      {!loading && !error && orders.length > 0 && (
-        <div className="space-y-3">
-          {orders.map((order: any) => (
-            <Link
-              key={order.id}
-              href={`/orders/${order.id}`}
-              className="block rounded-2xl border border-gray-100 bg-white p-4 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-shadow"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="font-semibold text-[14px] text-gray-900">
-                    Order #{String(order.id).slice(0, 8)}
-                  </p>
-                  <p className="text-[12px] text-gray-500 mt-0.5">
-                    Placed {new Date(order.placed_at || order.created_at).toLocaleString()}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[14px] font-semibold text-gray-900">
-                    ₹{((order.total_cents || 0) / 100).toFixed(2)} {order.currency || "INR"}
-                  </p>
-                  <span className="inline-block mt-1 text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 capitalize">
-                    {order.status}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 text-[13.5px] text-black/70">
+        <Link href="/returns" className="font-bold text-brand-red-dark hover:underline">
+          <T ta="மாற்று & பணம் திரும்பக் கொள்கை →" en="Returns & Replacement Information →" />
+        </Link>
+        <Link href="/books" className="hover:underline">
+          <T ta="← நூல்களைப் பார்வையிடுக" en="← Browse Books" />
+        </Link>
+      </div>
     </div>
   );
 }

@@ -16,6 +16,7 @@ export function isStoreProductId(id: unknown): boolean {
 /** The only product fields a card needs (keeps RSC/client payloads small). */
 export interface CardProduct {
   id: string;
+  variant_id?: string | null;
   slug?: string | null;
   name: string;
   author?: string | null;
@@ -24,6 +25,8 @@ export interface CardProduct {
   collection_handles?: string[];
   price_cents: number;
   sale_price_cents?: number | null;
+  availableForSale?: boolean;
+  quantityAvailable?: number | null;
   inventory?: number;
   image_url?: string | null;
   images?: string[] | null;
@@ -42,9 +45,24 @@ export function toCardProduct(p: any): CardProduct {
   const rawId = String(p.id ?? "");
   const ratingAvg = Number(p.rating_avg ?? p.average_rating ?? 0);
   const reviewCount = Number(p.review_count ?? p.reviews_count ?? 0);
+  const qtyAvailable =
+    typeof p.quantityAvailable === "number" ? p.quantityAvailable : null;
+  const inv =
+    p.availableForSale === false
+      ? 0
+      : qtyAvailable !== null
+        ? qtyAvailable
+        : p.inventory !== undefined
+          ? Number(p.inventory)
+          : Number(p.inventory_quantity ?? 10);
 
   return {
     id: rawId,
+    variant_id: p.variant_id
+      ? String(p.variant_id)
+      : p.variants?.[0]?.id
+        ? String(p.variants[0].id)
+        : null,
     slug: p.slug ? String(p.slug) : p.handle ? String(p.handle) : null,
     name: String(p.name ?? ""),
     author: author ? String(author) : null,
@@ -53,7 +71,9 @@ export function toCardProduct(p: any): CardProduct {
     collection_handles: Array.isArray(p.collection_handles) ? p.collection_handles : undefined,
     price_cents: Number(p.price_cents) || 0,
     sale_price_cents: p.sale_price_cents ?? null,
-    inventory: p.inventory !== undefined ? Number(p.inventory) : Number(p.inventory_quantity ?? 10),
+    availableForSale: p.availableForSale !== undefined ? Boolean(p.availableForSale) : inv > 0,
+    quantityAvailable: qtyAvailable,
+    inventory: inv,
     image_url: p.image_url || p.images?.[0] || null,
     images: Array.isArray(p.images) ? p.images : null,
     rating_avg: ratingAvg > 0 ? ratingAvg : null,
@@ -79,8 +99,16 @@ export default function ProductCard({
   sizes?: string;
 }) {
   const inv = product.inventory ?? 10;
-  const inStock = inv > 0;
-  const lowStock = inStock && inv <= 5;
+  const availableForSale =
+    product.availableForSale !== false &&
+    inv > 0 &&
+    (typeof product.quantityAvailable !== "number" || product.quantityAvailable > 0);
+  const inStock = availableForSale;
+  const lowStock =
+    inStock &&
+    typeof product.quantityAvailable === "number" &&
+    product.quantityAvailable > 0 &&
+    product.quantityAvailable <= 5;
   const onSale = Boolean(
     product.sale_price_cents &&
       product.price_cents > 0 &&
@@ -219,9 +247,12 @@ export default function ProductCard({
           {/* >=44px Add to Cart & Buy Now */}
           <CardAddButton
             productId={product.id}
+            variantId={product.variant_id}
             productName={product.name}
             unitPriceCents={price}
             inStock={inStock}
+            availableForSale={product.availableForSale !== false}
+            quantityAvailable={product.quantityAvailable}
             isFallback={product.isFallback}
           />
         </div>

@@ -12,6 +12,7 @@ import {
 function slimCatalogBook(p: ShopifyBook) {
   return {
     id: p.id,
+    variant_id: p.variant_id,
     slug: p.slug,
     handle: p.handle,
     name: p.name,

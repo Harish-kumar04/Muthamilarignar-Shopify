@@ -1,175 +1,108 @@
-"use client";
-
-import { useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { storefrontApi } from "@/lib/api";
+import { T } from "@/components/i18n/t";
+import { getShopifyHostedAccountUrls } from "@/lib/shopify-cart";
+import { BRAND, DEFAULT_SOCIAL, whatsappHref } from "@/lib/site-defaults";
 
-/**
- * Order tracking (spec §1 customer role: "track orders").
- * Works for guests and customers alike: order id + checkout email are
- * verified server-side against the tenant's records.
- */
+export const metadata: Metadata = {
+  title: `ஆர்டர் நிலை | Track Your Order — ${BRAND.nameTa} | ${BRAND.nameEn}`,
+  robots: { index: false, follow: false },
+};
+
 export default function TrackOrderPage() {
-  const [orderId, setOrderId] = useState("");
-  const [email, setEmail] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleTrack = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    try {
-      const data = await storefrontApi.trackOrder(orderId.trim(), email.trim());
-      setResult(data);
-    } catch (err: any) {
-      const msg = err?.response?.data?.detail || err?.message || "Order not found";
-      setError(typeof msg === "string" ? msg : "Order not found");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const stageLabels: Record<string, string> = {
-    confirmed: "Order confirmed",
-    processing: "Packing",
-    shipped: "Shipped",
-    delivered: "Delivered",
-  };
+  const hosted = getShopifyHostedAccountUrls();
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <div className="container-site max-w-3xl py-12 sm:py-16">
       <header className="mb-8">
-        <p className="text-[12px] uppercase tracking-[0.18em] text-gray-500">
-          Tracking
+        <p className="eyebrow">
+          <T ta="பார்சல் கண்காணிப்பு" en="Order Status Lookup" />
         </p>
-        <h1 className="mt-2 text-[36px] sm:text-[44px] font-semibold tracking-tight text-gray-900">
-          Track your order
+        <h1 className="mt-2 text-[32px] font-extrabold tracking-tight text-black sm:text-[42px]">
+          <T ta="உங்கள் ஆர்டர் நிலையை அறிக" en="Track Your Order" />
         </h1>
-        <p className="mt-2 text-[15px] text-gray-500">
-          Enter the order ID from your confirmation page or email, plus the
-          email you used at checkout.
+        <div aria-hidden="true" className="mt-3 h-1 w-14 rounded-full bg-brand-red" />
+        <p className="mt-3 text-[15px] leading-relaxed text-black/75">
+          <T
+            ta="Shopify ஆர்டர் நிலைப் பக்கம் வழியாக உங்கள் நூல் பார்சல் மற்றும் கூரியர் விவரங்களை உடனடியாக அறியலாம்."
+            en="Look up live fulfillment status and courier tracking links directly through Shopify's hosted order status portal."
+          />
         </p>
       </header>
 
-      <form
-        onSubmit={handleTrack}
-        className="rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 space-y-4"
-      >
-        <div>
-          <label className="block text-[12px] uppercase tracking-[0.16em] text-gray-500 mb-1">
-            Order ID
-          </label>
-          <input
-            type="text"
-            value={orderId}
-            onChange={(e) => setOrderId(e.target.value)}
-            placeholder="e.g. 3f2c9a1e-…"
-            required
-            className="w-full h-11 rounded-xl border border-gray-200 bg-white px-4 text-[14px] focus:outline-none focus:ring-2 focus:ring-brand-red"
-          />
-        </div>
-        <div>
-          <label className="block text-[12px] uppercase tracking-[0.16em] text-gray-500 mb-1">
-            Email used at checkout
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-            className="w-full h-11 rounded-xl border border-gray-200 bg-white px-4 text-[14px] focus:outline-none focus:ring-2 focus:ring-brand-red"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full h-11 rounded-full bg-gray-900 text-white text-[14px] font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
-        >
-          {loading ? "Checking…" : "Track order"}
-        </button>
-      </form>
-
-      {error && (
-        <div className="mt-4 rounded-2xl border border-brand-red-soft bg-brand-red-light px-4 py-3 text-[14px] text-brand-red-dark">
-          {error}
-        </div>
-      )}
-
-      {result && (
-        <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-6 sm:p-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[16px] font-semibold text-gray-900">
-              Order #{String(result.order_id).slice(0, 8)}
-            </h2>
-            <span className="text-[11px] px-2 py-1 rounded-full bg-gray-100 text-gray-700 capitalize">
-              {result.status}
-            </span>
-          </div>
-          <p className="text-[14px] text-gray-600">
-            Total: ₹{(result.total_cents / 100).toFixed(2)} {result.currency ? `· ${result.currency}` : ""}
+      <div className="space-y-6">
+        <section className="rounded-3xl border border-black/10 bg-[#FAFAFA] p-6 shadow-card sm:p-8">
+          <h2 className="text-[19px] font-extrabold text-black">
+            <T
+              ta="1. Shopify ஆர்டர் நிலைப் பக்கம் (பரிந்துரைக்கப்படுகிறது)"
+              en="1. Look Up via Shopify Customer & Order Portal"
+            />
+          </h2>
+          <p className="mt-2 text-[14.5px] leading-relaxed text-black/75">
+            <T
+              ta="ஆர்டர் செய்த மின்னஞ்சல் முகவரி மூலம் Shopify போர்ட்டலில் உள்நுழைந்து அனைத்து ஆர்டர்களின் தற்போதைய நிலையையும் கூரியர் டிராக்கிங் இணைப்பையும் பார்க்கலாம்."
+              en="Sign in with your checkout email on Shopify's hosted order portal to view real-time packing, dispatch, and courier tracking links."
+            />
           </p>
+          <div className="mt-5">
+            {hosted ? (
+              <a
+                href={hosted.orderLookupUrl}
+                className="btn-red h-12 px-7 text-[14.5px] font-bold shadow-glow"
+              >
+                <T ta="Shopify ஆர்டர் நிலையைத் திறக்க →" en="Open Shopify Order Status Lookup →" />
+              </a>
+            ) : (
+              <div className="rounded-2xl border border-amber-400/40 bg-amber-50 px-5 py-3.5 text-[13.5px] font-semibold text-amber-950">
+                <T
+                  ta="சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை — Store is temporarily unavailable"
+                  en="Store is temporarily unavailable"
+                />
+              </div>
+            )}
+          </div>
+        </section>
 
-          <ol className="mt-4 space-y-2">
-            {["confirmed", "processing", "shipped", "delivered"].map((stage) => {
-              const done = (result.timeline || []).includes(stage);
-              return (
-                <li
-                  key={stage}
-                  className={`flex items-center gap-2 text-[14px] ${
-                    done ? "text-green-700" : "text-gray-400"
-                  }`}
-                >
-                  <span
-                    className={`w-3.5 h-3.5 rounded-full border ${
-                      done
-                        ? "bg-green-600 border-green-600"
-                        : "border-gray-300"
-                    }`}
-                  />
-                  {stageLabels[stage]}
-                </li>
-              );
-            })}
-          </ol>
-
-          {(result.tracking || []).length > 0 && (
-            <div className="mt-4 border-t border-gray-100 pt-4">
-              <h3 className="text-[14px] font-semibold mb-2 text-gray-900">Shipments</h3>
-              {result.tracking.map((t: any, i: number) => (
-                <div key={i} className="text-[14px] text-gray-600 mb-2">
-                  <p className="font-medium">{t.carrier || "Carrier"}</p>
-                  {t.tracking_number ? (
-                    <p>
-                      Tracking number:{" "}
-                      <a
-                        href={`https://www.google.com/search?q=${encodeURIComponent((t.carrier || "") + " tracking " + t.tracking_number)}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-brand-red underline break-all"
-                      >
-                        {t.tracking_number}
-                      </a>
-                    </p>
-                  ) : (
-                    <p className="text-gray-400">Awaiting pickup — tracking number pending.</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+        <section className="rounded-3xl border border-black/10 bg-white p-6 shadow-card sm:p-8">
+          <h2 className="text-[18px] font-extrabold text-black">
+            <T
+              ta="2. மின்னஞ்சல் / SMS நேரடி இணைப்பு"
+              en="2. Direct Link in Your Order Confirmation Email / SMS"
+            />
+          </h2>
+          <p className="mt-2 text-[14.5px] leading-relaxed text-black/75">
+            <T
+              ta="ஆர்டர் உறுதியானவுடன் உங்கள் மின்னஞ்சல் அல்லது அலைபேசிக்கு அனுப்பப்பட்ட 'View your order' இணைப்பைத் தட்டினால் உள்நுழைவு இன்றி நேரடியாக ஆர்டர் நிலைப் பக்கம் திறக்கும்."
+              en="Every Shopify order confirmation and shipping update email/SMS includes a one-click 'View your order' link that opens your live order status page directly."
+            />
+          </p>
+          <p className="mt-4 border-t border-black/10 pt-4 text-[13.5px] text-black/70">
+            <T
+              ta="உறுதிப்படுத்தல் மின்னஞ்சல் கிடைக்கவில்லையா? உங்கள் ஆர்டர் எண்ணை எங்களுக்கு அனுப்பவும்:"
+              en="Can't find your confirmation email? Message our dispatch desk with your name or phone number:"
+            />{" "}
+            <a
+              href={whatsappHref(DEFAULT_SOCIAL)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-brand-red-dark hover:underline"
+            >
+              WhatsApp +91 {DEFAULT_SOCIAL.whatsappDisplay}
+            </a>{" "}
+            ·{" "}
+            <a
+              href={`mailto:${DEFAULT_SOCIAL.email}`}
+              className="font-bold text-brand-red-dark hover:underline"
+            >
+              {DEFAULT_SOCIAL.email}
+            </a>
+          </p>
+        </section>
+      </div>
 
       <div className="mt-8 text-center">
-        <Link
-          href="/"
-          className="text-[13px] text-gray-500 hover:underline"
-        >
-          ← Back to store
+        <Link href="/books" className="text-[13.5px] font-semibold text-black/70 hover:underline">
+          <T ta="← நூலகத்திற்குத் திரும்புக" en="← Back to Bookstore" />
         </Link>
       </div>
     </div>

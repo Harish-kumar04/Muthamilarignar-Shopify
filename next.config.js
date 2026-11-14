@@ -39,7 +39,7 @@ module.exports = {
           "worker-src 'self'",
           "frame-ancestors 'none'",
           "base-uri 'self'",
-          "form-action 'self'",
+          "form-action 'self' https://*.myshopify.com",
         ].join("; "),
       },
     ];
@@ -59,7 +59,7 @@ module.exports = {
       },
       {
         // Never cache or index cart, checkout, or customer account/orders pages.
-        source: "/:section(cart|checkout|account|orders|returns|track|login|signup|forgot-password|reset-password)/:rest*",
+        source: "/:section(cart|checkout|account|orders|returns|track)/:rest*",
         headers: [
           { key: "Cache-Control", value: "private, no-store, no-cache, must-revalidate" },
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
@@ -71,10 +71,20 @@ module.exports = {
     const reserved =
       "api|_next|books|categories|about|faq|authors|policies|products|cart|checkout|account|orders|returns|track|login|signup|forgot-password|reset-password|brand";
     const cleanSections =
-      "books|categories|about|faq|authors|policies|products|cart|checkout|account|orders|returns|track|login|signup|forgot-password|reset-password";
+      "books|categories|about|faq|authors|policies|products|cart|checkout|account|orders|returns|track";
     const seoFiles = "llms\\.txt|robots\\.txt|sitemap\\.xml";
 
     return [
+      {
+        source: "/:auth(login|signup|forgot-password|reset-password)",
+        destination: "/account",
+        statusCode: 301,
+      },
+      {
+        source: "/account/consent",
+        destination: "/account",
+        statusCode: 301,
+      },
       {
         source: "/demo-store",
         destination: "/",

@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "@/components/ui/img";
 import { useLanguage } from "@/components/language-provider";
-import { isUuidProductId, quickAddToCart } from "@/lib/cart-client";
 import {
-  notifyCartChanged,
-  openMiniCart,
-  optimisticAdjustCart,
-} from "@/lib/cart-events";
+  addToCartClient,
+  buyNowClient,
+  isShopifyCatalogId,
+} from "@/lib/cart-client";
+import { openMiniCart, optimisticAdjustCart } from "@/lib/cart-events";
 import { toast } from "@/components/toaster";
 import { CartIcon, CloseIcon, WhatsAppIcon, FacebookIcon } from "@/components/brand/icons";
 import PenLoader from "@/components/ui/pen-loader";
@@ -281,39 +280,54 @@ export function BookGalleryIsland({
 
 export function BookPurchaseIslands({
   productId,
+  variantId = null,
   productName,
   unitPriceCents,
   inStock,
+  availableForSale = true,
+  quantityAvailable = null,
   maxStock,
   isFallback,
 }: {
   productId: string;
+  variantId?: string | null;
   productName: string;
   unitPriceCents: number;
   inStock: boolean;
+  availableForSale?: boolean;
+  quantityAvailable?: number | null;
   maxStock?: number;
   isFallback: boolean;
 }) {
-  const router = useRouter();
   const { t, localizeName } = useLanguage();
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
   const [buying, setBuying] = useState(false);
 
-  const isShopifyId = typeof productId === "string" && productId.startsWith("gid://shopify/");
-  const unavailable = Boolean(isFallback) || (!isShopifyId && !isUuidProductId(productId));
+  const canPurchase =
+    inStock &&
+    availableForSale &&
+    (typeof quantityAvailable !== "number" || quantityAvailable > 0);
+  const unavailable =
+    Boolean(isFallback) || !isShopifyCatalogId(variantId || productId);
   const primaryTitle = localizeName(productName);
-  const cap = typeof maxStock === "number" && maxStock > 0 ? maxStock : 99;
-
-  // TODO shopify: emit Shopify analytics PAGE_VIEW / PRODUCT_VIEW event
+  const cap =
+    typeof quantityAvailable === "number" && quantityAvailable > 0
+      ? quantityAvailable
+      : typeof maxStock === "number" && maxStock > 0
+        ? maxStock
+        : 99;
 
   const handleAddToCart = async () => {
-    if (!inStock || adding || unavailable) return;
+    if (!canPurchase || adding || buying || unavailable) return;
     const rollback = optimisticAdjustCart(quantity, unitPriceCents * quantity);
     setAdding(true);
     try {
-      await quickAddToCart(productId, quantity);
-      notifyCartChanged();
+      await addToCartClient({
+        merchandiseId: variantId,
+        productId,
+        quantity,
+      });
       openMiniCart();
       toast({
         kind: "success",
@@ -324,12 +338,12 @@ export function BookPurchaseIslands({
       rollback();
       toast({
         kind: "error",
-        title: t("பிழை ஏற்பட்டது", "Failed to add"),
+        title: t("கூடையில் சேர்க்க முடியவில்லை", "Could not add to cart"),
         description:
           err?.message ||
           t(
-            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்",
-            "Store is temporarily unavailable, try again",
+            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை",
+            "Store is temporarily unavailable",
           ),
       });
     } finally {
@@ -338,59 +352,62 @@ export function BookPurchaseIslands({
   };
 
   const handleBuyNow = async () => {
-    if (!inStock || buying || unavailable) return;
-    const rollback = optimisticAdjustCart(quantity, unitPriceCents * quantity);
+    if (!canPurchase || adding || buying || unavailable) return;
     setBuying(true);
     try {
-      await quickAddToCart(productId, quantity);
-      notifyCartChanged();
-      router.push("/checkout");
+      const { checkoutUrl } = await buyNowClient({
+        merchandiseId: variantId,
+        productId,
+        quantity,
+      });
+      window.location.assign(checkoutUrl);
     } catch (err: any) {
-      rollback();
+      setBuying(false);
       toast({
         kind: "error",
-        title: t("பிழை ஏற்பட்டது", "Failed to add"),
+        title: t("ஆர்டர் பக்கத்தைத் திறக்க முடியவில்லை", "Could not start checkout"),
         description:
           err?.message ||
           t(
-            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்",
-            "Store is temporarily unavailable, try again",
+            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை",
+            "Store is temporarily unavailable",
           ),
       });
-    } finally {
-      setBuying(false);
     }
   };
 
   return (
     <>
-      {inStock && unavailable && (
+      {canPurchase && unavailable && (
         <div className="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[14px] font-semibold text-amber-900">
           {t(
-            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்",
-            "Store is temporarily unavailable, try again",
+            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை",
+            "Store is temporarily unavailable",
           )}
         </div>
       )}
 
-      {inStock && !unavailable && (
+      {!unavailable && (
         <div className="mt-6 flex flex-wrap items-center gap-3.5">
           {/* >=44px Quantity Stepper */}
           <div className="flex items-center rounded-full border border-black/20 bg-white">
             <button
               type="button"
+              disabled={!canPurchase || quantity <= 1}
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="h-12 w-12 rounded-l-full text-[16px] font-bold text-black hover:bg-black/5 transition-colors"
+              className="h-12 w-12 rounded-l-full text-[16px] font-bold text-black transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Decrease quantity"
             >
               –
             </button>
-            <span className="w-10 text-center text-[15px] font-bold text-black">{quantity}</span>
+            <span className="w-10 text-center text-[15px] font-bold text-black">
+              {quantity}
+            </span>
             <button
               type="button"
-              disabled={quantity >= cap}
+              disabled={!canPurchase || quantity >= cap}
               onClick={() => setQuantity((q) => Math.min(cap, q + 1))}
-              className="h-12 w-12 rounded-r-full text-[16px] font-bold text-black hover:bg-black/5 disabled:opacity-40 transition-colors"
+              className="h-12 w-12 rounded-r-full text-[16px] font-bold text-black transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Increase quantity"
             >
               +
@@ -400,15 +417,17 @@ export function BookPurchaseIslands({
           <button
             type="button"
             onClick={handleAddToCart}
-            disabled={adding || unavailable}
+            disabled={!canPurchase || adding || buying}
             aria-busy={adding || undefined}
-            className="btn-outline h-12 px-6 text-[15px] font-bold"
+            className="btn-outline h-12 px-6 text-[15px] font-bold disabled:cursor-not-allowed disabled:opacity-50"
           >
             {adding ? (
               <>
                 <PenLoader size="sm" label={t("சேர்க்கிறது", "Adding")} />
                 {t("சேர்க்கிறது…", "Adding…")}
               </>
+            ) : !canPurchase ? (
+              t("கையிருப்பில் இல்லை", "Out of stock")
             ) : (
               <>
                 <CartIcon className="h-4 w-4" />
@@ -420,39 +439,43 @@ export function BookPurchaseIslands({
           <button
             type="button"
             onClick={handleBuyNow}
-            disabled={buying || unavailable}
+            disabled={!canPurchase || adding || buying}
             aria-busy={buying || undefined}
-            className="btn-red h-12 px-7 text-[15px] font-bold shadow-glow"
+            className="btn-red h-12 px-7 text-[15px] font-bold shadow-glow disabled:cursor-not-allowed disabled:opacity-50"
           >
             {buying ? (
               <>
-                <PenLoader size="sm" tone="light" label={t("தயாராகிறது", "Processing")} />
-                {t("தயாராகிறது…", "Processing…")}
+                <PenLoader size="sm" tone="light" label={t("தயாராகிறது", "Redirecting")} />
+                {t("தயாராகிறது…", "Redirecting…")}
               </>
             ) : (
               t("இப்போதே வாங்குக", "Buy now")
             )}
           </button>
 
-          <WishlistButton productId={productId} productName={productName} className="h-12 w-12" />
+          <WishlistButton
+            productId={productId}
+            productName={productName}
+            className="h-12 w-12"
+          />
         </div>
       )}
 
       {/* Sticky Bottom Bar on Mobile (<640px) */}
-      <div className="fixed bottom-0 inset-x-0 z-40 flex items-center justify-between gap-3 border-t border-black/15 bg-white/[0.98] px-4 py-3 shadow-2xl sm:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-black/15 bg-white/[0.98] px-4 py-3 shadow-2xl sm:hidden">
         <div>
-          <span className="block text-[11px] font-medium text-black/65 leading-tight">
+          <span className="block text-[11px] font-medium leading-tight text-black/65">
             {t("நூல் விலை", "Book Price")}
           </span>
-          <span className="text-[20px] font-extrabold text-brand-red leading-none">
+          <span className="text-[20px] font-extrabold leading-none text-brand-red">
             {formatPrice(unitPriceCents * quantity)}
           </span>
         </div>
         {unavailable ? (
-          <span className="text-[11px] font-semibold text-amber-900 text-right">
+          <span className="text-right text-[11px] font-semibold text-amber-900">
             {t(
               "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை",
-              "Store is temporarily unavailable, try again",
+              "Store is temporarily unavailable",
             )}
           </span>
         ) : (
@@ -460,20 +483,30 @@ export function BookPurchaseIslands({
             <button
               type="button"
               onClick={handleAddToCart}
-              disabled={!inStock || adding}
+              disabled={!canPurchase || adding || buying}
               aria-busy={adding || undefined}
-              className="btn-outline h-11 px-4 text-[13px] font-bold"
+              className="btn-outline h-11 px-4 text-[13px] font-bold disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {adding ? <PenLoader size="sm" label="Adding" /> : t("கூடையில் சேர்", "Add to cart")}
+              {adding ? (
+                <PenLoader size="sm" label="Adding" />
+              ) : !canPurchase ? (
+                t("இருப்பு இல்லை", "Sold out")
+              ) : (
+                t("கூடையில் சேர்", "Add to cart")
+              )}
             </button>
             <button
               type="button"
               onClick={handleBuyNow}
-              disabled={!inStock || buying}
+              disabled={!canPurchase || adding || buying}
               aria-busy={buying || undefined}
-              className="btn-red h-11 px-5 text-[13.5px] font-bold"
+              className="btn-red h-11 px-5 text-[13.5px] font-bold disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {buying ? <PenLoader size="sm" tone="light" label="Processing" /> : t("வாங்குக", "Buy now")}
+              {buying ? (
+                <PenLoader size="sm" tone="light" label="Redirecting" />
+              ) : (
+                t("வாங்குக", "Buy now")
+              )}
             </button>
           </div>
         )}

@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { isUuidProductId, quickAddToCart } from "@/lib/cart-client";
 import {
-  notifyCartChanged,
-  openMiniCart,
-  optimisticAdjustCart,
-} from "@/lib/cart-events";
+  addToCartClient,
+  buyNowClient,
+  isShopifyCatalogId,
+} from "@/lib/cart-client";
+import { openMiniCart, optimisticAdjustCart } from "@/lib/cart-events";
 import { toast } from "@/components/toaster";
 import { useLanguage } from "@/components/language-provider";
 import { CartIcon } from "@/components/brand/icons";
@@ -15,33 +14,44 @@ import PenLoader from "@/components/ui/pen-loader";
 
 export default function CardAddButton({
   productId,
+  variantId = null,
   productName,
   unitPriceCents = 0,
   inStock = true,
+  availableForSale = true,
+  quantityAvailable = null,
   isFallback = false,
 }: {
   productId: string;
+  variantId?: string | null;
   productName: string;
   unitPriceCents?: number;
   inStock?: boolean;
+  availableForSale?: boolean;
+  quantityAvailable?: number | null;
   isFallback?: boolean;
 }) {
-  const router = useRouter();
   const { t, localizeName } = useLanguage();
   const [adding, setAdding] = useState(false);
   const [buying, setBuying] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const isShopifyId = typeof productId === "string" && productId.startsWith("gid://shopify/");
-  const unavailable = Boolean(isFallback) || (!isShopifyId && !isUuidProductId(productId));
-  const busy = adding || buying;
+  const canPurchase =
+    inStock &&
+    availableForSale &&
+    (typeof quantityAvailable !== "number" || quantityAvailable > 0);
+  const unavailable = Boolean(isFallback) || !isShopifyCatalogId(variantId || productId);
 
-  if (!inStock) {
+  if (!canPurchase) {
     return (
-      <div className="mt-3">
-        <span className="inline-flex h-11 w-full items-center justify-center rounded-full border border-black/10 bg-black/[0.04] px-3 text-[12.5px] font-semibold text-black/55 cursor-not-allowed">
+      <div className="mt-3 grid grid-cols-1 gap-2">
+        <button
+          type="button"
+          disabled
+          className="inline-flex h-11 w-full cursor-not-allowed items-center justify-center rounded-full border border-black/10 bg-black/[0.04] px-3 text-[12.5px] font-semibold text-black/50"
+        >
           {t("கையிருப்பில் இல்லை", "Out of stock")}
-        </span>
+        </button>
       </div>
     );
   }
@@ -52,12 +62,12 @@ export default function CardAddButton({
         <button
           type="button"
           disabled
-          title="Store is temporarily unavailable, try again"
-          className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-[11.5px] font-semibold leading-snug text-amber-900 cursor-not-allowed text-center"
+          title="Store is temporarily unavailable"
+          className="inline-flex min-h-[44px] w-full cursor-not-allowed items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-center text-[11.5px] font-semibold leading-snug text-amber-900"
         >
           {t(
-            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்",
-            "Store is temporarily unavailable, try again",
+            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை",
+            "Store is temporarily unavailable",
           )}
         </button>
       </div>
@@ -67,14 +77,18 @@ export default function CardAddButton({
   const handleAdd = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (busy || unavailable) return;
+    if (adding || buying || !canPurchase || unavailable) return;
 
     const rollback = optimisticAdjustCart(1, unitPriceCents);
     setAdding(true);
-    setSuccess(true);
+    setSuccess(false);
     try {
-      await quickAddToCart(productId, 1);
-      notifyCartChanged();
+      await addToCartClient({
+        merchandiseId: variantId,
+        productId,
+        quantity: 1,
+      });
+      setSuccess(true);
       openMiniCart();
       toast({
         kind: "success",
@@ -87,12 +101,12 @@ export default function CardAddButton({
       setSuccess(false);
       toast({
         kind: "error",
-        title: t("பிழை ஏற்பட்டது", "Failed to add"),
+        title: t("கூடையில் சேர்க்க முடியவில்லை", "Could not add to cart"),
         description:
           err?.message ||
           t(
-            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்",
-            "Store is temporarily unavailable, try again",
+            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை",
+            "Store is temporarily unavailable",
           ),
       });
     } finally {
@@ -103,28 +117,28 @@ export default function CardAddButton({
   const handleBuyNow = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (busy || unavailable) return;
+    if (adding || buying || !canPurchase || unavailable) return;
 
-    const rollback = optimisticAdjustCart(1, unitPriceCents);
     setBuying(true);
     try {
-      await quickAddToCart(productId, 1);
-      notifyCartChanged();
-      router.push("/checkout");
+      const { checkoutUrl } = await buyNowClient({
+        merchandiseId: variantId,
+        productId,
+        quantity: 1,
+      });
+      window.location.assign(checkoutUrl);
     } catch (err: any) {
-      rollback();
+      setBuying(false);
       toast({
         kind: "error",
-        title: t("பிழை ஏற்பட்டது", "Failed to add"),
+        title: t("ஆர்டர் பக்கத்தைத் திறக்க முடியவில்லை", "Could not start checkout"),
         description:
           err?.message ||
           t(
-            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்",
-            "Store is temporarily unavailable, try again",
+            "சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை",
+            "Store is temporarily unavailable",
           ),
       });
-    } finally {
-      setBuying(false);
     }
   };
 
@@ -133,7 +147,7 @@ export default function CardAddButton({
       <button
         type="button"
         onClick={handleAdd}
-        disabled={busy}
+        disabled={adding || buying || !canPurchase}
         aria-busy={adding || undefined}
         aria-label={`${t("கூடையில் சேர்", "Add to cart")} — ${localizeName(productName)}`}
         className={`inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full px-3 text-[12.5px] font-bold transition-colors ${
@@ -157,13 +171,13 @@ export default function CardAddButton({
       <button
         type="button"
         onClick={handleBuyNow}
-        disabled={busy}
+        disabled={adding || buying || !canPurchase}
         aria-busy={buying || undefined}
         aria-label={`${t("இப்போதே வாங்கு", "Buy now")} — ${localizeName(productName)}`}
         className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full bg-black px-3 text-[12.5px] font-bold text-white transition-colors hover:bg-[#D11D1A] disabled:opacity-60"
       >
         {buying ? (
-          <PenLoader size="sm" tone="light" label={t("வாங்குகிறது", "Buying now")} />
+          <PenLoader size="sm" tone="light" label={t("வாங்குகிறது", "Redirecting to checkout")} />
         ) : (
           <span className="truncate">{t("இப்போதே வாங்கு", "Buy now")}</span>
         )}

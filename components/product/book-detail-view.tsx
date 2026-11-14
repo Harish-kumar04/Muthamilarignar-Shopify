@@ -47,11 +47,19 @@ export default function BookDetailView({
         ),
       )
     : 0;
+  const qtyAvailable =
+    typeof product.quantityAvailable === "number" ? product.quantityAvailable : null;
   const stockCount =
     product.availableForSale === false
       ? 0
-      : Number(product.inventory_quantity ?? product.inventory ?? 10);
-  const inStock = product.availableForSale === false ? false : stockCount > 0;
+      : qtyAvailable !== null
+        ? qtyAvailable
+        : Number(product.inventory_quantity ?? product.inventory ?? 10);
+  const availableForSale =
+    product.availableForSale !== false &&
+    stockCount > 0 &&
+    (qtyAvailable === null || qtyAvailable > 0);
+  const inStock = availableForSale;
   const isFallback = Boolean(product.is_fallback) || !isStoreProductId(product.id);
 
   const [nameTa, nameEn] = splitBilingual(product.name, "|");
@@ -226,9 +234,18 @@ export default function BookDetailView({
             {/* Client Island: Quantity Stepper, Add to Cart, Buy Now, Wishlist & Mobile Sticky Bar */}
             <BookPurchaseIslands
               productId={String(product.id)}
+              variantId={
+                product.variant_id
+                  ? String(product.variant_id)
+                  : product.variants?.[0]?.id
+                    ? String(product.variants[0].id)
+                    : null
+              }
               productName={String(product.name || "")}
               unitPriceCents={price}
               inStock={inStock}
+              availableForSale={availableForSale}
+              quantityAvailable={qtyAvailable}
               maxStock={stockCount}
               isFallback={isFallback}
             />

@@ -13,12 +13,14 @@ Copy `.env.example` to `.env.local` and configure:
 | `SHOPIFY_REVALIDATION_SECRET` | Yes | Webhook signing secret from **Settings → Notifications → Webhooks** used to verify `X-Shopify-Hmac-Sha256`. |
 | `NEXT_PUBLIC_SITE_URL` | Yes | Canonical public URL of the storefront (e.g. `https://muthamilarignarpathipagam.com`). |
 | `SHOPIFY_VENDOR_FILTER` | Optional | **TEMPORARY** vendor filter. Set to `"Muthamilarignar Pathipagam"` while sharing a multi-vendor Shopify store; leave empty (`SHOPIFY_VENDOR_FILTER=`) to disable vendor filtering. |
+| `FREE_SHIPPING_THRESHOLD` | Optional | Free-shipping progress bar threshold in INR (`500` by default). |
 
 ### Required Storefront API Access & Metafields
 
 1. Enable Storefront API scopes on the Headless / Custom Storefront app:
    - `unauthenticated_read_product_listings`
    - `unauthenticated_read_product_inventory` (for `quantityAvailable`)
+   - `unauthenticated_read_checkouts` / `unauthenticated_write_checkouts` (Cart & Checkout API)
 2. Expose the following **Product Metafields** (`Settings → Custom data → Products`) with **Storefront access** enabled:
    - `custom.author`
    - `custom.publisher`
@@ -42,11 +44,17 @@ Catalog pages use ISR (`revalidate = 120`) combined with cache tags (`products`,
 3. At the bottom of the **Webhooks** section, copy the signing key shown under *"All your webhooks will be signed with..."* and set it as `SHOPIFY_REVALIDATION_SECRET` in `.env.local` and your hosting environment (e.g. Vercel).
 4. `POST /api/revalidate` reads the raw request body, computes `base64(HMAC-SHA256(rawBody, SHOPIFY_REVALIDATION_SECRET))`, verifies it against `X-Shopify-Hmac-Sha256` using constant-time comparison, and revalidates the affected product/collection cache tags and sitemap.
 
-## Local Development & Production Build
+## Local Development, Cart Verification & Production Build
 
 ```bash
 npm install
 npm run dev
+```
+
+Verify live Shopify Cart API (`cartCreate -> cartLinesAdd -> cartLinesUpdate -> cartLinesRemove`) against `.env.local`:
+
+```bash
+npm run verify:cart
 ```
 
 ```bash

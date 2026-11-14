@@ -76,10 +76,12 @@ export function CartButton() {
     };
     sync();
     window.addEventListener("infalette-cart-changed", sync);
+    window.addEventListener("infalette-cart-synced", sync);
     window.addEventListener("infalette-cart-optimistic", sync);
     window.addEventListener("storage", onStorage);
     return () => {
       window.removeEventListener("infalette-cart-changed", sync);
+      window.removeEventListener("infalette-cart-synced", sync);
       window.removeEventListener("infalette-cart-optimistic", sync);
       window.removeEventListener("storage", onStorage);
     };

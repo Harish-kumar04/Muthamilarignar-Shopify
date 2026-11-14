@@ -1,0 +1,123 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { storefrontApi } from "@/lib/api";
+import AuthGate from "@/components/auth-gate";
+import PenLoader from "@/components/ui/pen-loader";
+
+export default function OrdersListPage() {
+  return (
+    <AuthGate>
+      <OrdersList />
+    </AuthGate>
+  );
+}
+
+function OrdersList() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const list = await storefrontApi.listOrders();
+        if (cancelled) return;
+        setOrders(Array.isArray(list) ? list : []);
+      } catch (err: any) {
+        if (cancelled) return;
+        const msg = err?.response?.data?.detail || err?.message || "Failed to load orders";
+        setError(typeof msg === "string" ? msg : "Failed to load orders");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+      <header className="mb-8">
+        <p className="text-[12px] uppercase tracking-[0.18em] text-gray-500">
+          Order history
+        </p>
+        <h1 className="mt-2 text-[36px] sm:text-[44px] font-semibold tracking-tight text-gray-900">
+          My orders
+        </h1>
+        <p className="mt-2 text-[15px] text-gray-500">
+          Every order you&apos;ve placed. Click into one to see shipment
+          status, download an invoice, or request a return.
+        </p>
+      </header>
+
+      {loading && (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-gray-100 bg-white py-12 text-[14px] text-gray-500">
+          <PenLoader size="md" label="Loading orders" />
+          <span>Loading your orders…</span>
+        </div>
+      )}
+
+      {error && !loading && (
+        <div className="rounded-2xl border border-brand-red-soft bg-brand-red-light p-4 text-[14px] text-brand-red-dark">
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && orders.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-gray-300 py-16 px-6 text-center bg-white">
+          <p className="text-[15px] text-gray-700">
+            You haven&apos;t placed any orders yet.
+          </p>
+          <p className="mt-1 text-[13px] text-gray-500">
+            When you do, they&apos;ll appear here with status, tracking and
+            invoice download.
+          </p>
+          <Link
+            href="/books"
+            className="mt-6 inline-flex h-11 px-6 items-center justify-center rounded-full bg-gray-900 text-white text-[14px] font-medium hover:opacity-90 transition-opacity"
+          >
+            Start shopping
+          </Link>
+        </div>
+      )}
+
+      {!loading && !error && orders.length > 0 && (
+        <div className="space-y-3">
+          {orders.map((order: any) => (
+            <Link
+              key={order.id}
+              href={`/orders/${order.id}`}
+              className="block rounded-2xl border border-gray-100 bg-white p-4 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-shadow"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="font-semibold text-[14px] text-gray-900">
+                    Order #{String(order.id).slice(0, 8)}
+                  </p>
+                  <p className="text-[12px] text-gray-500 mt-0.5">
+                    Placed {new Date(order.placed_at || order.created_at).toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[14px] font-semibold text-gray-900">
+                    ₹{((order.total_cents || 0) / 100).toFixed(2)} {order.currency || "INR"}
+                  </p>
+                  <span className="inline-block mt-1 text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 capitalize">
+                    {order.status}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

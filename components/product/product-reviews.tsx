@@ -68,13 +68,11 @@ function Stars({ value }: { value: number }) {
 
 export default function ProductReviews({
   product,
-  tenant,
 }: {
   product: any;
-  tenant: string;
 }) {
   const { t } = useLanguage();
-  const storageKey = `mp-reviews:${tenant}:${product.id}`;
+  const storageKey = `mp-reviews:${product.id}`;
   const [reviews, setReviews] = useState<Review[]>(() => {
     if (typeof window === "undefined") return DEMO_REVIEWS;
     try {

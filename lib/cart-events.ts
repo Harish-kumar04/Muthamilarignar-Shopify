@@ -13,12 +13,12 @@ type CartSummary = {
   totalCents: number;
 };
 
-function emit(tenant?: string) {
+function emit() {
   if (typeof window === "undefined") return;
-  window.dispatchEvent(new CustomEvent("infalette-cart-changed", { detail: { tenant } }));
+  window.dispatchEvent(new CustomEvent("infalette-cart-changed"));
   try {
     const bc = new BroadcastChannel("infalette-cart");
-    bc.postMessage({ tenant });
+    bc.postMessage({});
     bc.close();
   } catch {
     /* unsupported */
@@ -30,8 +30,8 @@ function emit(tenant?: string) {
   }
 }
 
-export function notifyCartChanged(tenant?: string) {
-  emit(tenant);
+export function notifyCartChanged() {
+  emit();
 }
 
 export function optimisticAdjustCart(deltaCount: number, deltaCents = 0): () => void {
@@ -67,7 +67,7 @@ export function closeMiniCart() {
   window.dispatchEvent(new CustomEvent("infalette-close-mini-cart"));
 }
 
-export async function refreshCartCount(_tenant?: string): Promise<CartSummary> {
+export async function refreshCartCount(): Promise<CartSummary> {
   // TODO shopify: fetch `/api/cart-summary` backed by Shopify `cart(id: $cartId)`
   return readFromStorage();
 }

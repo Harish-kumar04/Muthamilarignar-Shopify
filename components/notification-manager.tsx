@@ -9,16 +9,14 @@ import { CloseIcon } from "@/components/brand/icons";
 import Img from "@/components/ui/img";
 
 export default function NotificationManager({
-  tenant,
   notifications = [],
   fallbackPopup,
 }: {
-  tenant: string;
   notifications?: NotificationItem[];
   fallbackPopup?: PopupConfig;
 }) {
   const pathname = usePathname() || "";
-  const { lang, t } = useLanguage();
+  const { lang } = useLanguage();
   const [activeItem, setActiveItem] = useState<NotificationItem | null>(null);
   const [visible, setVisible] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -32,8 +30,7 @@ export default function NotificationManager({
       return;
     }
 
-    const home = `/${tenant}`;
-    const isHome = pathname === home || pathname === `${home}/`;
+    const isHome = pathname === "/";
     const now = Date.now();
 
     // Find candidate items
@@ -121,7 +118,7 @@ export default function NotificationManager({
     }, delay);
 
     return () => clearTimeout(timer);
-  }, [pathname, tenant, notifications, fallbackPopup, isExcluded]);
+  }, [pathname, notifications, fallbackPopup, isExcluded]);
 
   // Focus trap and escape listener for popup
   useEffect(() => {
@@ -138,7 +135,7 @@ export default function NotificationManager({
   const title = lang === "en" ? (activeItem.title_en || activeItem.title_ta) : (activeItem.title_ta || activeItem.title_en);
   const text = lang === "en" ? (activeItem.text_en || activeItem.text_ta) : (activeItem.text_ta || activeItem.text_en);
   const btn = lang === "en" ? (activeItem.button_en || activeItem.button_ta) : (activeItem.button_ta || activeItem.button_en);
-  const href = resolveLink(tenant, activeItem.link);
+  const href = resolveLink(activeItem.link);
 
   // Type: Bar
   if (activeItem.type === "bar") {

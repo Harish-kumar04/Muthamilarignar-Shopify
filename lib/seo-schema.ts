@@ -44,15 +44,12 @@ export function bookSlugOrId(product: { id?: string; slug?: string | null }): st
   return cleanSlug || String(product?.id || "");
 }
 
-export function bookPath(tenant: string, product: { id?: string; slug?: string | null }): string {
-  return `/${tenant}/books/${encodeURIComponent(bookSlugOrId(product))}`;
+export function bookPath(product: { id?: string; slug?: string | null }): string {
+  return `/books/${encodeURIComponent(bookSlugOrId(product))}`;
 }
 
-export function bookCanonicalUrl(
-  tenant: string,
-  product: { id?: string; slug?: string | null },
-): string {
-  return `${SITE_URL}${bookPath(tenant, product)}`;
+export function bookCanonicalUrl(product: { id?: string; slug?: string | null }): string {
+  return `${SITE_URL}${bookPath(product)}`;
 }
 
 export interface BreadcrumbItem {
@@ -73,11 +70,11 @@ export function buildBreadcrumbNode(items: BreadcrumbItem[], id?: string) {
   };
 }
 
-export function buildOrganizationNodes(tenant: string, customLogoUrl?: string) {
-  const homeUrl = `${SITE_URL}/${tenant}`;
+export function buildOrganizationNodes(customLogoUrl?: string) {
+  const homeUrl = SITE_URL;
   const logoUrl = customLogoUrl || DEFAULT_LOGO_URL;
   const orgId = `${SITE_URL}/#organization`;
-  const storeId = `${homeUrl}#bookstore`;
+  const storeId = `${SITE_URL}/#bookstore`;
 
   const postalAddress = {
     "@type": "PostalAddress",
@@ -133,17 +130,17 @@ export function buildOrganizationNodes(tenant: string, customLogoUrl?: string) {
   ];
 }
 
-export function buildHomeJsonLd(tenant: string, customLogoUrl?: string) {
-  const homeUrl = `${SITE_URL}/${tenant}`;
+export function buildHomeJsonLd(customLogoUrl?: string) {
+  const homeUrl = SITE_URL;
   const orgId = `${SITE_URL}/#organization`;
 
   return {
     "@context": "https://schema.org",
     "@graph": [
-      ...buildOrganizationNodes(tenant, customLogoUrl),
+      ...buildOrganizationNodes(customLogoUrl),
       {
         "@type": "WebSite",
-        "@id": `${homeUrl}#website`,
+        "@id": `${homeUrl}/#website`,
         url: homeUrl,
         name: `${PUBLISHER_ENTITY.nameTa} | ${PUBLISHER_ENTITY.nameEn}`,
         inLanguage: ["ta-IN", "en-IN"],
@@ -157,19 +154,17 @@ export function buildHomeJsonLd(tenant: string, customLogoUrl?: string) {
           "query-input": "required name=search_term_string",
         },
       },
-      buildBreadcrumbNode([{ name: `${PUBLISHER_ENTITY.nameTa} | Home`, url: homeUrl }], `${homeUrl}#breadcrumb`),
+      buildBreadcrumbNode([{ name: `${PUBLISHER_ENTITY.nameTa} | Home`, url: homeUrl }], `${homeUrl}/#breadcrumb`),
     ],
   };
 }
 
 export function buildListingJsonLd({
-  tenant,
   url,
   listName,
   books,
   breadcrumbs,
 }: {
-  tenant: string;
   url: string;
   listName: string;
   books: any[];
@@ -189,7 +184,7 @@ export function buildListingJsonLd({
           return {
             "@type": "ListItem",
             position: idx + 1,
-            url: bookCanonicalUrl(tenant, b),
+            url: bookCanonicalUrl(b),
             name: en && en !== ta ? `${ta} | ${en}` : ta,
           };
         }),
@@ -205,10 +200,10 @@ function normalizeIsbn(raw?: string | null): string | undefined {
   return undefined;
 }
 
-export function buildBookJsonLd({ tenant, product }: { tenant: string; product: any }) {
-  const homeUrl = `${SITE_URL}/${tenant}`;
+export function buildBookJsonLd({ product }: { product: any }) {
+  const homeUrl = SITE_URL;
   const booksUrl = `${homeUrl}/books`;
-  const canonicalUrl = bookCanonicalUrl(tenant, product);
+  const canonicalUrl = bookCanonicalUrl(product);
   const orgId = `${SITE_URL}/#organization`;
 
   const [nameTa, nameEn] = splitBilingual(product.name, "|");
@@ -298,7 +293,7 @@ export function buildBookJsonLd({ tenant, product }: { tenant: string; product: 
   return {
     "@context": "https://schema.org",
     "@graph": [
-      ...buildOrganizationNodes(tenant),
+      ...buildOrganizationNodes(),
       bookNode,
       buildBreadcrumbNode(
         [

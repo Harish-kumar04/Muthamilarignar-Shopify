@@ -59,7 +59,7 @@ module.exports = {
       },
       {
         // Never cache or index cart, checkout, or customer account/orders pages.
-        source: "/:tenant/(cart|checkout|account|orders|login|signup|forgot-password|reset-password)(.*)",
+        source: "/:section(cart|checkout|account|orders|returns|track|login|signup|forgot-password|reset-password)/:rest*",
         headers: [
           { key: "Cache-Control", value: "private, no-store, no-cache, must-revalidate" },
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
@@ -68,47 +68,32 @@ module.exports = {
     ];
   },
   async redirects() {
-    const defaultTenant = "demo-store";
+    const reserved =
+      "api|_next|books|categories|about|faq|authors|policies|products|cart|checkout|account|orders|returns|track|login|signup|forgot-password|reset-password|brand";
+    const cleanSections =
+      "books|categories|about|faq|authors|policies|products|cart|checkout|account|orders|returns|track|login|signup|forgot-password|reset-password";
+    const seoFiles = "llms\\.txt|robots\\.txt|sitemap\\.xml";
+
     return [
       {
-        source: "/books",
-        destination: `/${defaultTenant}/books`,
-        permanent: true,
+        source: "/demo-store",
+        destination: "/",
+        statusCode: 301,
       },
       {
-        source: "/books/:slug",
-        destination: `/${defaultTenant}/books/:slug`,
-        permanent: true,
+        source: "/demo-store/:path+",
+        destination: "/:path+",
+        statusCode: 301,
       },
       {
-        source: "/categories/:slug",
-        destination: `/${defaultTenant}/categories/:slug`,
-        permanent: true,
+        source: `/:tenant((?!${reserved})[^/.]+)/:section(${cleanSections}|${seoFiles})`,
+        destination: "/:section",
+        statusCode: 301,
       },
       {
-        source: "/about",
-        destination: `/${defaultTenant}/about`,
-        permanent: true,
-      },
-      {
-        source: "/faq",
-        destination: `/${defaultTenant}/faq`,
-        permanent: true,
-      },
-      {
-        source: "/authors",
-        destination: `/${defaultTenant}/authors`,
-        permanent: true,
-      },
-      {
-        source: "/authors/:slug",
-        destination: `/${defaultTenant}/authors/:slug`,
-        permanent: true,
-      },
-      {
-        source: "/policies/:slug",
-        destination: `/${defaultTenant}/policies/:slug`,
-        permanent: true,
+        source: `/:tenant((?!${reserved})[^/.]+)/:section(${cleanSections})/:rest+`,
+        destination: "/:section/:rest+",
+        statusCode: 301,
       },
     ];
   },

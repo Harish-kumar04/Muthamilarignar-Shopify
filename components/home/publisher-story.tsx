@@ -11,11 +11,9 @@ import { DEFAULT_LOGO_URL } from "@/lib/site-defaults";
  * social justice, language rights, and Muthamilarignar Kalaignar's literary works.
  */
 export default function PublisherStory({
-  tenant,
   totalBooks,
   logoUrl = DEFAULT_LOGO_URL,
 }: {
-  tenant: string;
   totalBooks: number;
   logoUrl?: string;
 }) {
@@ -116,7 +114,7 @@ export default function PublisherStory({
 
             <div className="mt-8">
               <Link
-                href={`/${tenant}/books`}
+                href="/books"
                 prefetch={false}
                 className="btn-black h-12 px-7 text-[14.5px]"
               >

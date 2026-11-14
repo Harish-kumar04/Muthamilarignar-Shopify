@@ -7,7 +7,6 @@ import ProductCard, { type CardProduct } from "../product/product-card";
 /** A titled grid of book cards (Server Component). */
 export default function BookGridSection({
   id,
-  tenant,
   books,
   eyebrow,
   title,
@@ -16,7 +15,6 @@ export default function BookGridSection({
   divider = false,
 }: {
   id?: string;
-  tenant: string;
   books: CardProduct[];
   eyebrow: { ta: string; en: string };
   title: { ta: string; en: string };
@@ -58,7 +56,7 @@ export default function BookGridSection({
       </div>
       <div className={`grid gap-4 sm:gap-6 ${grid}`}>
         {books.map((b) => (
-          <ProductCard key={b.id} product={b} tenant={tenant} sizes={sizes} />
+          <ProductCard key={b.id} product={b} sizes={sizes} />
         ))}
       </div>
     </section>

@@ -11,18 +11,15 @@ import { DEFAULT_LOGO_URL, LOGO_ALT, type SocialConfig, whatsappHref } from "@/l
  * a layered "book pages" top edge, contact details and social icon buttons.
  */
 export default function StorefrontFooter({
-  tenant,
   social,
   bookCount,
   logoUrl = DEFAULT_LOGO_URL,
 }: {
-  tenant: string;
   social: SocialConfig;
   bookCount?: number;
   logoUrl?: string;
 }) {
   const year = new Date().getFullYear();
-  const home = `/${tenant}`;
   const count = bookCount ? ` (${bookCount})` : "";
 
   const socials = [
@@ -42,7 +39,7 @@ export default function StorefrontFooter({
         <div className="container-site relative py-14 lg:py-16">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-12">
             <div className="lg:col-span-5">
-              <Link href={home} prefetch={false} className="inline-block" aria-label={LOGO_ALT}>
+              <Link href="/" prefetch={false} className="inline-block" aria-label={LOGO_ALT}>
                 <div className="inline-flex items-center justify-center rounded-2xl bg-white p-3.5 shadow-md">
                   <BrandLogo
                     src={logoUrl}
@@ -81,11 +78,11 @@ export default function StorefrontFooter({
                 <T ta="நூலகம் & பதிப்பகம்" en="Bookstore & Press" />
               </p>
               <ul className="space-y-1.5 text-[14.5px]">
-                <li><Link href={`${home}/books`} prefetch={false} className={linkCls}><T ta={`அனைத்து நூல்கள்${count}`} en={`All books${count}`} /></Link></li>
-                <li><Link href={`${home}/about`} prefetch={false} className={linkCls}><T ta="பதிப்பகம் பற்றி" en="About publisher" /></Link></li>
-                <li><Link href={`${home}/authors`} prefetch={false} className={linkCls}><T ta="ஆசிரியர்கள்" en="Authors" /></Link></li>
-                <li><Link href={`${home}/faq`} prefetch={false} className={linkCls}><T ta="வினா-விடை (FAQ)" en="FAQ" /></Link></li>
-                <li><Link href={`${home}/track`} prefetch={false} className={linkCls}><T ta="ஆர்டர் நிலை" en="Track order" /></Link></li>
+                <li><Link href="/books" prefetch={false} className={linkCls}><T ta={`அனைத்து நூல்கள்${count}`} en={`All books${count}`} /></Link></li>
+                <li><Link href="/about" prefetch={false} className={linkCls}><T ta="பதிப்பகம் பற்றி" en="About publisher" /></Link></li>
+                <li><Link href="/authors" prefetch={false} className={linkCls}><T ta="ஆசிரியர்கள்" en="Authors" /></Link></li>
+                <li><Link href="/faq" prefetch={false} className={linkCls}><T ta="வினா-விடை (FAQ)" en="FAQ" /></Link></li>
+                <li><Link href="/track" prefetch={false} className={linkCls}><T ta="ஆர்டர் நிலை" en="Track order" /></Link></li>
               </ul>
             </div>
 
@@ -94,11 +91,11 @@ export default function StorefrontFooter({
                 <T ta="கொள்கைகள் & கணக்கு" en="Policies & Account" />
               </p>
               <ul className="space-y-1.5 text-[14.5px]">
-                <li><Link href={`${home}/policies/shipping`} prefetch={false} className={linkCls}><T ta="விநியோகக் கொள்கை" en="Shipping policy" /></Link></li>
-                <li><Link href={`${home}/policies/returns`} prefetch={false} className={linkCls}><T ta="மாற்று & பணம் திரும்ப" en="Returns & refunds" /></Link></li>
-                <li><Link href={`${home}/policies/privacy`} prefetch={false} className={linkCls}><T ta="தனியுரிமைக் கொள்கை" en="Privacy policy" /></Link></li>
-                <li><Link href={`${home}/policies/terms`} prefetch={false} className={linkCls}><T ta="விதிமுறைகள்" en="Terms & conditions" /></Link></li>
-                <li><Link href={`${home}/account`} prefetch={false} className={linkCls}><T ta="வாசகர் கணக்கு" en="Reader account" /></Link></li>
+                <li><Link href="/policies/shipping" prefetch={false} className={linkCls}><T ta="விநியோகக் கொள்கை" en="Shipping policy" /></Link></li>
+                <li><Link href="/policies/returns" prefetch={false} className={linkCls}><T ta="மாற்று & பணம் திரும்ப" en="Returns & refunds" /></Link></li>
+                <li><Link href="/policies/privacy" prefetch={false} className={linkCls}><T ta="தனியுரிமைக் கொள்கை" en="Privacy policy" /></Link></li>
+                <li><Link href="/policies/terms" prefetch={false} className={linkCls}><T ta="விதிமுறைகள்" en="Terms & conditions" /></Link></li>
+                <li><Link href="/account" prefetch={false} className={linkCls}><T ta="வாசகர் கணக்கு" en="Reader account" /></Link></li>
               </ul>
             </div>
 

@@ -21,13 +21,11 @@ const NAV: NavItem[] = [
 ];
 
 export default function StorefrontHeader({
-  tenant,
   searchBooks = [],
   announcement,
   social = DEFAULT_SOCIAL,
   logoUrl = DEFAULT_LOGO_URL,
 }: {
-  tenant: string;
   searchBooks?: SearchBookItem[];
   announcement?: AnnouncementConfig;
   social?: SocialConfig;
@@ -40,7 +38,7 @@ export default function StorefrontHeader({
   const annEn =
     announcement?.en ||
     "Free Pan-India Delivery above ₹500 • Cash on Delivery (COD) • 100% Official Publisher Editions";
-  const annHref = announcement?.link ? resolveLink(tenant, announcement.link) : null;
+  const annHref = announcement?.link ? resolveLink(announcement.link) : null;
 
   const tickerText = (
     <>
@@ -52,7 +50,7 @@ export default function StorefrontHeader({
 
   return (
     <>
-      {/* 1. Admin-Controlled Top Announcement Ticker (scrolls away cleanly so sticky header stays <=64px mobile / <=88px desktop) */}
+      {/* 1. Admin-Controlled Top Announcement Ticker */}
       {showAnnouncement && (
         <div
           role="region"
@@ -95,24 +93,20 @@ export default function StorefrontHeader({
         </div>
       )}
 
-      {/* 2. Sticky Header Bar: max 64px on mobile (~62px unscrolled, ~52px scrolled) and max 88px on desktop (~85px unscrolled, ~71px scrolled) */}
+      {/* 2. Sticky Header Bar */}
       <header className="sticky top-0 z-40 w-full max-h-[64px] border-b border-black/[0.08] bg-white/95 backdrop-blur-md shadow-sm transition-all lg:max-h-[88px]">
         <div className="container-site flex items-center gap-2.5 py-1 sm:gap-4 lg:py-2">
-          {/* Prominent Publisher Logo (50px mobile, 68px desktop, shrinks slightly on scroll) */}
-          <HeaderLogo tenant={tenant} logoUrl={logoUrl} />
+          <HeaderLogo logoUrl={logoUrl} />
 
-          {/* Rounded Instant Search Bar */}
           <div className="mx-auto flex-1 max-w-md">
-            <HeaderSearch tenant={tenant} books={searchBooks} />
+            <HeaderSearch books={searchBooks} />
           </div>
 
-          {/* Desktop Nav (mobile uses fixed bottom navigation bar) */}
-          <HeaderNav tenant={tenant} items={NAV} variant="desktop" />
+          <HeaderNav items={NAV} variant="desktop" />
 
-          {/* Actions: Language Toggle & Live Cart */}
           <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2.5">
             <LanguageToggle />
-            <CartButton tenant={tenant} />
+            <CartButton />
           </div>
         </div>
       </header>

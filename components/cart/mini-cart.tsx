@@ -63,10 +63,8 @@ function formatRupees(cents: number): string {
 }
 
 export default function MiniCart({
-  tenant,
   initialOpen = false,
 }: {
-  tenant: string;
   initialOpen?: boolean;
 }) {
   const { t, localizeName, localizeSubName } = useLanguage();
@@ -81,12 +79,12 @@ export default function MiniCart({
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
 
-  const couponStorageKey = `store_applied_coupon_${tenant}`;
+  const couponStorageKey = "store_applied_coupon";
 
   const fetchCart = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await storefrontApi.getCart(tenant);
+      const res = await storefrontApi.getCart();
       const cartObj = res?.cart || res?.data || res;
       setCart(cartObj);
       const nextItems = Array.isArray(cartObj?.items) ? cartObj.items : [];
@@ -112,7 +110,7 @@ export default function MiniCart({
     } finally {
       setLoading(false);
     }
-  }, [tenant, couponStorageKey]);
+  }, [couponStorageKey]);
 
   useEffect(() => {
     if (initialOpen) {
@@ -165,8 +163,8 @@ export default function MiniCart({
       ),
     );
     try {
-      await storefrontApi.updateCartItem(tenant, itemId, newQty);
-      notifyCartChanged(tenant);
+      await storefrontApi.updateCartItem(itemId, newQty);
+      notifyCartChanged();
       await fetchCart();
     } catch (err: any) {
       toast({
@@ -184,8 +182,8 @@ export default function MiniCart({
     setUpdatingId(itemId);
     setItems((prev) => prev.filter((it) => it.id !== itemId));
     try {
-      await storefrontApi.removeCartItem(tenant, itemId);
-      notifyCartChanged(tenant);
+      await storefrontApi.removeCartItem(itemId);
+      notifyCartChanged();
       await fetchCart();
     } catch (err: any) {
       toast({
@@ -222,7 +220,7 @@ export default function MiniCart({
     setCouponLoading(true);
     setCouponError(null);
     try {
-      const res = await storefrontApi.validateCoupon(tenant, clean, subtotalCents);
+      const res = await storefrontApi.validateCoupon(clean, subtotalCents);
       const next: AppliedCoupon = {
         code: res.code,
         type: res.type,
@@ -342,7 +340,7 @@ export default function MiniCart({
                 return (
                   <div key={item.id} className="flex gap-3.5 pt-4 first:pt-0">
                     <Link
-                      href={`/${tenant}/products/${item.product_id}`}
+                      href={`/books/${encodeURIComponent(item.slug || item.product_id)}`}
                       onClick={() => setIsOpen(false)}
                       className="relative h-24 w-18 flex-shrink-0 overflow-hidden rounded-lg bg-[#FAFAFA] border border-black/[0.08]"
                     >
@@ -365,7 +363,7 @@ export default function MiniCart({
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <Link
-                            href={`/${tenant}/products/${item.product_id}`}
+                            href={`/books/${encodeURIComponent(item.slug || item.product_id)}`}
                             onClick={() => setIsOpen(false)}
                             className="line-clamp-2 text-[14px] font-bold text-black hover:text-brand-red-dark transition-colors"
                           >
@@ -504,14 +502,14 @@ export default function MiniCart({
             </p>
             <div className="grid grid-cols-2 gap-2.5 pt-1">
               <Link
-                href={`/${tenant}/cart`}
+                href="/cart"
                 onClick={() => setIsOpen(false)}
                 className="btn-outline h-11 px-3 text-[13px] font-bold"
               >
                 {t("கூடையைக் காண்க", "View cart")}
               </Link>
               <Link
-                href={`/${tenant}/checkout`}
+                href="/checkout"
                 onClick={() => setIsOpen(false)}
                 className="btn-red h-11 px-3 text-[13.5px] font-bold"
               >

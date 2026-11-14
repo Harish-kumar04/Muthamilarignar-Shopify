@@ -14,19 +14,18 @@ export interface NavItem {
   en: string;
 }
 
-function useIsActive(tenant: string) {
-  const pathname = usePathname() || `/${tenant}`;
-  const home = `/${tenant}`;
+function useIsActive() {
+  const pathname = usePathname() || "/";
   return (path: string) => {
-    const href = `${home}${path}`;
-    if (!path) return pathname === home || pathname === `${home}/`;
-    return pathname === href || pathname.startsWith(`${href}/`);
+    if (!path || path === "/") return pathname === "/";
+    const base = path.split("?")[0];
+    return pathname === base || pathname.startsWith(`${base}/`);
   };
 }
 
 /** Primary nav links with active-route highlighting (desktop row or mobile swipe row). */
-export function HeaderNav({ tenant, items, variant }: { tenant: string; items: NavItem[]; variant: "desktop" | "mobile" }) {
-  const isActive = useIsActive(tenant);
+export function HeaderNav({ items, variant }: { items: NavItem[]; variant: "desktop" | "mobile" }) {
+  const isActive = useIsActive();
   const { t } = useLanguage();
   const desktop = variant === "desktop";
   return (
@@ -40,10 +39,11 @@ export function HeaderNav({ tenant, items, variant }: { tenant: string; items: N
     >
       {items.map((item) => {
         const active = isActive(item.path);
+        const href = item.path || "/";
         return (
           <Link
-            key={item.path}
-            href={`/${tenant}${item.path}`}
+            key={href}
+            href={href}
             prefetch={false}
             aria-current={active ? "page" : undefined}
             className={
@@ -64,8 +64,8 @@ export function HeaderNav({ tenant, items, variant }: { tenant: string; items: N
 }
 
 /** Cart icon with a live item-count badge. */
-export function CartButton({ tenant }: { tenant: string }) {
-  const isActive = useIsActive(tenant);
+export function CartButton() {
+  const isActive = useIsActive();
   const { t } = useLanguage();
   const [count, setCount] = useState(0);
 

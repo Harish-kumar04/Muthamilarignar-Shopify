@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { DEFAULT_TENANT } from "@/lib/site-defaults";
 
 export const dynamic = "force-dynamic";
 
@@ -19,29 +18,25 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const tenant = body.tenant || DEFAULT_TENANT;
     const productId = body.productId || body.id;
     const slug = body.slug || body.handle;
 
     revalidateTag("products");
-    revalidateTag(`products:${tenant}`);
     revalidateTag("categories");
-    revalidateTag(`categories:${tenant}`);
     revalidateTag("store");
-    revalidateTag(`store:${tenant}`);
     if (productId) {
-      revalidateTag(`book:${tenant}:${productId}`);
+      revalidateTag(`book:${productId}`);
     }
     if (slug && slug !== productId) {
-      revalidateTag(`book:${tenant}:${slug}`);
+      revalidateTag(`book:${slug}`);
     }
 
-    revalidatePath(`/${tenant}`, "page");
-    revalidatePath(`/${tenant}/books`, "page");
-    revalidatePath(`/${tenant}/products`, "page");
+    revalidatePath("/", "page");
+    revalidatePath("/books", "page");
+    revalidatePath("/products", "page");
     if (slug) {
-      revalidatePath(`/${tenant}/books/${slug}`, "page");
-      revalidatePath(`/${tenant}/products/${slug}`, "page");
+      revalidatePath(`/books/${slug}`, "page");
+      revalidatePath(`/products/${slug}`, "page");
     }
 
     return NextResponse.json({

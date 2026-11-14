@@ -280,7 +280,6 @@ export function BookGalleryIsland({
 }
 
 export function BookPurchaseIslands({
-  tenant,
   productId,
   productName,
   unitPriceCents,
@@ -288,7 +287,6 @@ export function BookPurchaseIslands({
   maxStock,
   isFallback,
 }: {
-  tenant: string;
   productId: string;
   productName: string;
   unitPriceCents: number;
@@ -313,8 +311,8 @@ export function BookPurchaseIslands({
     const rollback = optimisticAdjustCart(quantity, unitPriceCents * quantity);
     setAdding(true);
     try {
-      await quickAddToCart(tenant, productId, quantity);
-      notifyCartChanged(tenant);
+      await quickAddToCart(productId, quantity);
+      notifyCartChanged();
       openMiniCart();
       toast({
         kind: "success",
@@ -343,9 +341,9 @@ export function BookPurchaseIslands({
     const rollback = optimisticAdjustCart(quantity, unitPriceCents * quantity);
     setBuying(true);
     try {
-      await quickAddToCart(tenant, productId, quantity);
-      notifyCartChanged(tenant);
-      router.push(`/${tenant}/checkout`);
+      await quickAddToCart(productId, quantity);
+      notifyCartChanged();
+      router.push("/checkout");
     } catch (err: any) {
       rollback();
       toast({

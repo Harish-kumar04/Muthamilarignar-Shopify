@@ -17,22 +17,18 @@ export interface SearchBookItem {
   image_url?: string | null;
 }
 
-const searchCatalogCache = new Map<string, SearchBookItem[]>();
+const searchCatalogCache: SearchBookItem[] = [];
 
 export default function HeaderSearch({
-  tenant,
   books = [],
 }: {
-  tenant: string;
   books?: SearchBookItem[];
 }) {
   const { t, localizeName, localizeSubName } = useLanguage();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [lazyBooks] = useState<SearchBookItem[]>(
-    () => searchCatalogCache.get(tenant) || [],
-  );
+  const [lazyBooks] = useState<SearchBookItem[]>(() => searchCatalogCache);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const activeBooks = books.length > 0 ? books : lazyBooks;
@@ -68,7 +64,7 @@ export default function HeaderSearch({
     e.preventDefault();
     if (!query.trim()) return;
     setIsOpen(false);
-    router.push(`/${tenant}/books?q=${encodeURIComponent(query.trim())}`);
+    router.push(`/books?q=${encodeURIComponent(query.trim())}`);
   };
 
   const rupees = (cents: number) => `₹${Math.round(cents / 100).toLocaleString("en-IN")}`;
@@ -119,7 +115,7 @@ export default function HeaderSearch({
                 return (
                   <Link
                     key={book.id}
-                    href={`/${tenant}/books/${encodeURIComponent(book.slug || book.id)}`}
+                    href={`/books/${encodeURIComponent(book.slug || book.id)}`}
                     onClick={() => setIsOpen(false)}
                     className="flex items-center gap-3 p-2 rounded-xl hover:bg-black/[0.04] transition-colors"
                   >

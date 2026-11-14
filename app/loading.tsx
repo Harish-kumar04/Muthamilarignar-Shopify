@@ -1,18 +1,17 @@
 import PenLoader from "@/components/ui/pen-loader";
+import { PenGridSkeleton } from "@/components/ui/pen-skeletons";
 
-export default function RootLoading() {
+export default function TenantLoading() {
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      aria-label="Loading"
-      className="flex min-h-[60vh] flex-col items-center justify-center gap-3 bg-white px-4 py-20 text-center"
-    >
-      <PenLoader size="lg" label="Loading" />
-      <p className="text-[14px] font-semibold text-black/70">
-        <span className="i18n-ta">ஏற்றுகிறது…</span>
-        <span className="i18n-en">Loading…</span>
-      </p>
+    <div role="status" aria-busy="true" aria-label="Loading" className="container-site py-10 sm:py-14">
+      <div className="mb-10 flex flex-col items-center justify-center rounded-3xl border border-black/[0.06] bg-[#FAFAFA] py-16">
+        <PenLoader size="lg" label="Loading storefront" />
+        <p className="mt-3 text-[13.5px] font-semibold text-black/65">
+          <span className="i18n-ta">நூலகம் ஏற்றப்படுகிறது…</span>
+          <span className="i18n-en">Loading publications…</span>
+        </p>
+      </div>
+      <PenGridSkeleton count={8} />
     </div>
   );
 }

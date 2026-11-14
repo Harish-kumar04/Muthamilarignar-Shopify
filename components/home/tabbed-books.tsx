@@ -13,13 +13,11 @@ export type BookTabKey = "new" | "bestsellers" | "offers" | "kalaignar";
  * Home client JS bundle while mounting only the active tab's DOM nodes.
  */
 export default function TabbedBooks({
-  tenant,
   totalCount,
   heading,
   backdrop,
   panels,
 }: {
-  tenant: string;
   totalCount: number;
   heading: ReactNode;
   backdrop?: ReactNode;
@@ -33,25 +31,25 @@ export default function TabbedBooks({
       key: "new",
       ta: "புதிய வரவுகள்",
       en: "New Arrivals",
-      href: `/${tenant}/books?sort=newest`,
+      href: "/books?sort=newest",
     },
     {
       key: "bestsellers",
       ta: "சிறந்த விற்பனை",
       en: "Best Sellers",
-      href: `/${tenant}/books`,
+      href: "/books",
     },
     {
       key: "offers",
       ta: "சலுகைகள்",
       en: "Offers",
-      href: `/${tenant}/books?sale=1`,
+      href: "/books?sale=1",
     },
     {
       key: "kalaignar",
       ta: "கலைஞர் படைப்புகள்",
       en: "Kalaignar Works",
-      href: `/${tenant}/categories/kalaignar-works`,
+      href: "/categories/kalaignar-works",
     },
   ];
 

@@ -35,7 +35,7 @@ export const FALLBACK_CATEGORIES = [
 export const FALLBACK_STORE = {
   id: "store-muthamilarignar-pathipagam",
   name: "Muthamilarignar Pathipagam",
-  slug: "demo-store-main",
+  slug: "muthamilarignar-pathipagam",
   description:
     "முத்தமிழறிஞர் பதிப்பகம் — திராவிட இயக்க வரலாறு, சமூகநீதி மற்றும் கலைஞர் படைப்புகள் | Official Bookstore of Muthamilarignar Pathipagam.",
   logo_url: DEFAULT_LOGO_URL,
@@ -81,24 +81,24 @@ export interface CatalogBook {
 export const FALLBACK_BOOKS: CatalogBook[] = [];
 
 export const fetchBooksSafe = cache(
-  async (_tenant: string): Promise<{ books: any[]; isFallback: boolean }> => {
+  async (): Promise<{ books: any[]; isFallback: boolean }> => {
     // TODO shopify: fetch products from Shopify Storefront GraphQL API (`products(first: 100)`)
     return { books: FALLBACK_BOOKS, isFallback: false };
   },
 );
 
-export async function getBooksWithFallback(tenant: string) {
+export async function getBooksWithFallback() {
   // TODO shopify: map Shopify product nodes to CatalogBook shape
-  const result = await fetchBooksSafe(tenant);
+  const result = await fetchBooksSafe();
   return result.books;
 }
 
-export const getCategoriesWithFallback = cache(async (_tenant: string) => {
+export const getCategoriesWithFallback = cache(async () => {
   // TODO shopify: fetch collections from Shopify Storefront GraphQL API (`collections(first: 20)`)
   return FALLBACK_CATEGORIES;
 });
 
-export const getStoreWithFallback = cache(async (_tenant: string) => {
+export const getStoreWithFallback = cache(async () => {
   // TODO shopify: fetch shop metadata from Shopify Storefront GraphQL API (`shop { ... }`)
   return FALLBACK_STORE;
 });
@@ -110,17 +110,14 @@ export type BookLookupResult =
   | { status: "error"; httpStatus?: number };
 
 export const fetchBookById = cache(
-  async (_tenant: string, _productIdOrSlug: string): Promise<BookLookupResult> => {
+  async (_productIdOrSlug: string): Promise<BookLookupResult> => {
     // TODO shopify: fetch single book via `product(handle: $slug)` from Shopify Storefront API
     return { status: "not_found" };
   },
 );
 
-export async function getBookByIdWithFallback(
-  tenant: string,
-  productIdOrSlug: string,
-) {
-  const res = await fetchBookById(tenant, productIdOrSlug);
+export async function getBookByIdWithFallback(productIdOrSlug: string) {
+  const res = await fetchBookById(productIdOrSlug);
   if (res.status === "ok") return res.product;
   return null;
 }

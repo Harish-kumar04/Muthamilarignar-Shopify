@@ -8,12 +8,7 @@ const NotificationManagerClient = dynamic(() => import("./notification-manager")
   ssr: false,
 });
 
-/**
- * Defers downloading & hydrating notification popups until after initial paint & idle,
- * and skips downloading entirely when no notifications/popups are configured.
- */
 export default function NotificationManager(props: {
-  tenant: string;
   notifications?: NotificationItem[];
   fallbackPopup?: PopupConfig;
 }) {

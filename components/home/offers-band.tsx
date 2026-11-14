@@ -6,10 +6,8 @@ import ProductCard, { type CardProduct } from "../product/product-card";
 
 /** Full-width black "Offers" band on home displaying discounted/sale books. */
 export default function OffersBand({
-  tenant,
   books,
 }: {
-  tenant: string;
   books: CardProduct[];
 }) {
   if (books.length === 0) return null;
@@ -35,7 +33,7 @@ export default function OffersBand({
             </p>
           </div>
           <Link
-            href={`/${tenant}/products?sale=1`}
+            href="/books?sale=1"
             className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 text-[14px] font-semibold text-white transition-colors hover:border-brand-red hover:bg-brand-red"
           >
             <T ta="அனைத்து சலுகைகளும்" en="View all offers" />
@@ -45,7 +43,7 @@ export default function OffersBand({
 
         <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
           {books.map((b) => (
-            <ProductCard key={b.id} product={b} tenant={tenant} />
+            <ProductCard key={b.id} product={b} />
           ))}
         </div>
       </div>

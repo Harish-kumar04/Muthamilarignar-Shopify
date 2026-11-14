@@ -60,10 +60,8 @@ function CategorySvgIcon({ index }: { index: number }) {
  * Category tiles with custom SVG icons (Server Component, zero client JS).
  */
 export default function CategoryTiles({
-  tenant,
   categories,
 }: {
-  tenant: string;
   categories: { id: string; name: string; slug?: string }[];
 }) {
   if (!categories || categories.length === 0) return null;
@@ -80,7 +78,7 @@ export default function CategoryTiles({
             title={{ ta: "நூல் பிரிவுகள்", en: "Explore Categories" }}
           />
           <Link
-            href={`/${tenant}/books`}
+            href="/books"
             prefetch={false}
             className="btn-outline h-11 px-5 text-[14px]"
           >
@@ -95,8 +93,8 @@ export default function CategoryTiles({
               key={cat.id}
               href={
                 cat.slug
-                  ? `/${tenant}/categories/${encodeURIComponent(cat.slug)}`
-                  : `/${tenant}/books?category=${encodeURIComponent(cat.id)}`
+                  ? `/categories/${encodeURIComponent(cat.slug)}`
+                  : `/books?category=${encodeURIComponent(cat.id)}`
               }
               prefetch={false}
               className="card-glow group flex min-h-[108px] flex-col justify-between p-4"

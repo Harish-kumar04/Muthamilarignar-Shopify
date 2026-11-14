@@ -24,11 +24,9 @@ function formatPrice(cents?: number | null) {
  * and related books while keeping client JS minimal.
  */
 export default function BookDetailView({
-  tenant,
   product,
   relatedBooks = [],
 }: {
-  tenant: string;
   product: any;
   relatedBooks?: any[];
 }) {
@@ -88,7 +86,7 @@ export default function BookDetailView({
           aria-label="Breadcrumb"
         >
           <Link
-            href={`/${tenant}`}
+            href="/"
             prefetch={false}
             className="transition-colors hover:text-brand-red-dark"
           >
@@ -98,7 +96,7 @@ export default function BookDetailView({
             /
           </span>
           <Link
-            href={`/${tenant}/books`}
+            href="/books"
             prefetch={false}
             className="transition-colors hover:text-brand-red-dark"
           >
@@ -175,8 +173,8 @@ export default function BookDetailView({
               <Link
                 href={
                   /kalaignar|karunanidhi|கலைஞர்/i.test(`${product.name || ""} ${author || ""}`)
-                    ? `/${tenant}/authors/muthamilarignar-kalaignar`
-                    : `/${tenant}/about`
+                    ? "/authors/muthamilarignar-kalaignar"
+                    : "/about"
                 }
                 prefetch={false}
                 className="underline decoration-black/25 underline-offset-4 hover:text-brand-red-dark"
@@ -222,7 +220,6 @@ export default function BookDetailView({
 
             {/* Client Island: Quantity Stepper, Add to Cart, Buy Now, Wishlist & Mobile Sticky Bar */}
             <BookPurchaseIslands
-              tenant={tenant}
               productId={String(product.id)}
               productName={String(product.name || "")}
               unitPriceCents={price}
@@ -330,7 +327,7 @@ export default function BookDetailView({
             </div>
             <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
               {relatedBooks.map((b) => (
-                <ProductCard key={b.id} product={toCardProduct(b)} tenant={tenant} />
+                <ProductCard key={b.id} product={toCardProduct(b)} />
               ))}
             </div>
           </div>

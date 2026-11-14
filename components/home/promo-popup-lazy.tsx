@@ -3,7 +3,7 @@
 import { useEffect, useState, type ComponentType } from "react";
 import type { PopupConfig } from "@/lib/site-defaults";
 
-type PopupProps = { tenant: string; popup: PopupConfig };
+type PopupProps = { popup: PopupConfig };
 
 /**
  * Loads the promo popup's code only after hydration (separate chunk via dynamic import),

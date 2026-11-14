@@ -4,12 +4,12 @@ import { SITE_URL } from "@/lib/site-defaults";
 import { PUBLISHER_ENTITY } from "@/lib/seo-schema";
 import { AUTHORS, POLICY_LAST_UPDATED_ISO } from "@/lib/aeo-data";
 
-export async function buildLlmsMarkdown(tenant: string, baseOrigin = SITE_URL): Promise<string> {
+export async function buildLlmsMarkdown(baseOrigin = SITE_URL): Promise<string> {
   const [booksRes, categories] = await Promise.all([
-    fetchBooksSafe(tenant),
-    getCategoriesWithFallback(tenant),
+    fetchBooksSafe(),
+    getCategoriesWithFallback(),
   ]);
-  const home = `${baseOrigin}/${tenant}`;
+  const home = baseOrigin.replace(/\/$/, "");
   const books = (booksRes.books as any[]).slice(0, 40);
 
   const lines: string[] = [
@@ -20,7 +20,7 @@ export async function buildLlmsMarkdown(tenant: string, baseOrigin = SITE_URL): 
     `Last updated: ${POLICY_LAST_UPDATED_ISO}`,
     "",
     "## Key Pages",
-    `- [Home](${home}): Featured releases, curated collections, publisher story, and FAQ.`,
+    `- [Home](${home}/): Featured releases, curated collections, publisher story, and FAQ.`,
     `- [All Books Catalog](${home}/books): Complete bilingual catalog with instant search, category filters, and sorting.`,
     `- [About the Publisher](${home}/about): Official entity profile, mission, and verified Chennai contact details.`,
     `- [Authors](${home}/authors): Profiles and bibliographies for Muthamilarignar Kalaignar, M. K. Stalin, and Dravidian movement scholars.`,
@@ -29,7 +29,7 @@ export async function buildLlmsMarkdown(tenant: string, baseOrigin = SITE_URL): 
     `- [Returns & Refunds Policy](${home}/policies/returns): 7-day free replacement or full refund for damaged or misprinted books.`,
     `- [Privacy Policy](${home}/policies/privacy): Reader data protection and PCI-DSS payment security.`,
     `- [Terms & Conditions](${home}/policies/terms): Authentic editions, INR pricing, and 0% GST on printed books.`,
-    `- [XML Sitemap](${baseOrigin}/sitemap.xml)`,
+    `- [XML Sitemap](${home}/sitemap.xml)`,
     "",
     "## Categories",
     ...(categories as any[])

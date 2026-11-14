@@ -11,7 +11,7 @@ const MiniCartClient = dynamic(() => import("./mini-cart"), {
  * Defers downloading & hydrating the MiniCart drawer + API client until the
  * shopper actually clicks the cart icon or adds an item (`infalette-open-mini-cart`).
  */
-export default function MiniCart({ tenant }: { tenant: string }) {
+export default function MiniCart() {
   const [activated, setActivated] = useState(false);
 
   useEffect(() => {
@@ -22,5 +22,5 @@ export default function MiniCart({ tenant }: { tenant: string }) {
   }, [activated]);
 
   if (!activated) return null;
-  return <MiniCartClient tenant={tenant} initialOpen={true} />;
+  return <MiniCartClient initialOpen={true} />;
 }

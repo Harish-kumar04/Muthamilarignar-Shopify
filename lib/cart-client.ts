@@ -11,7 +11,6 @@ export { getCartSessionId, isUuidProductId, PRODUCT_UUID_RE };
  * TODO shopify: wire to Shopify Storefront API `cartCreate` / `cartLinesAdd` mutation.
  */
 export async function quickAddToCart(
-  _tenant: string,
   _productId: string,
   _quantity = 1,
 ) {

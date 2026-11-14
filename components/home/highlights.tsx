@@ -80,10 +80,8 @@ export function TrustBar() {
 
 /** Category chips with horizontal scroll on mobile and desktop wrap. */
 export function CategoryStrip({
-  tenant,
   categories,
 }: {
-  tenant: string;
   categories: { id: string; name: string; slug?: string }[];
 }) {
   if (categories.length === 0) return null;
@@ -94,7 +92,7 @@ export function CategoryStrip({
           <T ta="நூல் பிரிவுகள்" en="Categories" />
         </span>
         <Link
-          href={`/${tenant}/products`}
+          href="/books"
           className="text-[13px] font-semibold text-brand-red hover:underline"
         >
           <T ta="அனைத்தும்" en="View all" /> →
@@ -104,7 +102,7 @@ export function CategoryStrip({
         {categories.map((cat) => (
           <Link
             key={cat.id}
-            href={`/${tenant}/products?category=${encodeURIComponent(cat.slug || cat.id)}`}
+            href={cat.slug ? `/categories/${encodeURIComponent(cat.slug)}` : `/books?category=${encodeURIComponent(cat.id)}`}
             className="flex-shrink-0 rounded-full border border-black/10 bg-white px-4 py-2 text-[13.5px] font-semibold text-black shadow-card transition-all hover:border-brand-red hover:text-brand-red hover:shadow-glow"
           >
             <BiName value={cat.name} />

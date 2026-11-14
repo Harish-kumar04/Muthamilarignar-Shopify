@@ -20,7 +20,7 @@ function today() {
  * Promotional popup: at most once per day (localStorage), after a delay, never on
  * cart/checkout. Closes on X, overlay click or Esc; traps focus while open.
  */
-export default function PromoPopup({ tenant, popup }: { tenant: string; popup: PopupConfig }) {
+export default function PromoPopup({ popup }: { popup: PopupConfig }) {
   const pathname = usePathname() || "";
   const blocked = /\/(cart|checkout)(\/|$)/.test(pathname);
   const [open, setOpen] = useState(false);
@@ -89,7 +89,7 @@ export default function PromoPopup({ tenant, popup }: { tenant: string; popup: P
 
   if (!open || !popup.enabled) return null;
 
-  const href = resolveLink(tenant, popup.link);
+  const href = resolveLink(popup.link);
   const hasTitle = Boolean(popup.title_ta || popup.title_en);
   const buttonCls = "btn-red mt-6 h-12 w-full text-[15px]";
   const buttonLabel = <T ta={popup.button_ta || popup.button_en || ""} en={popup.button_en || popup.button_ta || ""} />;

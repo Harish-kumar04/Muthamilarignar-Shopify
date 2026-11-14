@@ -14,14 +14,12 @@ import { CartIcon } from "@/components/brand/icons";
 import PenLoader from "@/components/ui/pen-loader";
 
 export default function CardAddButton({
-  tenant,
   productId,
   productName,
   unitPriceCents = 0,
   inStock = true,
   isFallback = false,
 }: {
-  tenant: string;
   productId: string;
   productName: string;
   unitPriceCents?: number;
@@ -74,8 +72,8 @@ export default function CardAddButton({
     setAdding(true);
     setSuccess(true);
     try {
-      await quickAddToCart(tenant, productId, 1);
-      notifyCartChanged(tenant);
+      await quickAddToCart(productId, 1);
+      notifyCartChanged();
       openMiniCart();
       toast({
         kind: "success",
@@ -109,9 +107,9 @@ export default function CardAddButton({
     const rollback = optimisticAdjustCart(1, unitPriceCents);
     setBuying(true);
     try {
-      await quickAddToCart(tenant, productId, 1);
-      notifyCartChanged(tenant);
-      router.push(`/${tenant}/checkout`);
+      await quickAddToCart(productId, 1);
+      notifyCartChanged();
+      router.push("/checkout");
     } catch (err: any) {
       rollback();
       toast({

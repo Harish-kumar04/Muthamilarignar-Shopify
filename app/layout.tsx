@@ -5,12 +5,24 @@ import AttributionCapture from "@/components/attribution-capture";
 import { LanguageProvider } from "@/components/language-provider";
 import Toaster from "@/components/toaster-lazy";
 import { CartRefreshBridge } from "@/components/cart-refresh-bridge";
+import StorefrontHeader from "@/components/storefront-header";
+import StorefrontFooter from "@/components/storefront-footer";
+import WhatsAppFloat from "@/components/whatsapp-float";
+import NotificationManager from "@/components/notification-manager-lazy";
+import MiniCart from "@/components/cart/mini-cart-lazy";
+import MobileBottomBar from "@/components/header/mobile-bottom-bar";
+import { getBooksWithFallback, getStoreWithFallback } from "@/lib/catalog-fallback";
 import { LANG_BOOT_SCRIPT } from "@/lib/i18n";
 import {
   DEFAULT_LOGO_URL,
   LOGO_ALT,
   SITE_URL,
   cloudinaryImageUrl,
+  getAnnouncement,
+  getLogoUrl,
+  getNotifications,
+  getPopup,
+  getSocial,
 } from "@/lib/site-defaults";
 
 const inter = Inter({
@@ -57,11 +69,21 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [store, books] = await Promise.all([
+    getStoreWithFallback(),
+    getBooksWithFallback(),
+  ]);
+  const social = getSocial(store);
+  const popup = getPopup(store);
+  const notifications = getNotifications(store);
+  const announcement = getAnnouncement(store);
+  const logoUrl = getLogoUrl(store);
+
   return (
     <html
       lang="ta"
@@ -76,7 +98,31 @@ export default function RootLayout({
         <LanguageProvider>
           <AttributionCapture />
           <CartRefreshBridge />
-          {children}
+          <div className="flex min-h-screen flex-col bg-white text-black">
+            <a href="#main-content" className="skip-link">
+              முதன்மைப் பகுதிக்குச் செல்க / Skip to main content
+            </a>
+            <StorefrontHeader
+              announcement={announcement}
+              social={social}
+              logoUrl={logoUrl}
+            />
+            <main id="main-content" tabIndex={-1} className="flex-1 pb-16 outline-none sm:pb-0">
+              {children}
+            </main>
+            <StorefrontFooter
+              social={social}
+              bookCount={books.length}
+              logoUrl={logoUrl}
+            />
+            <WhatsAppFloat social={social} />
+            <MiniCart />
+            <MobileBottomBar />
+            <NotificationManager
+              notifications={notifications}
+              fallbackPopup={popup}
+            />
+          </div>
           <Toaster />
         </LanguageProvider>
       </body>

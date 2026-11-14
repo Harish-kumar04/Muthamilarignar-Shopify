@@ -9,11 +9,9 @@ import { STORE_FAQS, type FaqEntry } from "@/lib/aeo-data";
  * can index and quote it without executing JavaScript.
  */
 export default function FaqSection({
-  tenant,
   faqs = STORE_FAQS,
   showAllLink = true,
 }: {
-  tenant: string;
   faqs?: FaqEntry[];
   showAllLink?: boolean;
 }) {
@@ -34,7 +32,7 @@ export default function FaqSection({
           />
           {showAllLink && (
             <Link
-              href={`/${tenant}/faq`}
+              href="/faq"
               prefetch={false}
               className="btn-outline h-11 px-5 text-[13.5px]"
             >

@@ -6,10 +6,8 @@ import BrandLogo from "@/components/brand/brand-logo";
 import { DEFAULT_LOGO_URL, LOGO_ALT } from "@/lib/site-defaults";
 
 export default function HeaderLogo({
-  tenant,
   logoUrl = DEFAULT_LOGO_URL,
 }: {
-  tenant: string;
   logoUrl?: string;
 }) {
   const [scrolled, setScrolled] = useState(false);
@@ -25,7 +23,7 @@ export default function HeaderLogo({
 
   return (
     <Link
-      href={`/${tenant}`}
+      href="/"
       prefetch={false}
       aria-label={LOGO_ALT}
       className="flex flex-shrink-0 items-center rounded-lg bg-white p-0.5 transition-all duration-200"

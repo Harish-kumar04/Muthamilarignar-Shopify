@@ -7,9 +7,8 @@ import { CartIcon } from "@/components/brand/icons";
 import { useLanguage } from "@/components/language-provider";
 import { CART_COUNT_KEY, readFromStorage, openMiniCart } from "@/lib/cart-events";
 
-export default function MobileBottomBar({ tenant }: { tenant: string }) {
-  const pathname = usePathname() || `/${tenant}`;
-  const home = `/${tenant}`;
+export default function MobileBottomBar() {
+  const pathname = usePathname() || "/";
   const { t } = useLanguage();
   const [count, setCount] = useState(0);
 
@@ -25,9 +24,8 @@ export default function MobileBottomBar({ tenant }: { tenant: string }) {
   }, []);
 
   const isActive = (path: string) => {
-    const href = `${home}${path}`;
-    if (!path) return pathname === home || pathname === `${home}/`;
-    return pathname === href || pathname.startsWith(`${href}/`);
+    if (!path) return pathname === "/";
+    return pathname === path || pathname.startsWith(`${path}/`);
   };
 
   const tabs = [
@@ -91,8 +89,8 @@ export default function MobileBottomBar({ tenant }: { tenant: string }) {
   ];
 
   const isProductDetail =
-    (pathname.startsWith(`${home}/books/`) && pathname !== `${home}/books`) ||
-    (pathname.startsWith(`${home}/products/`) && pathname !== `${home}/products`);
+    (pathname.startsWith("/books/") && pathname !== "/books") ||
+    (pathname.startsWith("/products/") && pathname !== "/products");
 
   return (
     <nav
@@ -140,7 +138,7 @@ export default function MobileBottomBar({ tenant }: { tenant: string }) {
         return (
           <Link
             key={tab.path}
-            href={`${home}${tab.path}`}
+            href={tab.path || "/"}
             prefetch={false}
             className={`flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors ${
               active ? "text-brand-red-dark font-bold" : "text-black/75 hover:text-brand-red-dark"

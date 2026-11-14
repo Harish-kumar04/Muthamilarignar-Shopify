@@ -156,15 +156,15 @@ export const AUTHORS: AuthorProfile[] = [
   },
 ];
 
-export function buildPersonJsonLd(tenant: string, author: AuthorProfile) {
-  const homeUrl = `${SITE_URL}/${tenant}`;
+export function buildPersonJsonLd(author: AuthorProfile) {
+  const homeUrl = SITE_URL;
   const authorUrl = `${homeUrl}/authors/${author.slug}`;
   const orgId = `${SITE_URL}/#organization`;
 
   return {
     "@context": "https://schema.org",
     "@graph": [
-      ...buildOrganizationNodes(tenant),
+      ...buildOrganizationNodes(),
       {
         "@type": "Person",
         "@id": `${authorUrl}#person`,

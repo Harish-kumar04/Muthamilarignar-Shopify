@@ -10,8 +10,6 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://muthamilarignar-storefront.vercel.app"
 ).replace(/\/$/, "");
 
-export const DEFAULT_TENANT = "demo-store";
-
 /** ISR window (seconds) for catalogue pages. */
 export const REVALIDATE_SECONDS = 60;
 
@@ -255,16 +253,14 @@ export function getPopup(store: any): PopupConfig {
 
 /**
  * Resolve an admin-entered link: absolute URLs and #anchors pass through; site paths
- * are scoped to the tenant (`/products` -> `/demo-store/products`).
+ * normalize to clean root paths (`/books`, `/categories/...`).
  */
-export function resolveLink(tenant: string, link?: string | null): string | null {
+export function resolveLink(link?: string | null): string | null {
   const l = str(link);
   if (!l) return null;
   if (/^(https?:|mailto:|tel:)/i.test(l) || l.startsWith("#")) return l;
   const path = l.startsWith("/") ? l : `/${l}`;
-  return path === `/${tenant}` || path.startsWith(`/${tenant}/`) || path.startsWith(`/${tenant}?`)
-    ? path
-    : `/${tenant}${path}`;
+  return path.replace(/^\/demo-store(?=\/|$|\?)/, "") || "/";
 }
 
 export function isExternal(href: string): boolean {

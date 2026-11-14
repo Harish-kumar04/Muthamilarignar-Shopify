@@ -61,12 +61,10 @@ const rupees = (cents: number) => `₹${Math.round(cents / 100).toLocaleString("
  */
 export default function ProductCard({
   product,
-  tenant,
   priority = false,
   sizes = "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 260px",
 }: {
   product: CardProduct;
-  tenant: string;
   priority?: boolean;
   sizes?: string;
 }) {
@@ -89,7 +87,7 @@ export default function ProductCard({
   const [titleTa, titleEn] = splitBilingual(product.name, "|");
   const hasDistinctSub = Boolean(titleEn && titleEn !== titleTa);
   const alt = hasDistinctSub ? `${titleTa} — ${titleEn}` : titleTa;
-  const bookHref = `/${tenant}/books/${encodeURIComponent(product.slug || product.id)}`;
+  const bookHref = `/books/${encodeURIComponent(product.slug || product.id)}`;
 
   return (
     <article className="card-glow group relative flex flex-col overflow-hidden bg-white">
@@ -210,7 +208,6 @@ export default function ProductCard({
 
           {/* >=44px Add to Cart & Buy Now */}
           <CardAddButton
-            tenant={tenant}
             productId={product.id}
             productName={product.name}
             unitPriceCents={price}

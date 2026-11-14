@@ -17,12 +17,10 @@ function findCategory(categories: Category[], key: string | null): Category | un
 }
 
 export default function BooksCatalogClient({
-  tenant,
   products,
   categories,
   apiUnavailable = false,
 }: {
-  tenant: string;
   products: any[];
   categories: Category[];
   apiUnavailable?: boolean;
@@ -372,7 +370,6 @@ export default function BooksCatalogClient({
             <ProductCard
               key={p.id}
               product={toCardProduct(p)}
-              tenant={tenant}
               sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 260px"
             />
           ))}

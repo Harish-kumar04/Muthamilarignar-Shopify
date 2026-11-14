@@ -18,7 +18,6 @@ interface AppliedCoupon {
 }
 
 interface Props {
-  tenant?: string;
   razorpayEnabled?: boolean;
   cartSubtotalCents?: number;
   cartItems?: any[];
@@ -27,7 +26,6 @@ interface Props {
 }
 
 export default function CheckoutForm({
-  tenant = "",
   razorpayEnabled = false,
   cartSubtotalCents = 0,
   cartItems = [],
@@ -52,7 +50,7 @@ export default function CheckoutForm({
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
 
-  const couponStorageKey = tenant ? `store_applied_coupon_${tenant}` : "store_applied_coupon";
+  const couponStorageKey = "store_applied_coupon";
 
   useEffect(() => {
     if (!razorpayEnabled && paymentMethod === "razorpay") {
@@ -63,7 +61,7 @@ export default function CheckoutForm({
   // TODO shopify: prefill buyerIdentity from Shopify Customer Account session if signed in
 
   useEffect(() => {
-    if (typeof window === "undefined" || !tenant) return;
+    if (typeof window === "undefined") return;
     try {
       const savedRaw = localStorage.getItem(couponStorageKey);
       if (savedRaw) {
@@ -72,7 +70,7 @@ export default function CheckoutForm({
           setCouponInput(saved.code);
           if (cartSubtotalCents > 0) {
             storefrontApi
-              .validateCoupon(tenant, saved.code, cartSubtotalCents)
+              .validateCoupon(saved.code, cartSubtotalCents)
               .then((verified) => {
                 const next: AppliedCoupon = {
                   code: verified.code,
@@ -93,7 +91,7 @@ export default function CheckoutForm({
         }
       }
     } catch {}
-  }, [tenant, cartSubtotalCents, couponStorageKey]);
+  }, [cartSubtotalCents, couponStorageKey]);
 
   const handleApplyCoupon = async () => {
     const clean = couponInput.trim().toUpperCase();
@@ -101,11 +99,10 @@ export default function CheckoutForm({
       setCouponError(t("கூப்பன் குறியீட்டை உள்ளிடவும்", "Please enter a coupon code"));
       return;
     }
-    if (!tenant) return;
     setCouponLoading(true);
     setCouponError(null);
     try {
-      const res = await storefrontApi.validateCoupon(tenant, clean, cartSubtotalCents);
+      const res = await storefrontApi.validateCoupon(clean, cartSubtotalCents);
       const next: AppliedCoupon = {
         code: res.code,
         type: res.type,
@@ -225,7 +222,7 @@ export default function CheckoutForm({
           <span className="font-semibold">
             ✓ {t("கணக்குத் தொடங்கத் தேவையில்லை — விரைவு ஆர்டர்", "Guest checkout — no account required")}
           </span>
-          <Link href={`/${tenant}/cart`} className="font-bold text-brand-red-dark hover:underline">
+          <Link href="/cart" className="font-bold text-brand-red-dark hover:underline">
             {t("கூடையைத் திருத்து", "Edit cart")}
           </Link>
         </div>

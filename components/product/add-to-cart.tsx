@@ -8,10 +8,8 @@ import { toast } from "@/components/toaster";
 import { useLanguage } from "@/components/language-provider";
 
 export default function AddToCart({
-  tenant,
   product,
 }: {
-  tenant: string;
   product: any;
 }) {
   const { t, localizeName } = useLanguage();
@@ -31,7 +29,7 @@ export default function AddToCart({
     setVariantsLoading(true);
     setVariantError(null);
     storefrontApi
-      .getProductVariants(tenant, product.id)
+      .getProductVariants(product.id)
       .then((list) => {
         if (cancelled) return;
         setVariants(Array.isArray(list) ? list : []);
@@ -52,7 +50,7 @@ export default function AddToCart({
     return () => {
       cancelled = true;
     };
-  }, [tenant, product.id, isFallback]);
+  }, [product.id, isFallback]);
 
   const hasVariants = variants.length > 0;
   const canAdd =
@@ -75,13 +73,12 @@ export default function AddToCart({
     setAdded(false);
     try {
       await storefrontApi.addToCart(
-        tenant,
         product.id,
         quantity,
         hasVariants ? selectedVariant : undefined,
       );
       setAdded(true);
-      notifyCartChanged(tenant);
+      notifyCartChanged();
       openMiniCart();
       toast({
         kind: "success",
@@ -182,7 +179,7 @@ export default function AddToCart({
       </div>
       {added && (
         <a
-          href={`/${tenant}/cart`}
+          href="/cart"
           className="block text-center text-[13px] font-medium text-brand-red hover:underline"
         >
           {t("கூடைக்குச் சென்று ஆர்டர் செய்க →", "Go to Cart & Checkout →")}

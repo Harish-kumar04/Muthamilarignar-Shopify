@@ -1,11 +1,13 @@
 import { cache } from "react";
 import type { Metadata } from "next";
 import BrandHero from "@/components/home/brand-hero";
+import FeaturedBookSpotlight from "@/components/home/featured-book-spotlight";
 import HeroSlider, { type SlideView } from "@/components/home/hero-slider";
 import { TrustBar } from "@/components/home/highlights";
 import CategoryTiles from "@/components/home/category-tiles";
 import TabbedBooks from "@/components/home/tabbed-books";
 import {
+  DarkBrandBannerStrip,
   DravidianLegacyFeature,
   KalaignarArtworkBanner,
 } from "@/components/home/editorial-art-sections";
@@ -19,7 +21,17 @@ import {
   SunburstBackdrop,
 } from "@/components/brand/patterns";
 import ProductCard, { toCardProduct, type CardProduct } from "@/components/product/product-card";
-import { getCatalogSummarySafe, listProducts } from "@/lib/shopify";
+import {
+  FEATURED_BOOK_HANDLE,
+  isFeaturedBook,
+  prioritizeFeaturedBooks,
+} from "@/lib/featured-book";
+import {
+  getBookByHandleSafe,
+  getCatalogSummarySafe,
+  listProducts,
+  type ShopifyBook,
+} from "@/lib/shopify";
 import { splitBilingual } from "@/lib/i18n";
 import {
   BRAND,
@@ -40,12 +52,33 @@ const fetchHomeData = cache(async () => {
   const summary = await getCatalogSummarySafe();
   if (!summary.ok) {
     return {
-      products: [],
-      newestProducts: [],
+      products: [] as ShopifyBook[],
+      newestProducts: [] as ShopifyBook[],
+      featuredBook: null as ShopifyBook | null,
       categories: [],
       apiUnavailable: true,
     };
   }
+  let featuredBook: ShopifyBook | null =
+    summary.products.find(
+      (p) => p.handle.toLowerCase() === FEATURED_BOOK_HANDLE,
+    ) ||
+    summary.products.find((p) => isFeaturedBook(p)) ||
+    null;
+
+  if (!featuredBook) {
+    const lookup = await getBookByHandleSafe(FEATURED_BOOK_HANDLE);
+    if (lookup.status === "ok") {
+      featuredBook = lookup.product;
+    }
+  }
+
+  const orderedProducts = prioritizeFeaturedBooks(
+    featuredBook && !summary.products.some((p) => p.id === featuredBook!.id)
+      ? [featuredBook, ...summary.products]
+      : summary.products,
+  );
+
   let newestProducts = [...summary.products].reverse();
   try {
     const newestRes = await listProducts({
@@ -59,9 +92,19 @@ const fetchHomeData = cache(async () => {
   } catch {
     // Keep reversed summary list if secondary sort query fails
   }
+  if (featuredBook) {
+    newestProducts = [
+      featuredBook,
+      ...newestProducts.filter((p) => p.id !== featuredBook!.id),
+    ];
+  } else {
+    newestProducts = prioritizeFeaturedBooks(newestProducts);
+  }
+
   return {
-    products: summary.products,
+    products: orderedProducts,
     newestProducts,
+    featuredBook,
     categories: summary.collections,
     apiUnavailable: false,
   };
@@ -129,9 +172,11 @@ function renderTabGrid(list: CardProduct[], apiUnavailable: boolean) {
 }
 
 export default async function HomePage() {
-  const { products, newestProducts, categories, apiUnavailable } = await fetchHomeData();
+  const { products, newestProducts, featuredBook, categories, apiUnavailable } =
+    await fetchHomeData();
 
-  const cards = products.map((p) => toCardProduct(p));
+  const cards = prioritizeFeaturedBooks(products.map((p) => toCardProduct(p)));
+  const featuredCard = featuredBook ? toCardProduct(featuredBook) : cards[0] || null;
   const seenCoverUrls = new Set<string>();
   const withCovers = cards.filter((c) => {
     if (!c.image_url) return false;
@@ -165,7 +210,9 @@ export default async function HomePage() {
     };
   });
 
-  const newArrivals = newestProducts.map((p) => toCardProduct(p)).slice(0, 8);
+  const newArrivals = prioritizeFeaturedBooks(
+    newestProducts.map((p) => toCardProduct(p)),
+  ).slice(0, 8);
   const bestSellers = cards.slice(0, 8);
 
   const kalaignarCatKeys = new Set<string>();
@@ -182,7 +229,12 @@ export default async function HomePage() {
       c.collection_handles?.some((h) => kalaignarCatKeys.has(h)) ||
       /kalaignar|karunanidhi|கலைஞர்/i.test(`${c.name} ${c.author || ""}`),
   );
-  const kalaignarWorks = (kalaignarMatches.length > 0 ? kalaignarMatches : cards).slice(0, 8);
+  const rawKalaignarPool = kalaignarMatches.length > 0 ? kalaignarMatches : cards;
+  const kalaignarWorks = (
+    featuredCard && isFeaturedBook(featuredCard)
+      ? [featuredCard, ...rawKalaignarPool.filter((c) => c.id !== featuredCard.id)]
+      : rawKalaignarPool
+  ).slice(0, 8);
 
   const logoUrl = getLogoUrl();
   const jsonLd = buildHomeJsonLd(logoUrl);
@@ -206,13 +258,16 @@ export default async function HomePage() {
         apiUnavailable={apiUnavailable}
       />
 
-      {/* 2. Trust Badges */}
+      {/* 2. Large "Featured book / சிறப்பு நூல்" Spotlight right below Hero */}
+      <FeaturedBookSpotlight book={featuredBook} />
+
+      {/* 3. Trust Badges */}
       <TrustBar />
 
-      {/* 3. Category Tiles from Shopify Collections */}
+      {/* 4. Category Tiles from Shopify Collections */}
       <CategoryTiles categories={categories} />
 
-      {/* 4. Tabbed Product Rows (New Arrivals | Best Sellers | Kalaignar Works) */}
+      {/* 5. Tabbed Product Rows (New Arrivals | Best Sellers | Kalaignar Works) */}
       <TabbedBooks
         totalCount={total}
         backdrop={<SunburstBackdrop position="top-right" />}
@@ -229,27 +284,30 @@ export default async function HomePage() {
         }}
       />
 
-      {/* 5. Featured Editorial Promo Banner (Asset B: Kalaignar Sketch) */}
+      {/* 6. Featured Editorial Promo Banner (Asset B: Kalaignar Sketch) */}
       <KalaignarArtworkBanner />
 
-      {/* 6. Featured Collections Slider */}
+      {/* 7. Featured Collections Slider */}
       <HeroSlider slides={slideViews} />
 
-      {/* 7. Short "About the publisher / முத்தமிழறிஞர் பதிப்பகம்" Strip (Asset A once) */}
+      {/* 8. Short "About the publisher / முத்தமிழறிஞர் பதிப்பகம்" Strip (Asset A once) */}
       <PublisherStory logoUrl={logoUrl} />
 
-      {/* 8. "Kalaignar legacy / திராவிட இயக்க மரபு" Feature Section (Asset C: M. K. Stalin Art) */}
+      {/* 9. "Kalaignar legacy / திராவிட இயக்க மரபு" Feature Section (Asset C: M. K. Stalin Art) */}
       <DravidianLegacyFeature />
 
       <DiagonalStripeDivider />
 
-      {/* 9. Reader Testimonials */}
+      {/* 10. Reader Testimonials */}
       <Testimonials />
 
-      {/* 10. Crawlable 6-Question FAQ Section + Matching FAQPage JSON-LD */}
+      {/* 11. Crawlable 6-Question FAQ Section + Matching FAQPage JSON-LD */}
       <FaqSection faqs={STORE_FAQS} />
 
-      {/* 11. Newsletter */}
+      {/* 12. Dark Brand Strip showcasing Asset D (White Logo Banner) */}
+      <DarkBrandBannerStrip />
+
+      {/* 13. Newsletter */}
       <NewsletterSection />
 
       {/* JSON-LD Structured Data */}

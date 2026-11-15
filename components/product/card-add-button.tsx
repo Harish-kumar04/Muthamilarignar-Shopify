@@ -22,6 +22,7 @@ export default function CardAddButton({
   availableForSale = true,
   quantityAvailable = null,
   isFallback = false,
+  layout = "card",
 }: {
   productId: string;
   variantId?: string | null;
@@ -31,6 +32,7 @@ export default function CardAddButton({
   availableForSale?: boolean;
   quantityAvailable?: number | null;
   isFallback?: boolean;
+  layout?: "card" | "spotlight";
 }) {
   const { t, localizeName } = useLanguage();
   const [adding, setAdding] = useState(false);
@@ -41,14 +43,17 @@ export default function CardAddButton({
   const canPurchase =
     inStock !== false && !isVariantOutOfStock(availableForSale, qtyAvail);
   const unavailable = Boolean(isFallback) || !isShopifyCatalogId(variantId || productId);
+  const isSpotlight = layout === "spotlight";
 
   if (!canPurchase) {
     return (
-      <div className="mt-3 grid grid-cols-1 gap-2">
+      <div className={isSpotlight ? "mt-6 max-w-md" : "mt-3 grid grid-cols-1 gap-2"}>
         <button
           type="button"
           disabled
-          className="inline-flex h-11 w-full cursor-not-allowed items-center justify-center rounded-full border border-black/10 bg-black/[0.04] px-3 text-[12.5px] font-semibold text-black/50"
+          className={`inline-flex w-full cursor-not-allowed items-center justify-center rounded-full border border-black/10 bg-black/[0.04] font-semibold text-black/50 ${
+            isSpotlight ? "h-12 px-6 text-[15px]" : "h-11 px-3 text-[12.5px]"
+          }`}
         >
           {t("கையிருப்பில் இல்லை", "Out of stock")}
         </button>
@@ -58,7 +63,7 @@ export default function CardAddButton({
 
   if (unavailable) {
     return (
-      <div className="mt-3">
+      <div className={isSpotlight ? "mt-6 max-w-md" : "mt-3"}>
         <button
           type="button"
           disabled
@@ -141,6 +146,51 @@ export default function CardAddButton({
       });
     }
   };
+
+  if (isSpotlight) {
+    return (
+      <div className="mt-6 grid max-w-lg grid-cols-1 gap-3 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={handleBuyNow}
+          disabled={adding || buying || !canPurchase}
+          aria-busy={buying || undefined}
+          aria-label={`${t("இப்போதே வாங்கு", "Buy now")} — ${localizeName(productName)}`}
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#D11D1A] px-6 text-[15px] font-bold text-white shadow-glow transition-all hover:bg-brand-red-dark active:scale-[0.98] disabled:opacity-60"
+        >
+          {buying ? (
+            <PenLoader size="sm" tone="light" label={t("வாங்குகிறது", "Redirecting to checkout")} />
+          ) : (
+            <span className="truncate">{t("இப்போதே வாங்கு", "Buy now")}</span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={adding || buying || !canPurchase}
+          aria-busy={adding || undefined}
+          aria-label={`${t("கூடையில் சேர்", "Add to cart")} — ${localizeName(productName)}`}
+          className={`inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-6 text-[15px] font-bold transition-all active:scale-[0.98] ${
+            success && !adding
+              ? "bg-green-700 text-white"
+              : "border-2 border-black bg-white text-black hover:border-brand-red-dark hover:text-brand-red-dark disabled:opacity-60"
+          }`}
+        >
+          {adding ? (
+            <PenLoader size="sm" label={t("சேர்க்கிறது", "Adding")} />
+          ) : success ? (
+            <span>✓ {t("சேர்க்கப்பட்டது", "Added to cart")}</span>
+          ) : (
+            <>
+              <CartIcon className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{t("கூடையில் சேர்", "Add to cart")}</span>
+            </>
+          )}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-3 grid grid-cols-1 gap-2">

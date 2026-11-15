@@ -2,6 +2,11 @@ import Image from "@/components/ui/img";
 import Link from "next/link";
 import { BiName, BiSubName, T } from "@/components/i18n/t";
 import { splitBilingual } from "@/lib/i18n";
+import {
+  FEATURED_BOOK_COVER_URL,
+  FEATURED_BOOK_HANDLE,
+  isFeaturedBook,
+} from "@/lib/featured-book";
 import { isVariantOutOfStock, normalizeQuantityAvailable } from "@/lib/stock";
 import CardAddButton from "./card-add-button";
 import WishlistButton from "./wishlist-button";
@@ -19,6 +24,9 @@ export interface CardProduct {
   id: string;
   variant_id?: string | null;
   slug?: string | null;
+  handle?: string | null;
+  tags?: string[];
+  isFeatured?: boolean;
   name: string;
   author?: string | null;
   category_id?: string | null;
@@ -44,12 +52,20 @@ export function toCardProduct(p: any): CardProduct {
     null;
 
   const rawId = String(p.id ?? "");
+  const slug = p.slug ? String(p.slug) : p.handle ? String(p.handle) : null;
+  const handle = p.handle ? String(p.handle) : slug;
+  const tags = Array.isArray(p.tags) ? p.tags.map(String) : undefined;
+  const featured = isFeaturedBook({ handle, slug, tags, isFeatured: p.isFeatured });
+  const isFlagshipHandle =
+    String(handle || slug || "").trim().toLowerCase() === FEATURED_BOOK_HANDLE;
   const ratingAvg = Number(p.rating_avg ?? p.average_rating ?? 0);
   const reviewCount = Number(p.review_count ?? p.reviews_count ?? 0);
   const qtyAvailable = normalizeQuantityAvailable(p.quantityAvailable);
   const rawAvailableForSale =
     p.availableForSale === false ? false : true;
   const availableForSale = !isVariantOutOfStock(rawAvailableForSale, qtyAvailable);
+  const resolvedCover =
+    p.image_url || p.images?.[0] || (isFlagshipHandle ? FEATURED_BOOK_COVER_URL : null);
 
   return {
     id: rawId,
@@ -58,7 +74,10 @@ export function toCardProduct(p: any): CardProduct {
       : p.variants?.[0]?.id
         ? String(p.variants[0].id)
         : null,
-    slug: p.slug ? String(p.slug) : p.handle ? String(p.handle) : null,
+    slug,
+    handle,
+    tags,
+    isFeatured: featured,
     name: String(p.name ?? ""),
     author: author ? String(author) : null,
     category_id: p.category_id ? String(p.category_id) : null,
@@ -69,7 +88,7 @@ export function toCardProduct(p: any): CardProduct {
     availableForSale,
     quantityAvailable: qtyAvailable,
     inventory: qtyAvailable,
-    image_url: p.image_url || p.images?.[0] || null,
+    image_url: resolvedCover,
     images: Array.isArray(p.images) ? p.images : null,
     rating_avg: ratingAvg > 0 ? ratingAvg : null,
     review_count: reviewCount > 0 ? reviewCount : null,
@@ -81,8 +100,8 @@ const rupees = (cents: number) => `₹${Math.round(cents / 100).toLocaleString("
 
 /**
  * Book card with 3:4 cover, consistent Tamil + English bilingual title,
- * "% OFF" discount badge, stock badge, optional real rating, wishlist heart (>=44px),
- * strike-through MRP, and >=44px "Add to cart" + "Buy now" buttons.
+ * Featured ribbon, "% OFF" discount badge, stock badge, optional real rating,
+ * wishlist heart (>=44px), strike-through MRP, and >=44px "Add to cart" + "Buy now" buttons.
  */
 export default function ProductCard({
   product,
@@ -112,6 +131,7 @@ export default function ProductCard({
         Math.round(((product.price_cents - (product.sale_price_cents as number)) / product.price_cents) * 100),
       )
     : 0;
+  const isFeatured = isFeaturedBook(product);
   const rawImg = product.image_url || product.images?.[0] || null;
   const [titleTa, titleEn] = splitBilingual(product.name, "|");
   const hasDistinctSub = Boolean(titleEn && titleEn !== titleTa);
@@ -119,17 +139,34 @@ export default function ProductCard({
   const bookHref = `/books/${encodeURIComponent(product.slug || product.id)}`;
 
   return (
-    <article className="card-glow group relative flex flex-col overflow-hidden bg-white">
+    <article
+      className={`card-glow group relative flex flex-col overflow-hidden bg-white ${
+        isFeatured ? "ring-1 ring-brand-red/35" : ""
+      }`}
+    >
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#FAFAFA]">
-        {/* Top-left discount / out-of-stock badge */}
-        {!inStock ? (
-          <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-black/85 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
-            <T ta="கையிருப்பில் இல்லை" en="Out of stock" />
-          </span>
-        ) : onSale ? (
-          <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-[#D11D1A] px-2.5 py-1 text-[11px] font-extrabold tracking-wide text-white shadow-sm">
-            {discountPct}% OFF
-          </span>
+        {/* Top-left Featured ribbon + discount / out-of-stock badge */}
+        {isFeatured || !inStock || onSale ? (
+          <div className="pointer-events-none absolute left-2 top-2 z-10 flex max-w-[calc(100%-3.5rem)] flex-col items-start gap-1 sm:left-2.5 sm:top-2.5 sm:gap-1.5">
+            {isFeatured && (
+              <span
+                data-featured-ribbon="true"
+                className="inline-flex items-center gap-1 rounded-r-full rounded-tl-full bg-black px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-sm ring-1 ring-brand-red/70 sm:px-2.5 sm:py-1 sm:text-[10.5px]"
+              >
+                <span aria-hidden="true" className="text-brand-red">★</span>
+                <T ta="சிறப்பு" en="Featured" />
+              </span>
+            )}
+            {!inStock ? (
+              <span className="rounded-full bg-black/85 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
+                <T ta="கையிருப்பில் இல்லை" en="Out of stock" />
+              </span>
+            ) : onSale ? (
+              <span className="rounded-full bg-[#D11D1A] px-2.5 py-1 text-[11px] font-extrabold tracking-wide text-white shadow-sm">
+                {discountPct}% OFF
+              </span>
+            ) : null}
+          </div>
         ) : null}
 
         <Link

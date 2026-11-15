@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import BooksCatalogClient from "@/components/product/books-catalog-client";
 import {
+  FEATURED_BOOK_HANDLE,
+  isFeaturedBook,
+  prioritizeFeaturedBooks,
+} from "@/lib/featured-book";
+import {
   getCatalogSummarySafe,
+  getProductByHandle,
   listCollections,
   listProducts,
   type ShopifyPageInfo,
@@ -13,7 +19,7 @@ export const revalidate = 120;
 
 export async function generateMetadata(): Promise<Metadata> {
   const summary = await getCatalogSummarySafe();
-  const books = summary.products;
+  const books = prioritizeFeaturedBooks(summary.products);
   const title = `அனைத்து நூல்கள் | All Books — ${BRAND.nameTa} | ${BRAND.nameEn}`;
   const countCopy = books.length > 0 ? `${books.length} ` : "";
   const description = `முத்தமிழறிஞர் பதிப்பகத்தின் ${countCopy}அதிகாரப்பூர்வ வெளியீடுகள் — திராவிட இயக்க வரலாறு, சமூகநீதி, திராவிட மாடல் மற்றும் கலைஞர் படைப்புகள். Browse all ${countCopy}official Tamil & English books from ${BRAND.nameEn}.`;
@@ -50,11 +56,16 @@ export default async function BooksCatalogPage() {
   let pageInfo: ShopifyPageInfo = { hasNextPage: false, endCursor: null };
 
   try {
-    const [prodRes, colRes] = await Promise.all([
+    const [prodRes, colRes, featuredDirect] = await Promise.all([
       listProducts({ first: 24 }),
       listCollections({ first: 50 }),
+      getProductByHandle(FEATURED_BOOK_HANDLE).catch(() => null),
     ]);
-    rawProducts = prodRes.products;
+    let combined = prodRes.products;
+    if (featuredDirect && !combined.some((p) => p.id === featuredDirect.id)) {
+      combined = [featuredDirect, ...combined];
+    }
+    rawProducts = prioritizeFeaturedBooks(combined);
     pageInfo = prodRes.pageInfo;
     rawCategories = colRes.collections;
   } catch {
@@ -66,6 +77,8 @@ export default async function BooksCatalogPage() {
     variant_id: p.variant_id ?? null,
     slug: p.slug ?? null,
     handle: p.handle ?? p.slug ?? null,
+    tags: p.tags ?? [],
+    isFeatured: isFeaturedBook(p),
     name: p.name,
     sku: p.sku,
     author: p.author ?? null,

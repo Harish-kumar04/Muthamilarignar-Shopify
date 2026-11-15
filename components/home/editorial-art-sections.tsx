@@ -145,3 +145,34 @@ export function DravidianLegacyFeature() {
     </section>
   );
 }
+
+const WHITE_LOGO_BANNER_URL =
+  "https://res.cloudinary.com/dikaxqooz/image/upload/v1794758234/shopify_white_logo_banner_8k_rn9z1s.png";
+
+/**
+ * Dark brand strip near the bottom of the home page showcasing Asset D
+ * (`shopify_white_logo_banner_8k_rn9z1s.png`, intrinsic 1200x323 wide banner).
+ * Placed exclusively on a rich black + red-accented band so the panoramic banner
+ * stands out with crisp contrast while keeping its red/black publisher emblem sharp.
+ */
+export function DarkBrandBannerStrip() {
+  return (
+    <section
+      aria-label="முத்தமிழறிஞர் பதிப்பகம் அடையாளப் பதாகை | Muthamilarignar Pathipagam Brand Strip"
+      className="pattern-white-dots relative overflow-hidden border-y-2 border-brand-red bg-brand-black py-10 sm:py-14"
+    >
+      <div className="container-site relative">
+        <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-white/15 bg-white shadow-2xl">
+          <Img
+            src={cloudinaryImageUrl(WHITE_LOGO_BANNER_URL, 1200)}
+            alt="முத்தமிழறிஞர் பதிப்பகம் அதிகாரப்பூர்வ இலச்சினைப் பதாகை | Muthamilarignar Pathipagam Official Publisher Logo Banner"
+            width={1200}
+            height={323}
+            sizes="(max-width: 640px) 92vw, (max-width: 1024px) 86vw, 896px"
+            className="h-auto w-full object-contain"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}

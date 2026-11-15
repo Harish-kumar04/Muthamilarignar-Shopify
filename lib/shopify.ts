@@ -245,6 +245,7 @@ interface RawProductNode {
   handle: string;
   title: string;
   vendor: string;
+  tags?: string[];
   description: string;
   descriptionHtml: string;
   availableForSale: boolean;
@@ -308,6 +309,7 @@ export interface ShopifyBook {
   titleTa: string;
   titleEn: string;
   vendor: string;
+  tags: string[];
   sku: string;
   category_id: string;
   category_slug: string | null;
@@ -370,6 +372,7 @@ const PRODUCT_FIELDS_FRAGMENT = /* GraphQL */ `
     handle
     title
     vendor
+    tags
     description
     descriptionHtml
     availableForSale
@@ -554,6 +557,7 @@ export function mapShopifyProduct(node: RawProductNode): ShopifyBook {
     titleTa,
     titleEn,
     vendor: node.vendor,
+    tags: Array.isArray(node.tags) ? node.tags : [],
     sku: firstVariant?.sku || node.handle,
     category_id: primaryCollection?.id || "",
     category_slug: primaryCollection?.handle || null,

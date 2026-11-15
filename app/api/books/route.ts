@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  FEATURED_BOOK_HANDLE,
+  isFeaturedBook,
+  isKaruppuSivappuQuery,
+  prioritizeFeaturedBooks,
+} from "@/lib/featured-book";
+import {
   getCollectionByHandle,
+  getProductByHandle,
   listProducts,
   resolveCollectionSort,
   resolveProductSort,
@@ -15,6 +22,8 @@ function slimCatalogBook(p: ShopifyBook) {
     variant_id: p.variant_id,
     slug: p.slug,
     handle: p.handle,
+    tags: p.tags,
+    isFeatured: isFeaturedBook(p),
     name: p.name,
     sku: p.sku,
     author: p.author,
@@ -62,7 +71,10 @@ export async function GET(request: NextRequest) {
         availableOnly,
       });
       if (colRes) {
-        products = colRes.products;
+        products =
+          sort === "default" && !after
+            ? prioritizeFeaturedBooks(colRes.products)
+            : colRes.products;
         pageInfo = colRes.pageInfo;
       }
     } else if (q) {
@@ -88,6 +100,27 @@ export async function GET(request: NextRequest) {
             )
           : res.products;
       pageInfo = res.pageInfo;
+
+      if (!after && sort === "default" && isKaruppuSivappuQuery(q)) {
+        if (!products.some((b) => b.handle.toLowerCase() === FEATURED_BOOK_HANDLE)) {
+          const direct = await getProductByHandle(FEATURED_BOOK_HANDLE).catch(() => null);
+          if (direct && (!availableOnly || direct.availableForSale)) {
+            const matchesCategory =
+              !category ||
+              category === "all" ||
+              direct.collection_handles.some(
+                (h) => h.toLowerCase() === category.toLowerCase(),
+              ) ||
+              direct.collection_ids.some(
+                (id) => id.toLowerCase() === category.toLowerCase(),
+              );
+            if (matchesCategory) {
+              products = [direct, ...products];
+            }
+          }
+        }
+        products = prioritizeFeaturedBooks(products);
+      }
     } else {
       const prodSort = resolveProductSort(sort, false);
       const res = await listProducts({
@@ -99,6 +132,23 @@ export async function GET(request: NextRequest) {
       });
       products = res.products;
       pageInfo = res.pageInfo;
+
+      if (sort === "default") {
+        if (!after) {
+          if (!products.some((b) => b.handle.toLowerCase() === FEATURED_BOOK_HANDLE)) {
+            const direct = await getProductByHandle(FEATURED_BOOK_HANDLE).catch(() => null);
+            if (direct && (!availableOnly || direct.availableForSale)) {
+              products = [direct, ...products];
+            }
+          }
+          products = prioritizeFeaturedBooks(products);
+        } else {
+          // Already promoted onto Page 1 under default sort
+          products = products.filter(
+            (b) => b.handle.toLowerCase() !== FEATURED_BOOK_HANDLE,
+          );
+        }
+      }
     }
 
     if (saleOnly) {

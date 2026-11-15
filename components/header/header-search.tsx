@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/language-provider";
 import Img from "@/components/ui/img";
 import { cloudinaryImageUrl } from "@/lib/site-defaults";
+import { isKaruppuSivappuQuery, prioritizeFeaturedBooks } from "@/lib/featured-book";
 
 export interface SearchBookItem {
   id: string;
   slug?: string | null;
+  isFeatured?: boolean;
   name: string;
   author?: string | null;
   price_cents: number;
@@ -89,13 +91,13 @@ export default function HeaderSearch({
     if (remoteResults !== null) return remoteResults;
     const q = query.trim().toLowerCase();
     if (!q || q.length < 2) return [];
-    return books
-      .filter((b) => {
-        const nameMatch = b.name.toLowerCase().includes(q);
-        const authorMatch = b.author ? b.author.toLowerCase().includes(q) : false;
-        return nameMatch || authorMatch;
-      })
-      .slice(0, 6);
+    const matched = books.filter((b) => {
+      const nameMatch = b.name.toLowerCase().includes(q);
+      const authorMatch = b.author ? b.author.toLowerCase().includes(q) : false;
+      return nameMatch || authorMatch;
+    });
+    const ordered = isKaruppuSivappuQuery(q) ? prioritizeFeaturedBooks(matched) : matched;
+    return ordered.slice(0, 6);
   }, [query, books, remoteResults]);
 
   const handleSubmit = (e: React.FormEvent) => {

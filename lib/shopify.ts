@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { splitBilingual } from "@/lib/i18n";
+import { isVariantInStock, normalizeQuantityAvailable } from "@/lib/stock";
 
 /** Latest stable Shopify Storefront GraphQL API version. */
 export const SHOPIFY_STOREFRONT_API_VERSION = "2026-01";
@@ -289,7 +290,9 @@ export interface ShopifyVariant {
   title: string;
   sku: string | null;
   is_available: boolean;
-  inventory_quantity: number;
+  availableForSale: boolean;
+  quantityAvailable: number | null;
+  inventory_quantity: number | null;
   price_cents: number;
   sale_price_cents: number | null;
   priceRupees: number;
@@ -321,8 +324,8 @@ export interface ShopifyBook {
   sale_price_cents: number | null;
   availableForSale: boolean;
   quantityAvailable: number | null;
-  inventory: number;
-  inventory_quantity: number;
+  inventory: number | null;
+  inventory_quantity: number | null;
   image_url: string | null;
   images: string[];
   author: string | null;
@@ -468,7 +471,9 @@ function mapMoneyPair(
 export function mapShopifyProduct(node: RawProductNode): ShopifyBook {
   const [titleTa, titleEn] = splitBilingual(node.title, "|");
   const firstVariant =
-    node.variants?.nodes?.find((v) => v.availableForSale) ||
+    node.variants?.nodes?.find((v) =>
+      isVariantInStock(v.availableForSale, v.quantityAvailable),
+    ) ||
     node.variants?.nodes?.[0] ||
     null;
 
@@ -477,15 +482,14 @@ export function mapShopifyProduct(node: RawProductNode): ShopifyBook {
     firstVariant?.compareAtPrice ?? node.compareAtPriceRange?.minVariantPrice,
   );
 
-  const rawQty =
-    typeof firstVariant?.quantityAvailable === "number"
-      ? firstVariant.quantityAvailable
-      : null;
-  const inventory = !node.availableForSale
-    ? 0
-    : rawQty !== null && rawQty > 0
-      ? rawQty
-      : 10;
+  const rawQty = normalizeQuantityAvailable(firstVariant?.quantityAvailable);
+  const rawAvailableForSale =
+    node.availableForSale === false
+      ? false
+      : firstVariant
+        ? firstVariant.availableForSale !== false
+        : true;
+  const availableForSale = isVariantInStock(rawAvailableForSale, rawQty);
 
   const imageUrls = Array.from(
     new Set(
@@ -524,17 +528,15 @@ export function mapShopifyProduct(node: RawProductNode): ShopifyBook {
 
   const variants: ShopifyVariant[] = (node.variants?.nodes || []).map((v) => {
     const vp = mapMoneyPair(v.price, v.compareAtPrice);
-    const vQty =
-      !v.availableForSale
-        ? 0
-        : typeof v.quantityAvailable === "number" && v.quantityAvailable > 0
-          ? v.quantityAvailable
-          : 10;
+    const vQty = normalizeQuantityAvailable(v.quantityAvailable);
+    const vAvailable = isVariantInStock(v.availableForSale, vQty);
     return {
       id: v.id,
       title: v.title,
       sku: v.sku || null,
-      is_available: v.availableForSale,
+      is_available: vAvailable,
+      availableForSale: vAvailable,
+      quantityAvailable: vQty,
       inventory_quantity: vQty,
       price_cents: vp.price_cents,
       sale_price_cents: vp.sale_price_cents,
@@ -564,10 +566,10 @@ export function mapShopifyProduct(node: RawProductNode): ShopifyBook {
     currencyCode: pricing.currencyCode,
     price_cents: pricing.price_cents,
     sale_price_cents: pricing.sale_price_cents,
-    availableForSale: Boolean(node.availableForSale),
+    availableForSale,
     quantityAvailable: rawQty,
-    inventory,
-    inventory_quantity: inventory,
+    inventory: rawQty,
+    inventory_quantity: rawQty,
     image_url: imageUrls[0] || null,
     images: imageUrls,
     author: bookMeta.author,

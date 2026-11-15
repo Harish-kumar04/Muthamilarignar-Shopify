@@ -46,6 +46,18 @@ const rawDomain = (process.env.SHOPIFY_STORE_DOMAIN || "")
 const token = (process.env.SHOPIFY_STOREFRONT_TOKEN || "").trim();
 const vendorFilter = (process.env.SHOPIFY_VENDOR_FILTER || "").trim();
 
+function isVariantOutOfStock(availableForSale, quantityAvailable) {
+  if (availableForSale === false) return true;
+  if (
+    typeof quantityAvailable === "number" &&
+    Number.isFinite(quantityAvailable) &&
+    quantityAvailable <= 0
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function fail(step, reason) {
   console.error(`[FAIL] ${step}: ${reason}`);
   console.error("RESULT: FAIL");
@@ -96,6 +108,10 @@ async function storefrontFetch(query, variables = {}) {
 function buildProductsQuery(includeQty) {
   return `
     query FindPurchasableVariant($query: String) {
+      shop {
+        name
+        shipsToCountries
+      }
       products(first: 25, query: $query) {
         nodes {
           handle
@@ -107,6 +123,7 @@ function buildProductsQuery(includeQty) {
               id
               availableForSale
               ${includeQty ? "quantityAvailable" : ""}
+              price { amount currencyCode }
             }
           }
         }
@@ -130,11 +147,16 @@ function buildCartFragment(includeQty) {
           node {
             id
             quantity
+            cost {
+              amountPerQuantity { amount currencyCode }
+              totalAmount { amount currencyCode }
+            }
             merchandise {
               ... on ProductVariant {
                 id
                 availableForSale
                 ${includeQty ? "quantityAvailable" : ""}
+                price { amount currencyCode }
                 product { handle title }
               }
             }
@@ -167,14 +189,19 @@ async function run() {
 
   let chosenVariant = null;
   let chosenProduct = null;
+  let shipsToCountries = null;
 
   try {
     const vendorQuery = vendorFilter
       ? `vendor:${JSON.stringify(vendorFilter)}`
       : null;
     const primary = await findVariant(vendorQuery);
+    shipsToCountries = primary?.shop?.shipsToCountries ?? null;
+
     for (const p of primary?.products?.nodes || []) {
-      const v = (p.variants?.nodes || []).find((x) => x.availableForSale);
+      const v = (p.variants?.nodes || []).find(
+        (x) => !isVariantOutOfStock(x.availableForSale, x.quantityAvailable),
+      );
       if (v) {
         chosenProduct = p;
         chosenVariant = v;
@@ -184,11 +211,13 @@ async function run() {
 
     if (!chosenVariant && vendorQuery) {
       console.warn(
-        `[WARN] 0 availableForSale variants matched SHOPIFY_VENDOR_FILTER="${vendorFilter}"; checking unfiltered catalog for Cart API smoke test...`,
+        `[WARN] 0 in-stock variants matched SHOPIFY_VENDOR_FILTER="${vendorFilter}"; checking unfiltered catalog for Cart API smoke test...`,
       );
       const fallback = await findVariant(null);
       for (const p of fallback?.products?.nodes || []) {
-        const v = (p.variants?.nodes || []).find((x) => x.availableForSale);
+        const v = (p.variants?.nodes || []).find(
+          (x) => !isVariantOutOfStock(x.availableForSale, x.quantityAvailable),
+        );
         if (v) {
           chosenProduct = p;
           chosenVariant = v;
@@ -203,13 +232,18 @@ async function run() {
   if (!chosenVariant) {
     fail(
       "catalogLookup",
-      "No availableForSale product variants found in the live Shopify store to add to cart.",
+      "No in-stock product variants found in the live Shopify store to add to cart.",
     );
   }
 
   console.log(
-    `Selected variant: ${chosenVariant.id} (${chosenProduct.handle}) qtyAvailable=${chosenVariant.quantityAvailable ?? "n/a"}`,
+    `Selected variant: ${chosenVariant.id} (${chosenProduct.handle}) availableForSale=${chosenVariant.availableForSale} qtyAvailable=${chosenVariant.quantityAvailable ?? "null"} price=${chosenVariant.price?.amount} ${chosenVariant.price?.currencyCode}`,
   );
+  if (Array.isArray(shipsToCountries) && shipsToCountries.length === 0) {
+    console.warn(
+      `[WARN] Shopify shop.shipsToCountries is [] (empty)! Physical products require an active shipping zone (e.g. India) under Settings -> Shipping and delivery AND "Fulfill online orders from this location" enabled under Settings -> Locations in Shopify Admin.`,
+    );
+  }
 
   // 1. cartCreate
   let cartId;
@@ -221,6 +255,7 @@ async function run() {
       mutation VerifyCartCreate {
         cartCreate(input: {}) {
           cart { ...VerifyCartFields }
+          warnings { code message }
           userErrors { field message }
         }
       }
@@ -248,6 +283,7 @@ async function run() {
       mutation VerifyCartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
         cartLinesAdd(cartId: $cartId, lines: $lines) {
           cart { ...VerifyCartFields }
+          warnings { code message }
           userErrors { field message }
         }
       }
@@ -259,16 +295,28 @@ async function run() {
     );
     const errs = data?.cartLinesAdd?.userErrors || [];
     if (errs.length > 0) throw new Error(errs.map((e) => e.message).join("; "));
+    const warnings = data?.cartLinesAdd?.warnings || [];
     const cart = data?.cartLinesAdd?.cart;
     const edge = cart?.lines?.edges?.[0]?.node;
     if (!edge?.id || cart.totalQuantity !== 1) {
+      const warnText =
+        warnings.length > 0
+          ? ` | warnings=${warnings.map((w) => `${w.code}: ${w.message}`).join("; ")}`
+          : "";
+      const shippingHint =
+        Array.isArray(shipsToCountries) && shipsToCountries.length === 0
+          ? " | Root cause in Shopify Admin: shop.shipsToCountries is [] — enable 'Fulfill online orders from this location' in Settings -> Locations and add an India shipping zone + rate in Settings -> Shipping and delivery."
+          : "";
       throw new Error(
-        `Expected totalQuantity=1 and 1 line, got totalQuantity=${cart?.totalQuantity}`,
+        `Expected totalQuantity=1 and 1 line, got totalQuantity=${cart?.totalQuantity}${warnText}${shippingHint}`,
       );
     }
     lineId = edge.id;
+    const subtotalAmt =
+      cart.cost?.subtotalAmount?.amount ??
+      String((Number.parseFloat(edge.merchandise?.price?.amount || "0") || 0) * edge.quantity);
     console.log(
-      `[PASS] cartLinesAdd -> lineId=${lineId}, totalQuantity=${cart.totalQuantity}, subtotal=${cart.cost.subtotalAmount.amount} ${cart.cost.subtotalAmount.currencyCode}`,
+      `[PASS] cartLinesAdd -> lineId=${lineId}, totalQuantity=${cart.totalQuantity}, subtotal=${subtotalAmt} ${cart.cost?.subtotalAmount?.currencyCode || "INR"}`,
     );
   } catch (err) {
     fail("cartLinesAdd", err.message || String(err));
@@ -277,6 +325,7 @@ async function run() {
   // 3. cartLinesUpdate
   const targetQty =
     typeof chosenVariant.quantityAvailable === "number" &&
+    chosenVariant.quantityAvailable > 0 &&
     chosenVariant.quantityAvailable < 2
       ? 1
       : 2;
@@ -288,6 +337,7 @@ async function run() {
       mutation VerifyCartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
         cartLinesUpdate(cartId: $cartId, lines: $lines) {
           cart { ...VerifyCartFields }
+          warnings { code message }
           userErrors { field message }
         }
       }

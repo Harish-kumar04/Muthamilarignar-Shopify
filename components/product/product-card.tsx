@@ -2,6 +2,7 @@ import Image from "@/components/ui/img";
 import Link from "next/link";
 import { BiName, BiSubName, T } from "@/components/i18n/t";
 import { splitBilingual } from "@/lib/i18n";
+import { isVariantOutOfStock, normalizeQuantityAvailable } from "@/lib/stock";
 import CardAddButton from "./card-add-button";
 import WishlistButton from "./wishlist-button";
 
@@ -27,7 +28,7 @@ export interface CardProduct {
   sale_price_cents?: number | null;
   availableForSale?: boolean;
   quantityAvailable?: number | null;
-  inventory?: number;
+  inventory?: number | null;
   image_url?: string | null;
   images?: string[] | null;
   rating_avg?: number | null;
@@ -45,16 +46,10 @@ export function toCardProduct(p: any): CardProduct {
   const rawId = String(p.id ?? "");
   const ratingAvg = Number(p.rating_avg ?? p.average_rating ?? 0);
   const reviewCount = Number(p.review_count ?? p.reviews_count ?? 0);
-  const qtyAvailable =
-    typeof p.quantityAvailable === "number" ? p.quantityAvailable : null;
-  const inv =
-    p.availableForSale === false
-      ? 0
-      : qtyAvailable !== null
-        ? qtyAvailable
-        : p.inventory !== undefined
-          ? Number(p.inventory)
-          : Number(p.inventory_quantity ?? 10);
+  const qtyAvailable = normalizeQuantityAvailable(p.quantityAvailable);
+  const rawAvailableForSale =
+    p.availableForSale === false ? false : true;
+  const availableForSale = !isVariantOutOfStock(rawAvailableForSale, qtyAvailable);
 
   return {
     id: rawId,
@@ -71,9 +66,9 @@ export function toCardProduct(p: any): CardProduct {
     collection_handles: Array.isArray(p.collection_handles) ? p.collection_handles : undefined,
     price_cents: Number(p.price_cents) || 0,
     sale_price_cents: p.sale_price_cents ?? null,
-    availableForSale: p.availableForSale !== undefined ? Boolean(p.availableForSale) : inv > 0,
+    availableForSale,
     quantityAvailable: qtyAvailable,
-    inventory: inv,
+    inventory: qtyAvailable,
     image_url: p.image_url || p.images?.[0] || null,
     images: Array.isArray(p.images) ? p.images : null,
     rating_avg: ratingAvg > 0 ? ratingAvg : null,
@@ -98,17 +93,13 @@ export default function ProductCard({
   priority?: boolean;
   sizes?: string;
 }) {
-  const inv = product.inventory ?? 10;
-  const availableForSale =
-    product.availableForSale !== false &&
-    inv > 0 &&
-    (typeof product.quantityAvailable !== "number" || product.quantityAvailable > 0);
-  const inStock = availableForSale;
+  const qtyAvailable = normalizeQuantityAvailable(product.quantityAvailable);
+  const inStock = !isVariantOutOfStock(product.availableForSale, qtyAvailable);
   const lowStock =
     inStock &&
-    typeof product.quantityAvailable === "number" &&
-    product.quantityAvailable > 0 &&
-    product.quantityAvailable <= 5;
+    qtyAvailable !== null &&
+    qtyAvailable > 0 &&
+    qtyAvailable <= 5;
   const onSale = Boolean(
     product.sale_price_cents &&
       product.price_cents > 0 &&
@@ -232,7 +223,7 @@ export default function ProductCard({
                   }`}
                 />
                 {lowStock ? (
-                  <T ta={`இன்னும் ${inv} மட்டுமே`} en={`Only ${inv} left`} />
+                  <T ta={`இன்னும் ${qtyAvailable} மட்டுமே`} en={`Only ${qtyAvailable} left`} />
                 ) : (
                   <T ta="கையிருப்பில்" en="In stock" />
                 )}
@@ -252,7 +243,7 @@ export default function ProductCard({
             unitPriceCents={price}
             inStock={inStock}
             availableForSale={product.availableForSale !== false}
-            quantityAvailable={product.quantityAvailable}
+            quantityAvailable={qtyAvailable}
             isFallback={product.isFallback}
           />
         </div>

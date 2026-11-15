@@ -11,6 +11,7 @@ import {
   type CartRecommendation,
 } from "@/lib/cart-client";
 import type { ShopifyCart, ShopifyCartLine } from "@/lib/shopify-cart";
+import { isVariantOutOfStock, normalizeQuantityAvailable } from "@/lib/stock";
 import { useLanguage } from "@/components/language-provider";
 import Sunburst from "@/components/brand/sunburst";
 import { CartIcon, CloseIcon } from "@/components/brand/icons";
@@ -138,11 +139,8 @@ export default function MiniCart({
       await handleRemoveLine(line);
       return;
     }
-    if (
-      delta > 0 &&
-      typeof line.quantityAvailable === "number" &&
-      targetQty > line.quantityAvailable
-    ) {
+    const qtyAvail = normalizeQuantityAvailable(line.quantityAvailable);
+    if (delta > 0 && qtyAvail !== null && qtyAvail > 0 && targetQty > qtyAvail) {
       return;
     }
 
@@ -237,7 +235,9 @@ export default function MiniCart({
   };
 
   const handleAddRecommendation = async (rec: CartRecommendation) => {
-    if (addingRecId || !rec.availableForSale) return;
+    if (addingRecId || isVariantOutOfStock(rec.availableForSale, rec.quantityAvailable)) {
+      return;
+    }
     setAddingRecId(rec.id);
     try {
       const res = await addToCartClient({
@@ -268,10 +268,20 @@ export default function MiniCart({
 
   const lines = cart?.lines ?? [];
   const appliedCode = cart?.discountCodes?.find((d) => d.applicable) || null;
-  const subtotalCents = cart?.subtotalCents ?? 0;
-  const totalCents = cart?.totalCents ?? subtotalCents;
+  const fallbackSubtotalCents = lines.reduce(
+    (sum, l) => sum + l.unitPriceCents * l.quantity,
+    0,
+  );
+  const subtotalCents =
+    typeof cart?.subtotalCents === "number" ? cart.subtotalCents : fallbackSubtotalCents;
   const discountCents = cart?.discountCents ?? 0;
-  const hasUnavailableLine = lines.some((l) => !l.availableForSale);
+  const totalCents =
+    typeof cart?.totalCents === "number" && (cart.totalCents > 0 || discountCents > 0)
+      ? cart.totalCents
+      : Math.max(0, subtotalCents - discountCents);
+  const hasUnavailableLine = lines.some((l) =>
+    isVariantOutOfStock(l.availableForSale, l.quantityAvailable),
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -316,7 +326,7 @@ export default function MiniCart({
         {lines.length > 0 && (
           <div className="border-b border-black/[0.06] px-5 py-3">
             <FreeShippingBar
-              subtotalCents={totalCents}
+              subtotalCents={subtotalCents}
               thresholdRupees={freeShippingThreshold}
             />
           </div>
@@ -366,9 +376,18 @@ export default function MiniCart({
                 const subTitle = localizeSubName(line.title);
                 const primaryTitle = localizeName(line.title);
                 const hasDistinctSub = Boolean(subTitle && subTitle !== primaryTitle);
+                const qtyAvail = normalizeQuantityAvailable(line.quantityAvailable);
+                const lineOutOfStock = isVariantOutOfStock(
+                  line.availableForSale,
+                  qtyAvail,
+                );
                 const atMaxStock =
-                  typeof line.quantityAvailable === "number" &&
-                  line.quantity >= line.quantityAvailable;
+                  qtyAvail !== null && qtyAvail > 0 && line.quantity >= qtyAvail;
+                const lineTotalCents =
+                  typeof line.lineTotalCents === "number" &&
+                  Number.isFinite(line.lineTotalCents)
+                    ? line.lineTotalCents
+                    : line.unitPriceCents * line.quantity;
                 const isThisLineBusy = pendingOp?.lineId === line.id;
                 const decBusy = isThisLineBusy && pendingOp?.op === "dec";
                 const incBusy = isThisLineBusy && pendingOp?.op === "inc";
@@ -414,7 +433,7 @@ export default function MiniCart({
                           <p className="mt-0.5 text-[12px] text-black/70">
                             {formatRupees(line.unitPriceCents)} {t("/ பிரதி", "each")}
                           </p>
-                          {!line.availableForSale && (
+                          {lineOutOfStock && (
                             <p className="mt-0.5 text-[11.5px] font-bold text-brand-red-dark">
                               {t("கையிருப்பில் இல்லை", "Out of stock")}
                             </p>
@@ -456,7 +475,7 @@ export default function MiniCart({
                           </span>
                           <button
                             type="button"
-                            disabled={atMaxStock || !line.availableForSale || isThisLineBusy}
+                            disabled={atMaxStock || lineOutOfStock || isThisLineBusy}
                             onClick={() => handleStepQty(line, 1)}
                             className="inline-flex h-11 w-11 items-center justify-center rounded-r-full font-bold text-black transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
                             aria-label="Increase quantity"
@@ -470,7 +489,7 @@ export default function MiniCart({
                         </div>
 
                         <span className="text-[16px] font-extrabold text-brand-red">
-                          {formatRupees(line.lineTotalCents)}
+                          {formatRupees(lineTotalCents)}
                         </span>
                       </div>
                     </div>
@@ -492,6 +511,10 @@ export default function MiniCart({
                     rec.sale_price_cents && rec.sale_price_cents < rec.price_cents
                       ? rec.sale_price_cents
                       : rec.price_cents;
+                  const recOutOfStock = isVariantOutOfStock(
+                    rec.availableForSale,
+                    rec.quantityAvailable,
+                  );
                   const isAddingThis = addingRecId === rec.id;
                   return (
                     <div
@@ -527,7 +550,7 @@ export default function MiniCart({
                       </div>
                       <button
                         type="button"
-                        disabled={!rec.availableForSale || Boolean(addingRecId)}
+                        disabled={recOutOfStock || Boolean(addingRecId)}
                         onClick={() => handleAddRecommendation(rec)}
                         className="inline-flex h-9 min-w-[68px] items-center justify-center rounded-full border border-black/20 bg-white px-3 text-[11.5px] font-bold text-black hover:border-brand-red-dark hover:text-brand-red-dark disabled:opacity-50"
                       >
@@ -615,7 +638,7 @@ export default function MiniCart({
                 {t("மொத்தத் தொகை", "Subtotal")}
               </span>
               <span className="text-[22px] font-extrabold text-brand-red">
-                {formatRupees(totalCents)}
+                {formatRupees(discountCents > 0 ? totalCents : subtotalCents)}
               </span>
             </div>
             <p className="text-[11.5px] text-black/65">

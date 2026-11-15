@@ -11,14 +11,14 @@ import {
   cartLinesAdd,
   cartLinesRemove,
   cartLinesUpdate,
-  clearCartIdOnResponse,
-  getCart,
   getCartIdFromCookies,
   getFreeShippingThresholdRupees,
+  loadAndSanitizeCart,
   resolveVariantForCart,
   setCartIdOnResponse,
   type ShopifyCart,
 } from "@/lib/shopify-cart";
+import { isVariantInStock, isVariantOutOfStock } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +55,7 @@ async function loadRecommendations(cart: ShopifyCart | null) {
       try {
         const recs = await getProductRecommendations(seedProductId);
         for (const r of recs) {
-          if (r.availableForSale && !seen.has(r.id)) {
+          if (isVariantInStock(r.availableForSale, r.quantityAvailable) && !seen.has(r.id)) {
             seen.add(r.id);
             collected.push(r);
           }
@@ -69,7 +69,7 @@ async function loadRecommendations(cart: ShopifyCart | null) {
     if (collected.length < 4) {
       const list = await listProducts({ first: 12, availableOnly: true });
       for (const b of list.products) {
-        if (b.availableForSale && !seen.has(b.id)) {
+        if (isVariantInStock(b.availableForSale, b.quantityAvailable) && !seen.has(b.id)) {
           seen.add(b.id);
           collected.push(b);
         }
@@ -100,13 +100,14 @@ export async function GET() {
   try {
     const cartId = await getCartIdFromCookies();
     let cart: ShopifyCart | null = null;
-    let shouldClearCookie = false;
+    let shouldReplaceCookie = false;
 
     if (cartId) {
-      cart = await getCart(cartId);
-      if (!cart) {
-        shouldClearCookie = true;
-      }
+      const loaded = await loadAndSanitizeCart(cartId, {
+        createIfEmptyOrInvalid: true,
+      });
+      cart = loaded.cart;
+      shouldReplaceCookie = loaded.replacedCartId;
     }
 
     const recommendations = await loadRecommendations(cart);
@@ -114,8 +115,8 @@ export async function GET() {
       { cart, recommendations, freeShippingThresholdRupees },
       { headers: NO_STORE_HEADERS },
     );
-    if (shouldClearCookie) {
-      clearCartIdOnResponse(res);
+    if (shouldReplaceCookie && cart?.id) {
+      setCartIdOnResponse(res, cart.id);
     }
     return res;
   } catch (err) {
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
         productId: body?.productId,
       });
 
-      if (!variant.availableForSale) {
+      if (isVariantOutOfStock(variant.availableForSale, variant.quantityAvailable)) {
         throw new ShopifyCartError("This book is currently out of stock.", 400);
       }
       if (
@@ -153,9 +154,7 @@ export async function POST(request: NextRequest) {
         qty > variant.quantityAvailable
       ) {
         throw new ShopifyCartError(
-          variant.quantityAvailable <= 0
-            ? "This book is currently out of stock."
-            : `Only ${variant.quantityAvailable} copies available in stock.`,
+          `Only ${variant.quantityAvailable} copies available in stock.`,
           400,
         );
       }
@@ -183,14 +182,17 @@ export async function POST(request: NextRequest) {
         productId: body?.productId,
       });
 
-      if (!variant.availableForSale) {
+      if (isVariantOutOfStock(variant.availableForSale, variant.quantityAvailable)) {
         throw new ShopifyCartError("This book is currently out of stock.", 400);
       }
 
       const existingCartId = await getCartIdFromCookies();
       let existingCart: ShopifyCart | null = null;
       if (existingCartId) {
-        existingCart = await getCart(existingCartId);
+        const loaded = await loadAndSanitizeCart(existingCartId, {
+          createIfEmptyOrInvalid: false,
+        });
+        existingCart = loaded.cart;
       }
 
       const existingQty =
@@ -202,9 +204,7 @@ export async function POST(request: NextRequest) {
         existingQty + qty > variant.quantityAvailable
       ) {
         throw new ShopifyCartError(
-          variant.quantityAvailable <= 0
-            ? "This book is currently out of stock."
-            : `Only ${variant.quantityAvailable} copies available in stock (you already have ${existingQty} in cart).`,
+          `Only ${variant.quantityAvailable} copies available in stock (you already have ${existingQty} in cart).`,
           400,
         );
       }
@@ -244,26 +244,39 @@ export async function POST(request: NextRequest) {
       if (qty <= 0) {
         cart = await cartLinesRemove(cartId, [lineId]);
       } else {
-        const current = await getCart(cartId);
+        const loaded = await loadAndSanitizeCart(cartId, {
+          createIfEmptyOrInvalid: true,
+        });
+        const current = loaded.cart;
         if (!current) {
           throw new ShopifyCartError("Your cart has expired. Please add items again.", 404);
         }
         const targetLine = current.lines.find((l) => l.id === lineId);
-        if (targetLine) {
-          if (!targetLine.availableForSale && qty > targetLine.quantity) {
-            throw new ShopifyCartError("This book is currently out of stock.", 400);
-          }
-          if (
-            typeof targetLine.quantityAvailable === "number" &&
-            qty > targetLine.quantityAvailable
-          ) {
-            throw new ShopifyCartError(
-              `Only ${targetLine.quantityAvailable} copies available in stock.`,
-              400,
-            );
-          }
+        if (!targetLine) {
+          // Stale/non-existent variant line was sanitized; return updated cart & replace cookie
+          const res = NextResponse.json(
+            { cart: current, freeShippingThresholdRupees },
+            { headers: NO_STORE_HEADERS },
+          );
+          setCartIdOnResponse(res, current.id);
+          return res;
         }
-        cart = await cartLinesUpdate(cartId, [{ id: lineId, quantity: qty }]);
+        if (
+          isVariantOutOfStock(targetLine.availableForSale, targetLine.quantityAvailable) &&
+          qty > targetLine.quantity
+        ) {
+          throw new ShopifyCartError("This book is currently out of stock.", 400);
+        }
+        if (
+          typeof targetLine.quantityAvailable === "number" &&
+          qty > targetLine.quantityAvailable
+        ) {
+          throw new ShopifyCartError(
+            `Only ${targetLine.quantityAvailable} copies available in stock.`,
+            400,
+          );
+        }
+        cart = await cartLinesUpdate(current.id, [{ id: lineId, quantity: qty }]);
       }
 
       const res = NextResponse.json(

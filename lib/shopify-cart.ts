@@ -5,6 +5,11 @@ import {
   ShopifyConfigError,
   getShopifyConfig,
 } from "@/lib/shopify";
+import {
+  isVariantInStock,
+  isVariantOutOfStock,
+  normalizeQuantityAvailable,
+} from "@/lib/stock";
 
 export const CART_COOKIE_NAME = "shopify_cart_id";
 export const CART_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -249,6 +254,7 @@ const CART_FRAGMENT = /* GraphQL */ `
           }
         }
         merchandise {
+          __typename
           ... on ProductVariant {
             id
             title
@@ -270,6 +276,7 @@ const CART_FRAGMENT = /* GraphQL */ `
               id
               handle
               title
+              availableForSale
               featuredImage {
                 url
                 altText
@@ -291,46 +298,77 @@ interface RawCartUserError {
   code?: string | null;
 }
 
-function parseMoney(amount?: string | null): number {
-  if (!amount) return 0;
-  const n = Number.parseFloat(amount);
-  return Number.isFinite(n) ? n : 0;
+interface RawCartWarning {
+  code?: string | null;
+  message: string;
+  target?: string | null;
+}
+
+function parseOptionalMoney(amount?: string | number | null): number | null {
+  if (amount === null || amount === undefined || amount === "") return null;
+  const n = typeof amount === "number" ? amount : Number.parseFloat(String(amount));
+  return Number.isFinite(n) ? n : null;
+}
+
+function isLineMerchandiseValid(node: any): boolean {
+  if (!node || typeof node.id !== "string" || !node.id.trim()) return false;
+  const qty = typeof node.quantity === "number" ? node.quantity : Number(node.quantity);
+  if (!Number.isFinite(qty) || qty <= 0) return false;
+  const merch = node.merchandise;
+  if (!merch || typeof merch !== "object") return false;
+  if (merch.__typename && merch.__typename !== "ProductVariant") return false;
+  if (
+    typeof merch.id !== "string" ||
+    !merch.id.startsWith("gid://shopify/ProductVariant/")
+  ) {
+    return false;
+  }
+  if (!merch.product?.id || !merch.product?.handle) return false;
+  return true;
 }
 
 function mapCart(raw: any): ShopifyCart {
-  const subtotalRupees = parseMoney(raw?.cost?.subtotalAmount?.amount);
-  const totalRupees = parseMoney(raw?.cost?.totalAmount?.amount);
-  const subtotalCents = Math.round(subtotalRupees * 100);
-  const totalCents = Math.round(totalRupees * 100);
   const currencyCode =
-    raw?.cost?.totalAmount?.currencyCode ||
     raw?.cost?.subtotalAmount?.currencyCode ||
+    raw?.cost?.totalAmount?.currencyCode ||
     "INR";
 
   const lines: ShopifyCartLine[] = (raw?.lines?.nodes || [])
-    .filter((n: any) => Boolean(n?.id && n?.merchandise?.id))
+    .filter(isLineMerchandiseValid)
     .map((node: any) => {
       const merch = node.merchandise;
       const prod = merch.product || {};
       const title = String(prod.title || merch.title || "Book");
       const [titleTa, titleEn] = splitBilingual(title, "|");
 
-      const unitRupees = parseMoney(
-        node.cost?.amountPerQuantity?.amount ?? merch.price?.amount,
-      );
-      const compareUnitRupees = parseMoney(
-        node.cost?.compareAtAmountPerQuantity?.amount ?? merch.compareAtPrice?.amount,
-      );
-      const lineTotalRupees = parseMoney(
-        node.cost?.totalAmount?.amount ?? node.cost?.subtotalAmount?.amount,
-      );
+      const quantity = Math.max(1, Math.floor(Number(node.quantity)));
 
-      const qtyAvail =
-        typeof merch.quantityAvailable === "number" ? merch.quantityAvailable : null;
+      const variantUnitPrice = parseOptionalMoney(merch.price?.amount);
+      const costUnitPrice = parseOptionalMoney(node.cost?.amountPerQuantity?.amount);
+      const unitRupees =
+        costUnitPrice !== null && costUnitPrice > 0
+          ? costUnitPrice
+          : (variantUnitPrice ?? costUnitPrice ?? 0);
+
+      const compareUnitRupees =
+        parseOptionalMoney(node.cost?.compareAtAmountPerQuantity?.amount) ??
+        parseOptionalMoney(merch.compareAtPrice?.amount) ??
+        0;
+
+      // Requirement 2: Use line.cost.totalAmount; fall back to price × quantity if missing.
+      const fallbackLineTotalRupees = unitRupees * quantity;
+      const rawLineTotalRupees = parseOptionalMoney(node.cost?.totalAmount?.amount);
+      const lineTotalRupees =
+        rawLineTotalRupees !== null ? rawLineTotalRupees : fallbackLineTotalRupees;
+
+      // Requirement 1: Never treat null/undefined quantityAvailable as 0.
+      // Out of stock ONLY when availableForSale === false or quantityAvailable <= 0.
+      const qtyAvail = normalizeQuantityAvailable(merch.quantityAvailable);
+      const availableForSale = isVariantInStock(merch.availableForSale, qtyAvail);
 
       return {
         id: String(node.id),
-        quantity: Number(node.quantity) || 1,
+        quantity,
         merchandiseId: String(merch.id),
         variantTitle: String(merch.title || ""),
         productId: String(prod.id || ""),
@@ -341,7 +379,7 @@ function mapCart(raw: any): ShopifyCart {
         titleEn,
         author: prod.metafield?.value?.trim() || null,
         imageUrl: merch.image?.url || prod.featuredImage?.url || null,
-        availableForSale: Boolean(merch.availableForSale),
+        availableForSale,
         quantityAvailable: qtyAvail,
         unitPriceRupees: unitRupees,
         unitPriceCents: Math.round(unitRupees * 100),
@@ -354,7 +392,28 @@ function mapCart(raw: any): ShopifyCart {
       };
     });
 
-  // Sum line-level discounts + order-level discounts
+  // Requirement 2: Use cart.cost.subtotalAmount; fall back to sum(price × quantity) if missing.
+  const fallbackSubtotalRupees = lines.reduce(
+    (sum, l) => sum + l.unitPriceRupees * l.quantity,
+    0,
+  );
+  const linesTotalRupees = lines.reduce((sum, l) => sum + l.lineTotalRupees, 0);
+
+  const rawSubtotalRupees = parseOptionalMoney(raw?.cost?.subtotalAmount?.amount);
+  const subtotalRupees =
+    rawSubtotalRupees !== null ? rawSubtotalRupees : fallbackSubtotalRupees;
+
+  const rawTotalRupees = parseOptionalMoney(raw?.cost?.totalAmount?.amount);
+  const totalRupees =
+    rawTotalRupees !== null
+      ? rawTotalRupees
+      : rawSubtotalRupees !== null
+        ? subtotalRupees
+        : linesTotalRupees;
+
+  const subtotalCents = Math.round(subtotalRupees * 100);
+  const totalCents = Math.round(totalRupees * 100);
+
   const linesGrossCents = lines.reduce(
     (sum, l) => sum + l.unitPriceCents * l.quantity,
     0,
@@ -373,10 +432,16 @@ function mapCart(raw: any): ShopifyCart {
         }))
     : [];
 
+  const summedQty = lines.reduce((sum, l) => sum + l.quantity, 0);
+  const totalQuantity =
+    typeof raw?.totalQuantity === "number" && Number.isFinite(raw.totalQuantity)
+      ? raw.totalQuantity
+      : summedQty;
+
   return {
     id: String(raw.id),
     checkoutUrl: String(raw.checkoutUrl || ""),
-    totalQuantity: Number(raw.totalQuantity) || 0,
+    totalQuantity,
     subtotalRupees,
     subtotalCents,
     totalRupees,
@@ -392,6 +457,70 @@ function assertNoUserErrors(userErrors?: RawCartUserError[] | null): void {
   if (userErrors && userErrors.length > 0) {
     throw new ShopifyCartError(userErrors.map((e) => e.message).join(" "), 400);
   }
+}
+
+const SHOP_SHIPS_QUERY = /* GraphQL */ `
+  query CheckShopShipsToCountries {
+    shop {
+      shipsToCountries
+    }
+  }
+`;
+
+async function checkIfStoreHasShippingZones(): Promise<boolean> {
+  try {
+    const data = await shopifyCartFetch<{ shop?: { shipsToCountries?: string[] } }>(
+      SHOP_SHIPS_QUERY,
+    );
+    return (data.shop?.shipsToCountries?.length ?? 0) > 0;
+  } catch {
+    return true;
+  }
+}
+
+async function handleStockWarningsOnMutation(
+  rawCart: any,
+  warnings?: RawCartWarning[] | null,
+): Promise<void> {
+  if (!warnings || warnings.length === 0) return;
+
+  const stockWarning = warnings.find(
+    (w) =>
+      w.code === "MERCHANDISE_OUT_OF_STOCK" ||
+      w.code === "MERCHANDISE_NOT_ENOUGH_STOCK",
+  );
+  if (!stockWarning) return;
+
+  // Clean up any 0-quantity ghost lines Shopify attached to an existing cart
+  const zeroQtyLineIds: string[] = (rawCart?.lines?.nodes || [])
+    .filter((n: any) => n?.id && (!Number.isFinite(Number(n.quantity)) || Number(n.quantity) <= 0))
+    .map((n: any) => String(n.id));
+
+  if (rawCart?.id && zeroQtyLineIds.length > 0) {
+    try {
+      await shopifyCartFetch(CART_LINES_REMOVE_MUTATION, {
+        cartId: String(rawCart.id),
+        lineIds: zeroQtyLineIds,
+      });
+    } catch {
+      // Best-effort cleanup
+    }
+  }
+
+  if (stockWarning.code === "MERCHANDISE_OUT_OF_STOCK") {
+    const hasShippingZones = await checkIfStoreHasShippingZones();
+    if (!hasShippingZones) {
+      throw new ShopifyCartError(
+        "Shopify shipping is not configured yet (shipsToCountries is empty). In Shopify Admin, enable 'Fulfill online orders from this location' under Settings → Locations and add an India shipping zone + rate under Settings → Shipping and delivery.",
+        400,
+      );
+    }
+  }
+
+  throw new ShopifyCartError(
+    stockWarning.message || "This book is currently out of stock.",
+    400,
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -444,32 +573,35 @@ export async function resolveVariantForCart(input: {
   }
 
   if (targetId.startsWith("gid://shopify/ProductVariant/")) {
+    const qtyAvail = normalizeQuantityAvailable(data.node.quantityAvailable);
     return {
       merchandiseId: String(data.node.id),
-      availableForSale: Boolean(data.node.availableForSale),
-      quantityAvailable:
-        typeof data.node.quantityAvailable === "number"
-          ? data.node.quantityAvailable
-          : null,
+      availableForSale: !isVariantOutOfStock(data.node.availableForSale, qtyAvail),
+      quantityAvailable: qtyAvail,
     };
   }
 
   const variants: any[] = data.node.variants?.nodes || [];
-  const chosen = variants.find((v) => v.availableForSale) || variants[0];
+  const chosen =
+    variants.find((v) => isVariantInStock(v.availableForSale, v.quantityAvailable)) ||
+    variants[0];
   if (!chosen?.id) {
     throw new ShopifyCartError("No purchasable edition found for this book.", 400);
   }
 
+  const qtyAvail = normalizeQuantityAvailable(chosen.quantityAvailable);
+  const rawAvailable =
+    data.node.availableForSale === false ? false : chosen.availableForSale;
+
   return {
     merchandiseId: String(chosen.id),
-    availableForSale: Boolean(data.node.availableForSale && chosen.availableForSale),
-    quantityAvailable:
-      typeof chosen.quantityAvailable === "number" ? chosen.quantityAvailable : null,
+    availableForSale: !isVariantOutOfStock(rawAvailable, qtyAvail),
+    quantityAvailable: qtyAvail,
   };
 }
 
 /* ------------------------------------------------------------------ */
-/* Shopify Storefront Cart Queries & Mutations                         */
+/* Shopify Storefront Cart Queries, Sanitization & Mutations           */
 /* ------------------------------------------------------------------ */
 
 const GET_CART_QUERY = /* GraphQL */ `
@@ -481,14 +613,152 @@ const GET_CART_QUERY = /* GraphQL */ `
   }
 `;
 
-export async function getCart(cartId: string): Promise<ShopifyCart | null> {
+const CHECK_VARIANTS_EXIST_QUERY = /* GraphQL */ `
+  query CheckCartVariantsExist($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on ProductVariant {
+        id
+        product {
+          id
+          handle
+        }
+      }
+    }
+  }
+`;
+
+async function fetchRawCart(cartId: string): Promise<any | null> {
   const clean = cartId.trim();
   if (!clean) return null;
-  const data = await shopifyCartFetch<{ cart: any | null }>(GET_CART_QUERY, {
-    cartId: clean,
+  try {
+    const data = await shopifyCartFetch<{ cart: any | null }>(GET_CART_QUERY, {
+      cartId: clean,
+    });
+    return data.cart ?? null;
+  } catch (err) {
+    if (err instanceof ShopifyCartError && err.status >= 500) {
+      throw err;
+    }
+    return null;
+  }
+}
+
+/**
+ * Requirement 3:
+ * Loads a cart by ID. If any line has null/invalid merchandise or is unavailable
+ * because the variant no longer exists in Shopify, removes those lines via
+ * `cartLinesRemove`. If the cart is missing/invalid or ends up empty after
+ * removing invalid lines, creates a new cart via `cartCreate` so the caller can
+ * replace the stored cart ID cookie.
+ */
+export async function loadAndSanitizeCart(
+  cartId: string,
+  opts?: { createIfEmptyOrInvalid?: boolean },
+): Promise<{ cart: ShopifyCart | null; replacedCartId: boolean }> {
+  const createIfEmptyOrInvalid = opts?.createIfEmptyOrInvalid ?? true;
+  const rawCart = await fetchRawCart(cartId);
+
+  if (!rawCart || !rawCart.id || !rawCart.checkoutUrl) {
+    if (!createIfEmptyOrInvalid) {
+      return { cart: null, replacedCartId: false };
+    }
+    const fresh = await cartCreate([]);
+    return { cart: fresh, replacedCartId: true };
+  }
+
+  const rawNodes: any[] = Array.isArray(rawCart.lines?.nodes)
+    ? rawCart.lines.nodes
+    : [];
+
+  // Malformed line without even a line ID -> cart is corrupt; replace entire cart
+  if (rawNodes.some((n) => !n || typeof n.id !== "string" || !n.id.trim())) {
+    if (!createIfEmptyOrInvalid) {
+      return { cart: null, replacedCartId: false };
+    }
+    const fresh = await cartCreate([]);
+    return { cart: fresh, replacedCartId: true };
+  }
+
+  const invalidLineIds = new Set<string>();
+  const unavailableLinesToVerify: { lineId: string; variantId: string }[] = [];
+
+  for (const node of rawNodes) {
+    if (!isLineMerchandiseValid(node)) {
+      invalidLineIds.add(String(node.id));
+      continue;
+    }
+    const merch = node.merchandise;
+    if (merch.availableForSale === false || merch.product?.availableForSale === false) {
+      unavailableLinesToVerify.push({
+        lineId: String(node.id),
+        variantId: String(merch.id),
+      });
+    }
+  }
+
+  // Verify whether unavailable variants still exist in the live Storefront catalog
+  if (unavailableLinesToVerify.length > 0) {
+    const uniqueVariantIds = Array.from(
+      new Set(unavailableLinesToVerify.map((x) => x.variantId)),
+    );
+    try {
+      const check = await shopifyCartFetch<{ nodes: (any | null)[] }>(
+        CHECK_VARIANTS_EXIST_QUERY,
+        { ids: uniqueVariantIds },
+      );
+      const existingVariantIds = new Set(
+        (check.nodes || [])
+          .filter((n) => n?.id && n?.product?.id && n?.product?.handle)
+          .map((n) => String(n.id)),
+      );
+      for (const item of unavailableLinesToVerify) {
+        if (!existingVariantIds.has(item.variantId)) {
+          invalidLineIds.add(item.lineId);
+        }
+      }
+    } catch {
+      // If lookup fails transiently, keep existing lines rather than dropping valid items
+    }
+  }
+
+  if (invalidLineIds.size > 0) {
+    try {
+      const cleaned = await cartLinesRemove(
+        String(rawCart.id),
+        Array.from(invalidLineIds),
+      );
+      if (cleaned.lines.length === 0 || cleaned.totalQuantity <= 0) {
+        if (!createIfEmptyOrInvalid) {
+          return { cart: null, replacedCartId: false };
+        }
+        const fresh = await cartCreate([]);
+        return { cart: fresh, replacedCartId: true };
+      }
+      return {
+        cart: cleaned,
+        replacedCartId: cleaned.id !== cartId,
+      };
+    } catch {
+      if (!createIfEmptyOrInvalid) {
+        return { cart: null, replacedCartId: false };
+      }
+      const fresh = await cartCreate([]);
+      return { cart: fresh, replacedCartId: true };
+    }
+  }
+
+  const mapped = mapCart(rawCart);
+  return {
+    cart: mapped,
+    replacedCartId: mapped.id !== cartId,
+  };
+}
+
+export async function getCart(cartId: string): Promise<ShopifyCart | null> {
+  const { cart } = await loadAndSanitizeCart(cartId, {
+    createIfEmptyOrInvalid: false,
   });
-  if (!data.cart) return null;
-  return mapCart(data.cart);
+  return cart;
 }
 
 const CART_CREATE_MUTATION = /* GraphQL */ `
@@ -497,6 +767,11 @@ const CART_CREATE_MUTATION = /* GraphQL */ `
     cartCreate(input: $input) {
       cart {
         ...CartFields
+      }
+      warnings {
+        code
+        message
+        target
       }
       userErrors {
         field
@@ -523,12 +798,22 @@ export async function cartCreate(
   }
 
   const data = await shopifyCartFetch<{
-    cartCreate: { cart: any | null; userErrors: RawCartUserError[] };
+    cartCreate: {
+      cart: any | null;
+      warnings?: RawCartWarning[];
+      userErrors: RawCartUserError[];
+    };
   }>(CART_CREATE_MUTATION, { input });
 
   assertNoUserErrors(data.cartCreate?.userErrors);
   if (!data.cartCreate?.cart) {
     throw new ShopifyCartError("Could not create cart. Please try again.", 502);
+  }
+  if (lines.length > 0) {
+    await handleStockWarningsOnMutation(
+      data.cartCreate.cart,
+      data.cartCreate.warnings,
+    );
   }
   return mapCart(data.cartCreate.cart);
 }
@@ -539,6 +824,11 @@ const CART_LINES_ADD_MUTATION = /* GraphQL */ `
     cartLinesAdd(cartId: $cartId, lines: $lines) {
       cart {
         ...CartFields
+      }
+      warnings {
+        code
+        message
+        target
       }
       userErrors {
         field
@@ -554,7 +844,11 @@ export async function cartLinesAdd(
   lines: { merchandiseId: string; quantity: number }[],
 ): Promise<ShopifyCart> {
   const data = await shopifyCartFetch<{
-    cartLinesAdd: { cart: any | null; userErrors: RawCartUserError[] };
+    cartLinesAdd: {
+      cart: any | null;
+      warnings?: RawCartWarning[];
+      userErrors: RawCartUserError[];
+    };
   }>(CART_LINES_ADD_MUTATION, {
     cartId,
     lines: lines.map((l) => ({
@@ -567,6 +861,10 @@ export async function cartLinesAdd(
   if (!data.cartLinesAdd?.cart) {
     throw new ShopifyCartError("Cart expired or not found.", 404);
   }
+  await handleStockWarningsOnMutation(
+    data.cartLinesAdd.cart,
+    data.cartLinesAdd.warnings,
+  );
   return mapCart(data.cartLinesAdd.cart);
 }
 
@@ -576,6 +874,11 @@ const CART_LINES_UPDATE_MUTATION = /* GraphQL */ `
     cartLinesUpdate(cartId: $cartId, lines: $lines) {
       cart {
         ...CartFields
+      }
+      warnings {
+        code
+        message
+        target
       }
       userErrors {
         field
@@ -591,7 +894,11 @@ export async function cartLinesUpdate(
   lines: { id: string; quantity: number; merchandiseId?: string }[],
 ): Promise<ShopifyCart> {
   const data = await shopifyCartFetch<{
-    cartLinesUpdate: { cart: any | null; userErrors: RawCartUserError[] };
+    cartLinesUpdate: {
+      cart: any | null;
+      warnings?: RawCartWarning[];
+      userErrors: RawCartUserError[];
+    };
   }>(CART_LINES_UPDATE_MUTATION, {
     cartId,
     lines: lines.map((l) => ({
@@ -605,6 +912,10 @@ export async function cartLinesUpdate(
   if (!data.cartLinesUpdate?.cart) {
     throw new ShopifyCartError("Could not update cart line.", 404);
   }
+  await handleStockWarningsOnMutation(
+    data.cartLinesUpdate.cart,
+    data.cartLinesUpdate.warnings,
+  );
   return mapCart(data.cartLinesUpdate.cart);
 }
 

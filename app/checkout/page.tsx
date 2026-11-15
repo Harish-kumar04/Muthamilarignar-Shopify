@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { getCart, getCartIdFromCookies } from "@/lib/shopify-cart";
+import { getCartIdFromCookies, loadAndSanitizeCart } from "@/lib/shopify-cart";
+import { isVariantOutOfStock } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +12,15 @@ export default async function CheckoutRedirectPage() {
 
   let checkoutUrl: string | null = null;
   try {
-    const cart = await getCart(cartId);
-    if (cart && cart.totalQuantity > 0 && cart.checkoutUrl) {
+    const { cart } = await loadAndSanitizeCart(cartId, {
+      createIfEmptyOrInvalid: false,
+    });
+    const hasOutOfStockLine = Boolean(
+      cart?.lines.some((l) =>
+        isVariantOutOfStock(l.availableForSale, l.quantityAvailable),
+      ),
+    );
+    if (cart && cart.lines.length > 0 && cart.totalQuantity > 0 && !hasOutOfStockLine && cart.checkoutUrl) {
       checkoutUrl = cart.checkoutUrl;
     }
   } catch {

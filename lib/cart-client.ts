@@ -11,7 +11,7 @@ export interface CartRecommendation {
   sale_price_cents?: number | null;
   availableForSale: boolean;
   quantityAvailable?: number | null;
-  inventory?: number;
+  inventory?: number | null;
   image_url?: string | null;
   images?: string[];
 }

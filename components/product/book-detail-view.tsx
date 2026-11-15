@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "@/components/ui/img";
 import { BiName, BiSubName, T } from "@/components/i18n/t";
 import { splitBilingual } from "@/lib/i18n";
+import { isVariantOutOfStock, normalizeQuantityAvailable } from "@/lib/stock";
 import ProductCard, {
   isStoreProductId,
   toCardProduct,
@@ -47,19 +48,9 @@ export default function BookDetailView({
         ),
       )
     : 0;
-  const qtyAvailable =
-    typeof product.quantityAvailable === "number" ? product.quantityAvailable : null;
-  const stockCount =
-    product.availableForSale === false
-      ? 0
-      : qtyAvailable !== null
-        ? qtyAvailable
-        : Number(product.inventory_quantity ?? product.inventory ?? 10);
-  const availableForSale =
-    product.availableForSale !== false &&
-    stockCount > 0 &&
-    (qtyAvailable === null || qtyAvailable > 0);
-  const inStock = availableForSale;
+  const qtyAvailable = normalizeQuantityAvailable(product.quantityAvailable);
+  const inStock = !isVariantOutOfStock(product.availableForSale, qtyAvailable);
+  const availableForSale = inStock;
   const isFallback = Boolean(product.is_fallback) || !isStoreProductId(product.id);
 
   const [nameTa, nameEn] = splitBilingual(product.name, "|");
@@ -244,9 +235,8 @@ export default function BookDetailView({
               productName={String(product.name || "")}
               unitPriceCents={price}
               inStock={inStock}
-              availableForSale={availableForSale}
+              availableForSale={product.availableForSale !== false}
               quantityAvailable={qtyAvailable}
-              maxStock={stockCount}
               isFallback={isFallback}
             />
 

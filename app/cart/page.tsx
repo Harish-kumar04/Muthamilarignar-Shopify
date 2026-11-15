@@ -17,6 +17,7 @@ import {
   type CartRecommendation,
 } from "@/lib/cart-client";
 import type { ShopifyCart, ShopifyCartLine } from "@/lib/shopify-cart";
+import { isVariantOutOfStock, normalizeQuantityAvailable } from "@/lib/stock";
 
 type PendingLineOp = {
   lineId: string;
@@ -101,11 +102,8 @@ export default function CartPage() {
       await handleRemoveLine(line);
       return;
     }
-    if (
-      delta > 0 &&
-      typeof line.quantityAvailable === "number" &&
-      nextQty > line.quantityAvailable
-    ) {
+    const qtyAvail = normalizeQuantityAvailable(line.quantityAvailable);
+    if (delta > 0 && qtyAvail !== null && qtyAvail > 0 && nextQty > qtyAvail) {
       return;
     }
 
@@ -206,13 +204,24 @@ export default function CartPage() {
   const lines = cart?.lines ?? [];
   const isInitialLoading = loading && lines.length === 0;
   const isEmpty = !isInitialLoading && lines.length === 0;
-  const itemCount = cart?.totalQuantity ?? 0;
-  const subtotalCents = cart?.subtotalCents ?? 0;
-  const totalCents = cart?.totalCents ?? subtotalCents;
+  const itemCount =
+    cart?.totalQuantity ?? lines.reduce((sum, l) => sum + l.quantity, 0);
+  const fallbackSubtotalCents = lines.reduce(
+    (sum, l) => sum + l.unitPriceCents * l.quantity,
+    0,
+  );
+  const subtotalCents =
+    typeof cart?.subtotalCents === "number" ? cart.subtotalCents : fallbackSubtotalCents;
   const discountCents = cart?.discountCents ?? 0;
+  const totalCents =
+    typeof cart?.totalCents === "number" && (cart.totalCents > 0 || discountCents > 0)
+      ? cart.totalCents
+      : Math.max(0, subtotalCents - discountCents);
   const appliedCode = cart?.discountCodes?.find((d) => d.applicable) || null;
   const thresholdCents = Math.round(freeShippingThreshold * 100);
-  const hasUnavailableLine = lines.some((l) => !l.availableForSale);
+  const hasUnavailableLine = lines.some((l) =>
+    isVariantOutOfStock(l.availableForSale, l.quantityAvailable),
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -272,7 +281,7 @@ export default function CartPage() {
           {/* Items + Free-Shipping Progress */}
           <div className="space-y-6 lg:col-span-2">
             <FreeShippingBar
-              subtotalCents={totalCents}
+              subtotalCents={subtotalCents}
               thresholdRupees={freeShippingThreshold}
             />
 
@@ -281,9 +290,18 @@ export default function CartPage() {
                 const primaryTitle = localizeName(line.title);
                 const subTitle = localizeSubName(line.title);
                 const hasDistinctSub = Boolean(subTitle && subTitle !== primaryTitle);
+                const qtyAvail = normalizeQuantityAvailable(line.quantityAvailable);
+                const lineOutOfStock = isVariantOutOfStock(
+                  line.availableForSale,
+                  qtyAvail,
+                );
                 const atMaxStock =
-                  typeof line.quantityAvailable === "number" &&
-                  line.quantity >= line.quantityAvailable;
+                  qtyAvail !== null && qtyAvail > 0 && line.quantity >= qtyAvail;
+                const lineTotalCents =
+                  typeof line.lineTotalCents === "number" &&
+                  Number.isFinite(line.lineTotalCents)
+                    ? line.lineTotalCents
+                    : line.unitPriceCents * line.quantity;
                 const bookHref = `/books/${encodeURIComponent(line.slug || line.productId)}`;
                 const isThisLineBusy = pendingOp?.lineId === line.id;
                 const decBusy = isThisLineBusy && pendingOp?.op === "dec";
@@ -336,7 +354,7 @@ export default function CartPage() {
                           )}
                       </p>
 
-                      {!line.availableForSale && (
+                      {lineOutOfStock && (
                         <p className="mt-1 text-[12.5px] font-bold text-brand-red-dark">
                           {t(
                             "தற்போது கையிருப்பில் இல்லை — தொடர நீக்கவும்",
@@ -366,7 +384,7 @@ export default function CartPage() {
                           </span>
                           <button
                             type="button"
-                            disabled={isThisLineBusy || atMaxStock || !line.availableForSale}
+                            disabled={isThisLineBusy || atMaxStock || lineOutOfStock}
                             onClick={() => handleStepQty(line, 1)}
                             aria-label="Increase quantity"
                             className="inline-flex h-11 w-11 items-center justify-center rounded-r-full text-sm font-bold text-black hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
@@ -395,7 +413,7 @@ export default function CartPage() {
                     </div>
 
                     <p className="whitespace-nowrap text-[18px] font-extrabold text-brand-red">
-                      {formatRupees(line.lineTotalCents)}
+                      {formatRupees(lineTotalCents)}
                     </p>
                   </div>
                 );

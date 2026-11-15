@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import {
-  clearCartIdOnResponse,
-  getCart,
   getCartIdFromCookies,
   getFreeShippingThresholdRupees,
+  loadAndSanitizeCart,
+  setCartIdOnResponse,
 } from "@/lib/shopify-cart";
 
 export const dynamic = "force-dynamic";
@@ -23,11 +23,13 @@ export async function GET() {
       );
     }
 
-    const cart = await getCart(cartId);
+    const { cart, replacedCartId } = await loadAndSanitizeCart(cartId, {
+      createIfEmptyOrInvalid: true,
+    });
     const res = NextResponse.json(
       {
         count: cart?.totalQuantity ?? 0,
-        totalCents: cart?.totalCents ?? 0,
+        totalCents: cart?.subtotalCents ?? cart?.totalCents ?? 0,
         freeShippingThresholdRupees,
       },
       {
@@ -36,8 +38,8 @@ export async function GET() {
         },
       },
     );
-    if (!cart) {
-      clearCartIdOnResponse(res);
+    if (replacedCartId && cart?.id) {
+      setCartIdOnResponse(res, cart.id);
     }
     return res;
   } catch {

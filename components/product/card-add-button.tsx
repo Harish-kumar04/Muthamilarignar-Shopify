@@ -7,6 +7,7 @@ import {
   isShopifyCatalogId,
 } from "@/lib/cart-client";
 import { openMiniCart, optimisticAdjustCart } from "@/lib/cart-events";
+import { isVariantOutOfStock, normalizeQuantityAvailable } from "@/lib/stock";
 import { toast } from "@/components/toaster";
 import { useLanguage } from "@/components/language-provider";
 import { CartIcon } from "@/components/brand/icons";
@@ -36,10 +37,9 @@ export default function CardAddButton({
   const [buying, setBuying] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const qtyAvail = normalizeQuantityAvailable(quantityAvailable);
   const canPurchase =
-    inStock &&
-    availableForSale &&
-    (typeof quantityAvailable !== "number" || quantityAvailable > 0);
+    inStock !== false && !isVariantOutOfStock(availableForSale, qtyAvail);
   const unavailable = Boolean(isFallback) || !isShopifyCatalogId(variantId || productId);
 
   if (!canPurchase) {

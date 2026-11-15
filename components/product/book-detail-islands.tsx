@@ -9,6 +9,7 @@ import {
   isShopifyCatalogId,
 } from "@/lib/cart-client";
 import { openMiniCart, optimisticAdjustCart } from "@/lib/cart-events";
+import { isVariantOutOfStock, normalizeQuantityAvailable } from "@/lib/stock";
 import { toast } from "@/components/toaster";
 import { CartIcon, CloseIcon, WhatsAppIcon, FacebookIcon } from "@/components/brand/icons";
 import PenLoader from "@/components/ui/pen-loader";
@@ -296,7 +297,7 @@ export function BookPurchaseIslands({
   inStock: boolean;
   availableForSale?: boolean;
   quantityAvailable?: number | null;
-  maxStock?: number;
+  maxStock?: number | null;
   isFallback: boolean;
 }) {
   const { t, localizeName } = useLanguage();
@@ -304,18 +305,18 @@ export function BookPurchaseIslands({
   const [adding, setAdding] = useState(false);
   const [buying, setBuying] = useState(false);
 
+  const qtyAvail = normalizeQuantityAvailable(quantityAvailable);
+  const maxAvail = normalizeQuantityAvailable(maxStock);
   const canPurchase =
-    inStock &&
-    availableForSale &&
-    (typeof quantityAvailable !== "number" || quantityAvailable > 0);
+    inStock !== false && !isVariantOutOfStock(availableForSale, qtyAvail);
   const unavailable =
     Boolean(isFallback) || !isShopifyCatalogId(variantId || productId);
   const primaryTitle = localizeName(productName);
   const cap =
-    typeof quantityAvailable === "number" && quantityAvailable > 0
-      ? quantityAvailable
-      : typeof maxStock === "number" && maxStock > 0
-        ? maxStock
+    qtyAvail !== null && qtyAvail > 0
+      ? qtyAvail
+      : maxAvail !== null && maxAvail > 0
+        ? maxAvail
         : 99;
 
   const handleAddToCart = async () => {

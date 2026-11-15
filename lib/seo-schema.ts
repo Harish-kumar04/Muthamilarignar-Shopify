@@ -1,4 +1,5 @@
 import { splitBilingual } from "@/lib/i18n";
+import { isVariantInStock } from "@/lib/stock";
 import {
   BRAND,
   DEFAULT_LOGO_URL,
@@ -214,10 +215,10 @@ export function buildBookJsonLd({ product }: { product: any }) {
       : ((product.sale_price_cents && product.sale_price_cents < product.price_cents
           ? product.sale_price_cents
           : product.price_cents) || 0) / 100;
-  const inStock =
-    typeof product.availableForSale === "boolean"
-      ? product.availableForSale
-      : Number(product.inventory_quantity ?? product.inventory ?? 1) > 0;
+  const inStock = isVariantInStock(
+    product.availableForSale,
+    product.quantityAvailable,
+  );
 
   const rawImages: string[] = Array.isArray(product.images) && product.images.length > 0
     ? product.images

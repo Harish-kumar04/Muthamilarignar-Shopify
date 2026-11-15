@@ -39,7 +39,7 @@ const READER_VOICES = [
  */
 export default function Testimonials() {
   return (
-    <section aria-label="Reader Testimonials" className="cv-auto bg-white py-16 sm:py-24">
+    <section aria-label="Reader Testimonials" className="bg-white py-16 sm:py-24">
       <div className="container-site">
         <SectionHeading
           align="center"
@@ -62,16 +62,16 @@ export default function Testimonials() {
                 >
                   <path d="M10 8c-3.3 0-6 2.7-6 6v10h10V14H8c0-1.1.9-2 2-2V8zm14 0c-3.3 0-6 2.7-6 6v10h10V14h-6c0-1.1.9-2 2-2V8z" />
                 </svg>
-                <p className="mt-3 text-[14.5px] leading-relaxed text-black/80 sm:text-[15px]">
+                <p className="mt-3 text-[16px] leading-relaxed text-black/85">
                   <T ta={item.quote_ta} en={item.quote_en} />
                 </p>
               </div>
 
               <footer className="mt-6 border-t border-black/[0.06] pt-4">
-                <p className="text-[14.5px] font-bold text-black">
+                <p className="text-[15.5px] font-bold text-black">
                   <T ta={item.author_ta} en={item.author_en} />
                 </p>
-                <p className="text-[12.5px] text-black/65">
+                <p className="text-[13.5px] text-black/65">
                   <T ta={item.role_ta} en={item.role_en} />
                 </p>
               </footer>

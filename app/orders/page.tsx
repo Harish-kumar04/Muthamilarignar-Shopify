@@ -46,12 +46,6 @@ export default function OrdersPage() {
               >
                 <T ta="Shopify கணக்கில் ஆர்டர்களைக் காண்க →" en="View Orders on Shopify →" />
               </a>
-              <Link
-                href="/track"
-                className="btn-outline h-12 px-6 text-[14px] font-bold"
-              >
-                <T ta="ஆர்டர் நிலை அறிதல்" en="Track an Order" />
-              </Link>
             </div>
           </div>
         ) : (

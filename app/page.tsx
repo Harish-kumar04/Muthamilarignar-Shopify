@@ -5,6 +5,10 @@ import HeroSlider, { type SlideView } from "@/components/home/hero-slider";
 import { TrustBar } from "@/components/home/highlights";
 import CategoryTiles from "@/components/home/category-tiles";
 import TabbedBooks from "@/components/home/tabbed-books";
+import {
+  DravidianLegacyFeature,
+  KalaignarArtworkBanner,
+} from "@/components/home/editorial-art-sections";
 import PublisherStory from "@/components/home/publisher-story";
 import Testimonials from "@/components/home/testimonials";
 import FaqSection from "@/components/home/faq-section";
@@ -90,19 +94,24 @@ function renderTabGrid(list: CardProduct[], apiUnavailable: boolean) {
   if (apiUnavailable) {
     return (
       <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-6 py-14 text-center">
-        <p className="text-[16px] font-bold text-black">
+        <p className="text-[17px] font-bold text-black">
           Store is temporarily unavailable
         </p>
-        <p className="mt-1 text-[14px] text-black/65">
-          சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை, மீண்டும் முயற்சிக்கவும்.
+        <p className="mt-1.5 text-[16px] text-black/70">
+          சேவையகம் தற்காலிகமாகக் கிடைக்கவில்லை — சற்று கழித்து மீண்டும் முயற்சிக்கவும்.
         </p>
       </div>
     );
   }
   if (list.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-black/15 px-6 py-14 text-center text-[15px] text-black/65">
-        நூல்கள் விரைவில் சேர்க்கப்படும் / Books will appear here soon.
+      <div className="rounded-2xl border border-dashed border-black/15 bg-[#FAFAFA] px-6 py-14 text-center text-[16px] text-black/70">
+        <p className="font-semibold text-black">
+          தற்போது நூல்கள் எதுவும் இல்லை / No books in this section right now
+        </p>
+        <p className="mt-1 text-[15px] text-black/65">
+          புதிய பதிப்புகள் விரைவில் சேர்க்கப்படும் — New publisher editions will appear here soon.
+        </p>
       </div>
     );
   }
@@ -158,10 +167,6 @@ export default async function HomePage() {
 
   const newArrivals = newestProducts.map((p) => toCardProduct(p)).slice(0, 8);
   const bestSellers = cards.slice(0, 8);
-  const saleBooks = cards.filter(
-    (c) => c.sale_price_cents && c.price_cents > 0 && c.sale_price_cents < c.price_cents,
-  );
-  const offers = (saleBooks.length > 0 ? saleBooks : cards).slice(0, 8);
 
   const kalaignarCatKeys = new Set<string>();
   for (const cat of categories) {
@@ -207,7 +212,7 @@ export default async function HomePage() {
       {/* 3. Category Tiles from Shopify Collections */}
       <CategoryTiles categories={categories} />
 
-      {/* 4. Tabbed Product Rows (New Arrivals | Best Sellers | Offers | Kalaignar Works) */}
+      {/* 4. Tabbed Product Rows (New Arrivals | Best Sellers | Kalaignar Works) */}
       <TabbedBooks
         totalCount={total}
         backdrop={<SunburstBackdrop position="top-right" />}
@@ -220,28 +225,31 @@ export default async function HomePage() {
         panels={{
           new: renderTabGrid(newArrivals, apiUnavailable),
           bestsellers: renderTabGrid(bestSellers, apiUnavailable),
-          offers: renderTabGrid(offers, apiUnavailable),
           kalaignar: renderTabGrid(kalaignarWorks, apiUnavailable),
         }}
       />
 
-      <DiagonalStripeDivider />
+      {/* 5. Featured Editorial Promo Banner (Asset B: Kalaignar Sketch) */}
+      <KalaignarArtworkBanner />
 
-      {/* 5. Offer Slider */}
+      {/* 6. Featured Collections Slider */}
       <HeroSlider slides={slideViews} />
 
-      {/* 6. Author & Publisher Story */}
-      <PublisherStory totalBooks={total} logoUrl={logoUrl} />
+      {/* 7. Short "About the publisher / முத்தமிழறிஞர் பதிப்பகம்" Strip (Asset A once) */}
+      <PublisherStory logoUrl={logoUrl} />
+
+      {/* 8. "Kalaignar legacy / திராவிட இயக்க மரபு" Feature Section (Asset C: M. K. Stalin Art) */}
+      <DravidianLegacyFeature />
 
       <DiagonalStripeDivider />
 
-      {/* 7. Reader Testimonials */}
+      {/* 9. Reader Testimonials */}
       <Testimonials />
 
-      {/* 8. Crawlable FAQ Section + FAQPage JSON-LD */}
-      <FaqSection />
+      {/* 10. Crawlable 6-Question FAQ Section + Matching FAQPage JSON-LD */}
+      <FaqSection faqs={STORE_FAQS} />
 
-      {/* 9. Newsletter */}
+      {/* 11. Newsletter */}
       <NewsletterSection />
 
       {/* JSON-LD Structured Data */}

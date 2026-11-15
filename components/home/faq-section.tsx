@@ -48,21 +48,22 @@ export default function FaqSection({
               open={idx < 2}
               className="group px-5 py-4 sm:px-6 sm:py-5"
             >
-              <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 text-left text-[15.5px] font-bold text-black hover:text-brand-red-dark sm:text-[16.5px]">
+              <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 rounded-lg text-left text-[16px] font-bold text-black transition-colors hover:text-brand-red-dark sm:text-[17px]">
                 <span>
-                  <T ta={item.questionTa} en={item.questionEn} />
+                  <span lang="ta">{item.questionTa}</span>
+                  <span className="mx-1.5 text-black/35" aria-hidden="true">|</span>
+                  <span lang="en" className="font-semibold text-black/80">{item.questionEn}</span>
                 </span>
                 <span
                   aria-hidden="true"
-                  className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-black/15 bg-white text-[18px] font-bold text-brand-red-dark transition-transform group-open:rotate-45"
+                  className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-black/15 bg-white text-[18px] font-bold text-brand-red-dark transition-transform group-open:rotate-45"
                 >
                   +
                 </span>
               </summary>
-              <div className="mt-3 pr-2 text-[14.5px] leading-relaxed text-black/80">
-                <p>
-                  <T ta={item.answerTa} en={item.answerEn} />
-                </p>
+              <div className="mt-3 space-y-2 pr-2 text-[16px] leading-relaxed text-black/85">
+                <p lang="ta">{item.answerTa}</p>
+                <p lang="en" className="text-black/75">{item.answerEn}</p>
               </div>
             </details>
           ))}

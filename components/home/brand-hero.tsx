@@ -34,7 +34,6 @@ export default function BrandHero({
     })
     .slice(0, 3);
   const displaySlots = covers.length > 0 ? covers : heroBooks.slice(0, 3);
-  const lcpIndex = covers.length >= 2 ? 1 : 0;
   const leadBook = covers[1] || covers[0] || heroBooks[0];
   const saleBook = heroBooks.find(
     (b) => b.sale_price_cents && b.price_cents > 0 && b.sale_price_cents < b.price_cents,
@@ -107,28 +106,21 @@ export default function BrandHero({
 
             <div aria-hidden="true" className="mt-4 h-1.5 w-16 rounded-full bg-brand-red" />
 
-            <p className="mt-4 max-w-xl text-[15.5px] leading-relaxed text-black/75 sm:text-[17.5px]">
+            <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-black/80 sm:text-[17.5px]">
               <T
                 ta="திராவிட இயக்க வரலாறு, மாநில சுயாட்சி, மொழி உரிமை மற்றும் முத்தமிழறிஞர் கலைஞர் அவர்களின் அரிய படைப்புகளை நேரடிப் பதிப்பகத் தரத்தில் உங்கள் இல்லத்திற்கே பெறுங்கள்."
                 en="Order authentic printed editions on Dravidian movement history, state autonomy, language rights, and the literary legacy of Muthamilarignar Kalaignar — shipped across India."
               />
             </p>
 
-            {/* Two Pill CTAs (>=48px height) */}
+            {/* Primary CTA (>=48px height) */}
             <div className="mt-7 flex flex-wrap items-center gap-3.5 sm:mt-8">
               <Link
                 href="/books"
-                className="btn-black h-12 px-7 text-[15px] shadow-card sm:h-[52px] sm:px-8 sm:text-[15.5px]"
+                className="btn-red h-12 px-7 text-[15.5px] shadow-glow sm:h-[52px] sm:px-8 sm:text-[16px]"
               >
                 <T ta="நூல்களைக் காண்க" en="Browse books" />
                 <ArrowRightIcon className="h-4 w-4" />
-              </Link>
-
-              <Link
-                href="/books?sale=1"
-                className="btn-red h-12 px-7 text-[15px] shadow-glow sm:h-[52px] sm:px-8 sm:text-[15.5px]"
-              >
-                <T ta="சலுகைகள்" en="Offers" />
               </Link>
             </div>
           </div>
@@ -144,7 +136,7 @@ export default function BrandHero({
                 <Link
                   href={`/books/${encodeURIComponent(leadBook.slug || leadBook.id)}`}
                   prefetch={false}
-                  className="absolute left-0 top-2 z-30 flex max-w-[200px] items-center gap-2 rounded-2xl border border-black/10 bg-white px-3 py-2 shadow-lg transition-transform hover:-translate-y-0.5 sm:left-2 sm:top-4 sm:px-3.5 sm:py-2.5"
+                  className="absolute left-0 top-2 z-30 flex min-h-[44px] max-w-[200px] items-center gap-2 rounded-2xl border border-black/10 bg-white px-3 py-2 shadow-lg transition-transform hover:-translate-y-0.5 sm:left-2 sm:top-4 sm:px-3.5 sm:py-2.5"
                 >
                   <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#D11D1A] text-white">
                     <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
@@ -182,11 +174,10 @@ export default function BrandHero({
                 </span>
               </div>
 
-              {/* 3 Tilted Book Slots (single center LCP image priority; neutral No cover card if none uploaded) */}
+              {/* 3 Tilted Book Slots (lazy-loaded; priority reserved strictly for header logo) */}
               {displaySlots.length > 0 ? (
                 <div className="relative z-10 flex items-end justify-center pb-4 sm:pb-6">
                   {displaySlots.map((book, idx) => {
-                    const isLcpHero = covers.length > 0 && idx === lcpIndex;
                     const alt = splitBilingual(book.name, "|").join(" — ");
                     return (
                       <Link
@@ -203,7 +194,6 @@ export default function BrandHero({
                             src={book.image_url}
                             alt={alt}
                             fill
-                            priority={isLcpHero}
                             sizes="(max-width: 640px) 115px, 170px"
                             className="object-cover"
                           />

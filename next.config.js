@@ -69,12 +69,22 @@ module.exports = {
   },
   async redirects() {
     const reserved =
-      "api|_next|books|categories|about|faq|authors|policies|products|cart|checkout|account|orders|returns|track|login|signup|forgot-password|reset-password|brand";
+      "api|_next|books|categories|about|faq|authors|policies|products|cart|checkout|account|orders|returns|track|track-order|offers|login|signup|forgot-password|reset-password|brand";
     const cleanSections =
       "books|categories|about|faq|authors|policies|products|cart|checkout|account|orders|returns|track";
     const seoFiles = "llms\\.txt|robots\\.txt|sitemap\\.xml";
 
     return [
+      {
+        source: "/offers",
+        destination: "/books",
+        statusCode: 301,
+      },
+      {
+        source: "/track-order",
+        destination: "/",
+        statusCode: 301,
+      },
       {
         source: "/:auth(login|signup|forgot-password|reset-password)",
         destination: "/account",

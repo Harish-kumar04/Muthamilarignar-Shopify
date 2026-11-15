@@ -2,13 +2,39 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/components/i18n/t";
 import { getShopifyHostedAccountUrls } from "@/lib/shopify-cart";
-import { BRAND, DEFAULT_SOCIAL, SITE_URL, whatsappHref } from "@/lib/site-defaults";
+import {
+  BRAND,
+  DEFAULT_SOCIAL,
+  LOGO_ALT,
+  SITE_URL,
+  getShareLogoUrl,
+  whatsappHref,
+} from "@/lib/site-defaults";
+
+const returnsTitle = `மாற்று & பணம் திரும்பத் தகவல் | Returns & Replacements — ${BRAND.nameTa} | ${BRAND.nameEn}`;
+const returnsDesc =
+  "7-day replacement and return information for damaged, misprinted, or incorrect books ordered from Muthamilarignar Pathipagam.";
+const returnsShareLogo = getShareLogoUrl();
 
 export const metadata: Metadata = {
-  title: `மாற்று & பணம் திரும்பத் தகவல் | Returns & Replacements — ${BRAND.nameTa} | ${BRAND.nameEn}`,
-  description:
-    "7-day replacement and return information for damaged, misprinted, or incorrect books ordered from Muthamilarignar Pathipagam.",
+  title: returnsTitle,
+  description: returnsDesc,
   alternates: { canonical: `${SITE_URL}/returns` },
+  openGraph: {
+    title: returnsTitle,
+    description: returnsDesc,
+    url: `${SITE_URL}/returns`,
+    siteName: `${BRAND.nameTa} | ${BRAND.nameEn}`,
+    locale: "ta_IN",
+    type: "website",
+    images: [{ url: returnsShareLogo, width: 1200, height: 1197, alt: LOGO_ALT }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: returnsTitle,
+    description: returnsDesc,
+    images: [returnsShareLogo],
+  },
 };
 
 export default function ReturnsInfoPage() {

@@ -33,8 +33,8 @@ export function HeaderNav({ items, variant }: { items: NavItem[]; variant: "desk
       aria-label={t("முதன்மை வழிசெலுத்தல்", "Primary")}
       className={
         desktop
-          ? "ml-6 hidden items-center gap-1 lg:flex"
-          : "no-scrollbar flex snap-x gap-1 overflow-x-auto border-t border-black/[0.06] px-3 py-1.5 lg:hidden"
+          ? "ml-2 hidden items-center gap-1.5 lg:flex"
+          : "no-scrollbar flex snap-x gap-1.5 overflow-x-auto border-t border-black/[0.06] px-3 py-1.5 lg:hidden"
       }
     >
       {items.map((item) => {
@@ -48,13 +48,13 @@ export function HeaderNav({ items, variant }: { items: NavItem[]; variant: "desk
             aria-current={active ? "page" : undefined}
             className={
               desktop
-                ? `relative inline-flex min-h-[44px] items-center rounded-full px-3.5 py-2 text-[14.5px] font-semibold transition-colors ${active ? "text-brand-red-dark" : "text-black/80 hover:text-brand-red-dark"}`
-                : `inline-flex min-h-[40px] snap-start items-center whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13.5px] font-semibold ${active ? "bg-[#D11D1A] text-white" : "text-black/80"}`
+                ? `relative inline-flex min-h-[44px] items-center rounded-full px-4 py-2 text-[15px] font-semibold transition-colors active:scale-[0.98] ${active ? "text-brand-red-dark" : "text-black/85 hover:bg-black/[0.04] hover:text-brand-red-dark"}`
+                : `inline-flex min-h-[44px] snap-start items-center whitespace-nowrap rounded-full px-4 py-2 text-[14px] font-semibold transition-colors active:scale-[0.98] ${active ? "bg-[#D11D1A] text-white" : "text-black/85 hover:bg-black/[0.04]"}`
             }
           >
             <T ta={item.ta} en={item.en} />
             {desktop && active && (
-              <span className="absolute inset-x-3.5 -bottom-[11px] h-[3px] rounded-full bg-brand-red" aria-hidden="true" />
+              <span className="absolute inset-x-4 bottom-1 h-[3px] rounded-full bg-brand-red" aria-hidden="true" />
             )}
           </Link>
         );

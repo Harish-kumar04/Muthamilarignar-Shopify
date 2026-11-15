@@ -5,7 +5,7 @@ import { T } from "@/components/i18n/t";
 import ProductCard, { toCardProduct } from "@/components/product/product-card";
 import { AUTHORS, buildPersonJsonLd } from "@/lib/aeo-data";
 import { getCatalogSummarySafe } from "@/lib/shopify";
-import { BRAND, SITE_URL } from "@/lib/site-defaults";
+import { BRAND, LOGO_ALT, SITE_URL, getShareLogoUrl } from "@/lib/site-defaults";
 import { PUBLISHER_ENTITY } from "@/lib/seo-schema";
 
 export const revalidate = 120;
@@ -24,11 +24,26 @@ export function generateMetadata({
   const title = `${author.nameTa} | ${author.nameEn} — ${BRAND.nameTa}`;
   const description = author.bioEn.slice(0, 280);
   const url = `${SITE_URL}/authors/${author.slug}`;
+  const shareLogo = getShareLogoUrl();
   return {
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: "profile" },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: `${BRAND.nameTa} | ${BRAND.nameEn}`,
+      locale: "ta_IN",
+      type: "profile",
+      images: [{ url: shareLogo, width: 1200, height: 1197, alt: LOGO_ALT }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [shareLogo],
+    },
   };
 }
 

@@ -60,44 +60,24 @@ export default function AccountPage() {
           </div>
         )}
 
-        <div className="mt-8 grid grid-cols-1 gap-4 border-t border-black/10 pt-8 sm:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-4 border-t border-black/10 pt-8 sm:grid-cols-2">
           <Link
             href="/orders"
             className="card-glow flex flex-col justify-between bg-white p-5"
           >
             <div>
-              <h3 className="text-[15.5px] font-bold text-black">
+              <h3 className="text-[16px] font-bold text-black">
                 <T ta="எனது ஆர்டர்கள்" en="My Orders" />
               </h3>
-              <p className="mt-1.5 text-[13px] text-black/65">
+              <p className="mt-1.5 text-[14.5px] text-black/70">
                 <T
                   ta="முந்தைய ஆர்டர்கள் மற்றும் ரசீதுகளைக் காண்க."
                   en="View past orders, receipts, and fulfillment status."
                 />
               </p>
             </div>
-            <span className="mt-4 text-[13px] font-bold text-brand-red-dark">
+            <span className="mt-4 text-[14px] font-bold text-brand-red-dark">
               <T ta="ஆர்டர்கள் →" en="View orders →" />
-            </span>
-          </Link>
-
-          <Link
-            href="/track"
-            className="card-glow flex flex-col justify-between bg-white p-5"
-          >
-            <div>
-              <h3 className="text-[15.5px] font-bold text-black">
-                <T ta="ஆர்டர் நிலை அறிதல்" en="Track Order" />
-              </h3>
-              <p className="mt-1.5 text-[13px] text-black/65">
-                <T
-                  ta="உங்கள் நூல் பார்சலின் தற்போதைய நிலையைச் சரிபார்க்கவும்."
-                  en="Check real-time shipment and courier tracking."
-                />
-              </p>
-            </div>
-            <span className="mt-4 text-[13px] font-bold text-brand-red-dark">
-              <T ta="நிலை அறிக →" en="Track shipment →" />
             </span>
           </Link>
 
@@ -106,17 +86,17 @@ export default function AccountPage() {
             className="card-glow flex flex-col justify-between bg-white p-5"
           >
             <div>
-              <h3 className="text-[15.5px] font-bold text-black">
+              <h3 className="text-[16px] font-bold text-black">
                 <T ta="மாற்று & பணம் திரும்ப" en="Returns & Replacements" />
               </h3>
-              <p className="mt-1.5 text-[13px] text-black/65">
+              <p className="mt-1.5 text-[14.5px] text-black/70">
                 <T
                   ta="7-நாள் மாற்றுப் பிரதி மற்றும் பணம் திரும்பப் பெறும் விதிமுறைகள்."
                   en="Read our 7-day replacement and return guidelines."
                 />
               </p>
             </div>
-            <span className="mt-4 text-[13px] font-bold text-brand-red-dark">
+            <span className="mt-4 text-[14px] font-bold text-brand-red-dark">
               <T ta="விவரங்கள் →" en="Returns info →" />
             </span>
           </Link>

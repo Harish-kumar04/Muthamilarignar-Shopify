@@ -9,7 +9,7 @@ import {
   STORE_FAQS,
   buildFaqJsonLd,
 } from "@/lib/aeo-data";
-import { BRAND, SITE_URL } from "@/lib/site-defaults";
+import { BRAND, LOGO_ALT, SITE_URL, getShareLogoUrl } from "@/lib/site-defaults";
 import { PUBLISHER_ENTITY, buildBreadcrumbNode } from "@/lib/seo-schema";
 
 export const revalidate = 3600;
@@ -17,13 +17,28 @@ export const revalidate = 3600;
 export function generateMetadata(): Metadata {
   const title = `வினா-விடை | Frequently Asked Questions — ${BRAND.nameTa} | ${BRAND.nameEn}`;
   const description =
-    "Direct answers on Muthamilarignar Pathipagam delivery times, Cash on Delivery (COD), Razorpay payments, returns, and Kalaignar books.";
+    "Direct answers on ordering from Muthamilarignar Pathipagam, Cash on Delivery (COD), delivery estimates, free delivery above ₹500, and official publisher editions.";
   const url = `${SITE_URL}/faq`;
+  const shareLogo = getShareLogoUrl();
   return {
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: "website" },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: `${BRAND.nameTa} | ${BRAND.nameEn}`,
+      locale: "ta_IN",
+      type: "website",
+      images: [{ url: shareLogo, width: 1200, height: 1197, alt: LOGO_ALT }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [shareLogo],
+    },
   };
 }
 

@@ -43,7 +43,7 @@ export function WhySection() {
             <h3 className="mt-5 text-[18px] font-bold text-black lg:text-[20px]">
               <T ta={r.ta} en={r.en} />
             </h3>
-            <p className="mt-2 text-[15px] leading-relaxed text-black/65">
+            <p className="mt-2 text-[16px] leading-relaxed text-black/70">
               <T ta={r.dta} en={r.den} />
             </p>
           </div>
@@ -55,7 +55,7 @@ export function WhySection() {
 
 export function NewsletterSection({ storeId }: { storeId?: string | null }) {
   return (
-    <section className="cv-auto bg-[#FAFAFA] py-16 sm:py-24">
+    <section className="bg-[#FAFAFA] py-16 sm:py-24">
       <div className="container-site">
         <div className="pattern-red-dots relative overflow-hidden rounded-3xl border border-brand-red/20 bg-white px-6 py-14 text-center shadow-glow sm:px-12 lg:py-16">
           <Sunburst className="pointer-events-none absolute -bottom-1 left-1/2 w-[640px] max-w-none -translate-x-1/2 opacity-[0.05]" />
@@ -67,10 +67,10 @@ export function NewsletterSection({ storeId }: { storeId?: string | null }) {
               <T ta="புதிய நூல் வெளியீடுகளை உடனுக்குடன் அறிய" en="Hear about new releases first" />
             </h2>
             <div aria-hidden="true" className="mx-auto mt-3 h-1 w-14 rounded-full bg-brand-red" />
-            <p className="mx-auto mt-3 max-w-xl text-[15px] text-black/70 sm:text-[16px]">
+            <p className="mx-auto mt-3 max-w-xl text-[16px] leading-relaxed text-black/75">
               <T
-                ta="புதிய பதிப்புகள் மற்றும் புத்தகக் கண்காட்சித் தள்ளுபடி அறிவிப்புகளைப் பெற பதிவு செய்யுங்கள்."
-                en="Subscribe for new publications, reprints and book-fair offers."
+                ta="புதிய பதிப்புகள் மற்றும் மறுஅச்சு அறிவிப்புகளை உடனுக்குடன் பெற பதிவு செய்யுங்கள்."
+                en="Subscribe for updates on new Tamil book publications and reprints."
               />
             </p>
             <div className="mt-8">

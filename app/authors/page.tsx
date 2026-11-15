@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/components/i18n/t";
 import { AUTHORS } from "@/lib/aeo-data";
-import { BRAND, SITE_URL } from "@/lib/site-defaults";
+import { BRAND, LOGO_ALT, SITE_URL, getShareLogoUrl } from "@/lib/site-defaults";
 import { PUBLISHER_ENTITY, buildBreadcrumbNode } from "@/lib/seo-schema";
 
 export const revalidate = 3600;
@@ -12,11 +12,26 @@ export function generateMetadata(): Metadata {
   const description =
     "Explore authors published by Muthamilarignar Pathipagam, including Muthamilarignar Dr. Kalaignar M. Karunanidhi, M. K. Stalin, and Dravidian movement scholars.";
   const url = `${SITE_URL}/authors`;
+  const shareLogo = getShareLogoUrl();
   return {
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: "website" },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: `${BRAND.nameTa} | ${BRAND.nameEn}`,
+      locale: "ta_IN",
+      type: "website",
+      images: [{ url: shareLogo, width: 1200, height: 1197, alt: LOGO_ALT }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [shareLogo],
+    },
   };
 }
 

@@ -148,10 +148,7 @@ export function buildHomeJsonLd(customLogoUrl?: string) {
         publisher: { "@id": orgId },
         potentialAction: {
           "@type": "SearchAction",
-          target: {
-            "@type": "EntryPoint",
-            urlTemplate: `${homeUrl}/books?q={search_term_string}`,
-          },
+          target: `${homeUrl}/books?q={search_term_string}`,
           "query-input": "required name=search_term_string",
         },
       },
@@ -244,7 +241,6 @@ export function buildBookJsonLd({ product }: { product: any }) {
   const isHardcover = String(product.binding || bookMeta.binding || "")
     .toLowerCase()
     .includes("hardcover");
-  const currencyCode = product.currencyCode || "INR";
 
   // Only include AggregateRating when genuine verified review metrics exist.
   const reviewCount = Number(product.review_count ?? product.reviews_count ?? 0);
@@ -283,7 +279,7 @@ export function buildBookJsonLd({ product }: { product: any }) {
     offers: {
       "@type": "Offer",
       url: canonicalUrl,
-      priceCurrency: currencyCode,
+      priceCurrency: "INR",
       price: effectivePriceRupees.toFixed(2),
       availability: inStock
         ? "https://schema.org/InStock"
@@ -292,7 +288,7 @@ export function buildBookJsonLd({ product }: { product: any }) {
       seller: {
         "@type": "Organization",
         "@id": orgId,
-        name: PUBLISHER_ENTITY.nameEn,
+        name: "Muthamilarignar Pathipagam",
       },
     },
     ...(hasRealReviews

@@ -9,7 +9,7 @@ import {
   POLICY_LAST_UPDATED_TA,
   type PolicyDoc,
 } from "@/lib/aeo-data";
-import { BRAND, SITE_URL } from "@/lib/site-defaults";
+import { BRAND, LOGO_ALT, SITE_URL, getShareLogoUrl } from "@/lib/site-defaults";
 import { PUBLISHER_ENTITY, buildBreadcrumbNode } from "@/lib/seo-schema";
 
 export const revalidate = 3600;
@@ -29,11 +29,26 @@ export function generateMetadata({
   if (!doc) return { title: `Policy — ${BRAND.nameEn}`, robots: { index: false } };
   const title = `${doc.titleTa} | ${doc.titleEn} — ${BRAND.nameTa}`;
   const url = `${SITE_URL}/policies/${doc.slug}`;
+  const shareLogo = getShareLogoUrl();
   return {
     title,
     description: doc.summaryEn,
     alternates: { canonical: url },
-    openGraph: { title, description: doc.summaryEn, url, type: "article" },
+    openGraph: {
+      title,
+      description: doc.summaryEn,
+      url,
+      siteName: `${BRAND.nameTa} | ${BRAND.nameEn}`,
+      locale: "ta_IN",
+      type: "article",
+      images: [{ url: shareLogo, width: 1200, height: 1197, alt: LOGO_ALT }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: doc.summaryEn,
+      images: [shareLogo],
+    },
   };
 }
 

@@ -28,10 +28,10 @@ export default function StorefrontFooter({
     { href: whatsappHref(social), label: `WhatsApp — ${social.whatsappDisplay}`, Icon: WhatsAppIcon },
   ];
 
-  const linkCls = "inline-flex min-h-[36px] items-center text-white/80 transition-colors hover:text-white";
+  const linkCls = "inline-flex min-h-[44px] items-center text-white/85 transition-colors hover:text-white active:opacity-80";
 
   return (
-    <footer className="cv-auto mt-16">
+    <footer className="mt-16">
       <PageLines className="h-8 sm:h-10" />
       <div className="pattern-white-dots relative overflow-hidden bg-brand-black text-white">
         <div className="h-1 w-full bg-brand-red" aria-hidden="true" />
@@ -40,16 +40,16 @@ export default function StorefrontFooter({
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-12">
             <div className="lg:col-span-5">
               <Link href="/" prefetch={false} className="inline-block" aria-label={LOGO_ALT}>
-                <div className="inline-flex items-center justify-center rounded-2xl bg-white p-3.5 shadow-md">
+                <div className="inline-flex items-center justify-center rounded-xl bg-white px-2.5 py-1.5 shadow-md">
                   <BrandLogo
                     src={logoUrl}
-                    sizes="(max-width: 640px) 112px, 128px"
-                    className="h-28 sm:h-32"
-                    penSize="md"
+                    targetWidth={256}
+                    sizes="79px"
+                    className="h-16"
                   />
                 </div>
               </Link>
-              <p className="mt-5 max-w-md text-[14.5px] leading-relaxed text-white/80">
+              <p className="mt-5 max-w-md text-[16px] leading-relaxed text-white/85">
                 <T
                   ta="திராவிட இயக்க வரலாறு, சமூகநீதி, மாநில சுயாட்சி மற்றும் முத்தமிழறிஞர் கலைஞர் அவர்களின் படைப்புகளைத் தாங்கி வரும் அதிகாரப்பூர்வப் பதிப்பகம்."
                   en="The official publishing house for Dravidian movement history, social justice, state autonomy and the works of Muthamilarignar Kalaignar."
@@ -64,7 +64,7 @@ export default function StorefrontFooter({
                       rel="noopener noreferrer"
                       aria-label={label}
                       title={label}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/25 text-white transition-colors hover:border-brand-red hover:bg-[#D11D1A]"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/25 text-white transition-all hover:border-brand-red hover:bg-[#D11D1A] active:scale-[0.96]"
                     >
                       <Icon className="h-5 w-5" />
                     </a>
@@ -74,23 +74,22 @@ export default function StorefrontFooter({
             </div>
 
             <div className="lg:col-span-2">
-              <p className="mb-4 text-[12px] font-bold uppercase tracking-[0.16em] text-[#FF6B68]">
+              <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.16em] text-[#FF6B68]">
                 <T ta="நூலகம் & பதிப்பகம்" en="Bookstore & Press" />
               </p>
-              <ul className="space-y-1.5 text-[14.5px]">
+              <ul className="space-y-1 text-[15.5px]">
                 <li><Link href="/books" prefetch={false} className={linkCls}><T ta={`அனைத்து நூல்கள்${count}`} en={`All books${count}`} /></Link></li>
                 <li><Link href="/about" prefetch={false} className={linkCls}><T ta="பதிப்பகம் பற்றி" en="About publisher" /></Link></li>
                 <li><Link href="/authors" prefetch={false} className={linkCls}><T ta="ஆசிரியர்கள்" en="Authors" /></Link></li>
                 <li><Link href="/faq" prefetch={false} className={linkCls}><T ta="வினா-விடை (FAQ)" en="FAQ" /></Link></li>
-                <li><Link href="/track" prefetch={false} className={linkCls}><T ta="ஆர்டர் நிலை" en="Track order" /></Link></li>
               </ul>
             </div>
 
             <div className="lg:col-span-2">
-              <p className="mb-4 text-[12px] font-bold uppercase tracking-[0.16em] text-[#FF6B68]">
+              <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.16em] text-[#FF6B68]">
                 <T ta="கொள்கைகள் & கணக்கு" en="Policies & Account" />
               </p>
-              <ul className="space-y-1.5 text-[14.5px]">
+              <ul className="space-y-1 text-[15.5px]">
                 <li><Link href="/policies/shipping" prefetch={false} className={linkCls}><T ta="விநியோகக் கொள்கை" en="Shipping policy" /></Link></li>
                 <li><Link href="/policies/returns" prefetch={false} className={linkCls}><T ta="மாற்று & பணம் திரும்ப" en="Returns & refunds" /></Link></li>
                 <li><Link href="/policies/privacy" prefetch={false} className={linkCls}><T ta="தனியுரிமைக் கொள்கை" en="Privacy policy" /></Link></li>

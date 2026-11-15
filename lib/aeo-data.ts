@@ -16,67 +16,58 @@ export interface FaqEntry {
 
 export const STORE_FAQS: FaqEntry[] = [
   {
-    id: "who-is-muthamilarignar-pathipagam",
-    questionTa: "முத்தமிழறிஞர் பதிப்பகம் என்பது யார்?",
-    questionEn: "Who is Muthamilarignar Pathipagam?",
-    answerEn:
-      "Muthamilarignar Pathipagam (முத்தமிழறிஞர் பதிப்பகம்) is an official Tamil and English publishing house headquartered at Anna Arivalayam Campus, Teynampet, Chennai. The press publishes authentic editions on Dravidian movement history, social justice, constitutional federalism, language rights, the Dravidian Model of governance, and the literary and political works of Muthamilarignar Dr. Kalaignar M. Karunanidhi.",
+    id: "how-to-order",
+    questionTa: "இணையதளத்தில் நூல்களை ஆர்டர் செய்வது எப்படி?",
+    questionEn: "How do I order books on this website?",
     answerTa:
-      "முத்தமிழறிஞர் பதிப்பகம் என்பது சென்னை தேனாம்பேட்டை அண்ணா அறிவாலய வளாகத்தை மையமாகக் கொண்டு செயல்படும் அதிகாரப்பூர்வ தமிழ் மற்றும் ஆங்கிலப் பதிப்பகமாகும். திராவிட இயக்க வரலாறு, சமூகநீதி, மாநில சுயாட்சி, மொழி உரிமை, திராவிட மாடல் ஆட்சி மற்றும் முத்தமிழறிஞர் டாக்டர் கலைஞர் மு. கருணாநிதி அவர்களின் இலக்கிய-வரலாற்றுப் படைப்புகளை அசல் பதிப்புகளாக வெளியிடுகிறது.",
+      "விரும்பிய நூலைத் தேர்ந்தெடுத்து 'கூடையில் சேர்' (Add to Cart) அல்லது 'இப்போதே வாங்குக' (Buy Now) பொத்தானை அழுத்தி, செக்அவுட் பக்கத்தில் உங்கள் முகவரி விவரங்களை உள்ளிட்டு ஆர்டர் செய்யலாம்.",
+    answerEn:
+      "Select any title, click Add to Cart or Buy Now, and enter your delivery address and contact details at checkout to place your order.",
   },
   {
-    id: "which-kalaignar-books-available",
-    questionTa: "முத்தமிழறிஞர் கலைஞர் தொடர்பான எந்தெந்த நூல்கள் இங்கு கிடைக்கின்றன?",
-    questionEn: "Which books by Kalaignar are available?",
-    answerEn:
-      "Key works by and about Muthamilarignar Kalaignar available in our catalog include Tirukkural கலைஞர் உரை, குறளோவியம் (Kuraloviyam), தென்பாண்டிச் சிங்கம் (Thenpandi Singam), நெஞ்சுக்கு நீதி (Nenjukku Needhi), டாக்டர் கலைஞர் (Doctor Kalaignar), and காகிதப் பூ (Kagitha Poo). Browse the Kalaignar Works category online to check live stock, prices, and collector hardcover editions.",
+    id: "cod-availability",
+    questionTa: "புத்தகம் நேரில் வந்ததும் பணம் செலுத்தும் வசதி (COD) உள்ளதா?",
+    questionEn: "Is Cash on Delivery (COD) available?",
     answerTa:
-      "திருக்குறள் கலைஞர் உரை, குறளோவியம், தென்பாண்டிச் சிங்கம், நெஞ்சுக்கு நீதி, டாக்டர் கலைஞர் மற்றும் காகிதப் பூ உள்ளிட்ட முத்தமிழறிஞர் கலைஞர் அவர்களின் முதன்மைப் படைப்புகளும் வரலாற்று நூல்களும் எமது இணைய நூலகத்தில் கிடைக்கின்றன. கலைஞர் படைப்புகள் பிரிவில் கையிருப்பு, விலை மற்றும் சிறப்புப் பதிப்புகளை உடனடியாகக் காணலாம்.",
+      "ஆம், தகுதியுள்ள இந்திய அஞ்சல் குறியீடுகளுக்குப் புத்தகம் நேரில் வந்ததும் பணம் செலுத்தும் வசதி (COD) உள்ளது.",
+    answerEn:
+      "Yes, Cash on Delivery (COD) is available for eligible Indian pincodes at checkout.",
   },
   {
     id: "delivery-time",
     questionTa: "நூல்கள் எத்தனை நாட்களில் விநியோகிக்கப்படும்?",
     questionEn: "What is the delivery time for book orders?",
-    answerEn:
-      "Orders from Muthamilarignar Pathipagam are delivered within 3 to 6 business days across Tamil Nadu and 5 to 8 business days across the rest of India. Every parcel is packed in protective moisture-resistant wrapping and dispatched within 24 to 48 hours from Chennai with SMS and WhatsApp tracking updates until doorstep delivery.",
     answerTa:
-      "முத்தமிழறிஞர் பதிப்பக ஆர்டர்கள் தமிழ்நாடு முழுவதும் 3 முதல் 6 வேலை நாட்களிலும், இந்தியாவின் பிற மாநிலங்களுக்கு 5 முதல் 8 வேலை நாட்களிலும் விநியோகிக்கப்படுகின்றன. ஒவ்வொரு நூலும் ஈரப்பதம் தாங்கும் பாதுகாப்பான உறையில் சென்னையிலிருந்து 24 முதல் 48 மணி நேரத்திற்குள் அனுப்பப்பட்டு கண்காணிப்புத் தகவல் வழங்கப்படுகிறது.",
+      "முத்தமிழறிஞர் பதிப்பக நூல்கள் இந்தியா முழுவதும் பாதுகாப்பான பேக்கேஜிங்கில் அனுப்பப்படுகின்றன; துல்லியமான விநியோக கால அளவை அறிய செக்அவுட் (Checkout) பக்கத்தைப் பார்க்கவும்.",
+    answerEn:
+      "Orders from Muthamilarignar Pathipagam are shipped pan-India in protective packaging; see checkout for exact delivery estimates.",
   },
   {
-    id: "cash-on-delivery",
-    questionTa: "புத்தகம் நேரில் வந்ததும் பணம் செலுத்தும் வசதி (COD) உள்ளதா?",
-    questionEn: "Is Cash on Delivery (COD) available?",
-    answerEn:
-      "Yes, Cash on Delivery (COD) is available on eligible Indian pincodes across Tamil Nadu and pan-India. Readers can place an order online without advance payment and pay the exact invoice amount in cash or UPI directly to the courier partner upon receiving their printed books at home, with zero hidden COD surcharges.",
+    id: "free-delivery",
+    questionTa: "₹500-க்கு மேல் ஆர்டர் செய்தால் இலவச விநியோகம் உள்ளதா?",
+    questionEn: "Is free delivery available above ₹500?",
     answerTa:
-      "ஆம், தமிழ்நாடு மற்றும் இந்தியா முழுவதும் தகுதியுள்ள அஞ்சல் குறியீடுகளுக்குப் புத்தகம் நேரில் வந்ததும் பணம் செலுத்தும் வசதி (COD) உள்ளது. வாசகர்கள் முன்பணம் இன்றி இணையத்தில் ஆர்டர் செய்து, நூல்களை இல்லத்தில் பெறும்போது கூடுதல் கட்டணம் எதுவுமின்றி ரொக்கமாகவோ UPI மூலமாகவோ தொகையைச் செலுத்தலாம்.",
+      "ஆம், ₹500 மற்றும் அதற்கு மேற்பட்ட மதிப்புள்ள ஆர்டர்களுக்கு இந்தியா முழுவதும் இலவச விநியோகம் வழங்கப்படுகிறது.",
+    answerEn:
+      "Yes, orders totaling ₹500 and above automatically qualify for free delivery across India.",
   },
   {
-    id: "payment-options",
-    questionTa: "என்னென்ன கட்டண முறைகள் ஏற்றுக்கொள்ளப்படுகின்றன?",
-    questionEn: "What payment options are accepted?",
-    answerEn:
-      "Muthamilarignar Pathipagam accepts Cash on Delivery (COD) as well as instant online payments via UPI, GPay, PhonePe, Paytm, RuPay, Visa, Mastercard, and NetBanking through Razorpay. Printed books carry 0% GST in India, and orders of ₹500 or above automatically receive free pan-India shipping at checkout with instant order confirmation.",
+    id: "book-authenticity",
+    questionTa: "இங்கு விற்கப்படும் நூல்கள் அனைத்தும் அதிகாரப்பூர்வப் பதிப்புகளா?",
+    questionEn: "Are all books official publisher editions?",
     answerTa:
-      "முத்தமிழறிஞர் பதிப்பகத்தில் ரொக்கப் பணம் செலுத்தும் வசதி (COD) மற்றும் Razorpay வழியாக UPI, GPay, PhonePe, Paytm, டெபிட்/கிரெடிட் கார்டுகள், நெட்பேங்கிங் ஆகிய அனைத்து இணையக் கட்டண முறைகளும் ஏற்றுக்கொள்ளப்படுகின்றன. அச்சிடப்பட்ட நூல்களுக்கு இந்தியாவில் 0% GST பொருந்தும்; ₹500-க்கு மேற்பட்ட ஆர்டர்களுக்கு இலவச விநியோகம் உண்டு.",
+      "ஆம், இத்தளத்தில் விற்கப்படும் அனைத்து நூல்களும் முத்தமிழறிஞர் பதிப்பகத்தின் 100% அதிகாரப்பூர்வ அசல் பதிப்புகளாகும்.",
+    answerEn:
+      "Yes, every book sold on this website is an authentic official publisher edition directly from Muthamilarignar Pathipagam.",
   },
   {
-    id: "how-to-order",
-    questionTa: "இணையதளத்தில் நூல்களை ஆர்டர் செய்வது எப்படி?",
-    questionEn: "How do I order books from the website?",
-    answerEn:
-      "You can order books directly on our website by clicking Add to Cart or Buy Now on any title and completing single-page guest checkout. No mandatory account registration is required; simply enter your delivery name, mobile number, street address, and six-digit Indian pincode, then confirm via Cash on Delivery or online payment.",
+    id: "contact-whatsapp",
+    questionTa: "முத்தமிழறிஞர் பதிப்பகத்தைத் தொடர்புகொள்வது அல்லது WhatsApp எண் எது?",
+    questionEn: "How can I contact Muthamilarignar Pathipagam or reach WhatsApp support?",
     answerTa:
-      "எந்தவொரு நூலிலும் 'கூடையில் சேர்' அல்லது 'இப்போதே வாங்குக' பொத்தானை அழுத்தி ஒற்றைப் பக்க செக்அவுட் வழியாக நேரடியாக ஆர்டர் செய்யலாம். கணக்குத் தொடங்க வேண்டிய கட்டாயமில்லை; உங்கள் பெயர், கைபேசி எண், முகவரி மற்றும் ஆறு இலக்க அஞ்சல் குறியீட்டை உள்ளிட்டு COD அல்லது ஆன்லைன் கட்டணம் மூலம் உறுதிப்படுத்தலாம்.",
-  },
-  {
-    id: "returns-policy",
-    questionTa: "சேதமடைந்த அல்லது தவறான நூல் வந்தால் மாற்றுவது எப்படி?",
-    questionEn: "What is the return and replacement policy?",
+      "உதவிக்கு +91 90033 24473 என்ற WhatsApp / தொலைபேசி எண்ணிலோ அல்லது muthamilarignar@gmail.com என்ற மின்னஞ்சலிலோ தொடர்புகொள்ளலாம் (அண்ணா அறிவாலய வளாகம், தேனாம்பேட்டை, சென்னை – 600018).",
     answerEn:
-      "Damaged, misprinted, or incorrect books qualify for a free replacement or full refund within 7 days of delivery. Simply contact Muthamilarignar Pathipagam support on WhatsApp at +91 90033 24473 or email muthamilarignar@gmail.com with your order number and parcel photos, and our Chennai dispatch desk arranges prompt replacement or payment reversal.",
-    answerTa:
-      "போக்குவரத்தில் சேதமடைந்த, அச்சுப் பிழையுள்ள அல்லது தவறாக அனுப்பப்பட்ட நூல்களுக்கு விநியோகம் செய்யப்பட்ட 7 நாட்களுக்குள் இலவச மாற்றுப் பிரதி அல்லது முழுப் பணத்தைத் திரும்பப் பெறலாம். ஆர்டர் எண் மற்றும் புகைப்படங்களுடன் +91 90033 24473 என்ற WhatsApp எண்ணிற்கோ muthamilarignar@gmail.com என்ற மின்னஞ்சலுக்கோ தொடர்புகொள்ளலாம்.",
+      "Contact Muthamilarignar Pathipagam on WhatsApp or phone at +91 90033 24473, or email muthamilarignar@gmail.com (Anna Arivalayam Campus, Teynampet, Chennai – 600018).",
   },
 ];
 
@@ -87,10 +78,10 @@ export function buildFaqJsonLd(faqs: FaqEntry[], pageUrl?: string) {
     ...(pageUrl ? { "@id": `${pageUrl}#faq` } : {}),
     mainEntity: faqs.map((f) => ({
       "@type": "Question",
-      name: `${f.questionEn} (${f.questionTa})`,
+      name: `${f.questionTa} | ${f.questionEn}`,
       acceptedAnswer: {
         "@type": "Answer",
-        text: f.answerEn,
+        text: `${f.answerTa} ${f.answerEn}`,
       },
     })),
   };

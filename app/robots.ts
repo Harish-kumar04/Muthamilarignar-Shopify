@@ -18,7 +18,13 @@ const PRIVATE_PATHS = [
   "/_next/",
 ];
 
-const AI_CRAWLERS = ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"];
+const AI_CRAWLERS = [
+  "GPTBot",
+  "ClaudeBot",
+  "PerplexityBot",
+  "Google-Extended",
+  "Bingbot",
+];
 
 export default function robots(): MetadataRoute.Robots {
   return {

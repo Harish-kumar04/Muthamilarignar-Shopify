@@ -15,8 +15,6 @@ import {
 const NAV: NavItem[] = [
   { path: "", ta: "முகப்பு", en: "Home" },
   { path: "/books", ta: "நூல்கள்", en: "Books" },
-  { path: "/books?sale=1", ta: "சலுகைகள்", en: "Offers" },
-  { path: "/track", ta: "ஆர்டர் நிலை", en: "Track Order" },
   { path: "/account", ta: "கணக்கு", en: "Account" },
 ];
 
@@ -93,21 +91,26 @@ export default function StorefrontHeader({
         </div>
       )}
 
-      {/* 2. Sticky Header Bar */}
-      <header className="sticky top-0 z-40 w-full max-h-[64px] border-b border-black/[0.08] bg-white/95 backdrop-blur-md shadow-sm transition-all lg:max-h-[88px]">
-        <div className="container-site flex items-center gap-2.5 py-1 sm:gap-4 lg:py-2">
+      {/* 2. Sticky Header Bar — accommodates 56px mobile / 72px desktop logo with zero overlap */}
+      <header className="sticky top-0 z-40 w-full border-b border-black/[0.08] bg-white/95 backdrop-blur-md shadow-sm">
+        <div className="container-site flex items-center justify-between gap-3 py-2 md:gap-5 lg:gap-6 lg:py-2.5">
           <HeaderLogo logoUrl={logoUrl} />
 
-          <div className="mx-auto flex-1 max-w-md">
+          <div className="hidden min-w-0 flex-1 md:mx-2 md:block md:max-w-md">
             <HeaderSearch books={searchBooks} />
           </div>
 
           <HeaderNav items={NAV} variant="desktop" />
 
-          <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2.5">
+          <div className="ml-auto flex flex-shrink-0 items-center gap-2 sm:gap-2.5 md:ml-0">
             <LanguageToggle />
             <CartButton />
           </div>
+        </div>
+
+        {/* Dedicated mobile search row (<768px) so 56px logo, language switch, and search never overlap */}
+        <div className="container-site pb-2.5 md:hidden">
+          <HeaderSearch books={searchBooks} />
         </div>
       </header>
     </>

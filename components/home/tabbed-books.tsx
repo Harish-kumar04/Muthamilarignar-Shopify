@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/components/language-provider";
 import { ArrowRightIcon } from "@/components/brand/icons";
 
-export type BookTabKey = "new" | "bestsellers" | "offers" | "kalaignar";
+export type BookTabKey = "new" | "bestsellers" | "kalaignar";
 
 /**
  * Tiny (<1 KB) client tab controller. Each tab's ProductCard grid is rendered on the
@@ -38,12 +38,6 @@ export default function TabbedBooks({
       ta: "சிறந்த விற்பனை",
       en: "Best Sellers",
       href: "/books",
-    },
-    {
-      key: "offers",
-      ta: "சலுகைகள்",
-      en: "Offers",
-      href: "/books?sale=1",
     },
     {
       key: "kalaignar",
@@ -83,7 +77,7 @@ export default function TabbedBooks({
                   aria-selected={selected}
                   aria-controls={`panel-${tab.key}`}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`inline-flex min-h-[44px] flex-shrink-0 items-center rounded-full px-5 py-2 text-[13.5px] font-bold transition-all ${
+                  className={`inline-flex min-h-[44px] flex-shrink-0 items-center rounded-full px-5 py-2 text-[14.5px] font-bold transition-all active:scale-[0.98] ${
                     selected
                       ? "bg-black text-white shadow-card"
                       : "border border-black/15 bg-[#FAFAFA] text-black/80 hover:border-brand-red-dark hover:text-brand-red-dark"

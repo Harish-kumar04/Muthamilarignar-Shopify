@@ -36,12 +36,15 @@ body {
   background-color: rgb(var(--background));
   color: rgb(var(--foreground));
   min-height: 100vh;
+  font-size: 16px;
+  line-height: 1.65;
+  overflow-x: hidden;
 }
 
-/* Visible, on-brand focus ring */
+/* Visible, high-contrast on-brand focus ring */
 *:focus-visible {
-  outline: 2px solid rgb(var(--ring));
-  outline-offset: 2px;
+  outline: 2.5px solid rgb(var(--ring));
+  outline-offset: 3px;
 }
 
 /* ---- Zero-JS bilingual text (components/i18n/t.tsx) ---- */
@@ -64,16 +67,16 @@ html:not([lang="en"]) .i18n-en {
   .card-glow:hover {
     @apply -translate-y-1 border-brand-red/30 shadow-glow;
   }
-  /* Primary black pill button (21:1 contrast) */
+  /* Primary black pill button (21:1 contrast, >=44px tap target, hover & pressed states) */
   .btn-black {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 font-semibold text-white transition-colors hover:bg-brand-red-dark focus-visible:outline-offset-4;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-black px-6 font-semibold text-white transition-[background-color,transform,box-shadow] duration-150 hover:bg-brand-red-dark active:translate-y-px active:scale-[0.98] focus-visible:outline-offset-4;
   }
-  /* Brand red CTA pill (WCAG AA >= 4.5:1 contrast with white text) */
+  /* Brand red CTA pill (WCAG AA >= 4.5:1 contrast with white text, >=44px tap target, hover & pressed states) */
   .btn-red {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[#D11D1A] px-6 font-semibold text-white transition-colors hover:bg-brand-red-dark focus-visible:outline-offset-4;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-[#D11D1A] px-6 font-semibold text-white transition-[background-color,transform,box-shadow] duration-150 hover:bg-brand-red-dark active:translate-y-px active:scale-[0.98] focus-visible:outline-offset-4;
   }
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-black/20 bg-white px-6 font-semibold text-black transition-colors hover:border-brand-red-dark hover:text-brand-red-dark;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-black/20 bg-white px-6 font-semibold text-black transition-[color,border-color,background-color,transform] duration-150 hover:border-brand-red-dark hover:bg-brand-red-light/40 hover:text-brand-red-dark active:translate-y-px active:scale-[0.98] focus-visible:outline-offset-4;
   }
   /* WCAG AA >= 4.5:1 small red eyebrow text on white/grey */
   .eyebrow {

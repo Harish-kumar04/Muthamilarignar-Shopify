@@ -3,6 +3,7 @@ import Img from "@/components/ui/img";
 import { T } from "@/components/i18n/t";
 import { ArrowRightIcon } from "@/components/brand/icons";
 import { SunburstBackdrop } from "@/components/brand/patterns";
+import KalaignarAboutBlock from "@/components/home/kalaignar-about-block";
 import { cloudinaryImageUrl } from "@/lib/site-defaults";
 
 const KALAIGNAR_SPEECH_ART_URL =
@@ -19,6 +20,7 @@ const STALIN_ART_URL =
 export function KalaignarArtworkBanner() {
   return (
     <section
+      id="kalaignar-books-banner"
       aria-label="முத்தமிழறிஞர் கலைஞர் ஓவியத் தொகுப்பு | Kalaignar Featured Banner"
       className="pattern-red-dots relative overflow-hidden border-y border-black/[0.08] bg-[#FAFAFA] py-12 sm:py-16"
     >
@@ -58,6 +60,9 @@ export function KalaignarArtworkBanner() {
                   en="Browse Tamil books on Kalaignar and the Dravidian movement published by Muthamilarignar Pathipagam."
                 />
               </p>
+
+              <KalaignarAboutBlock />
+
               <div className="mt-7">
                 <Link
                   href="/books"

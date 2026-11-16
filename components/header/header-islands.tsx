@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { T } from "../i18n/t";
-import { CartIcon } from "../brand/icons";
+import { CartIcon, UserIcon } from "../brand/icons";
 import { useLanguage } from "../language-provider";
 import { CART_COUNT_KEY, readFromStorage, openMiniCart } from "@/lib/cart-events";
 
@@ -60,6 +60,27 @@ export function HeaderNav({ items, variant }: { items: NavItem[]; variant: "desk
         );
       })}
     </nav>
+  );
+}
+
+/** 44px circular Account user icon link matching CartButton style and size. */
+export function AccountButton() {
+  const isActive = useIsActive();
+  const active = isActive("/account");
+  return (
+    <Link
+      href="/account"
+      prefetch={false}
+      aria-label="Account / கணக்கு"
+      title="Account / கணக்கு"
+      className={`relative inline-flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${
+        active
+          ? "border-brand-red bg-brand-red-light text-brand-red-dark"
+          : "border-black/15 text-black hover:border-brand-red hover:text-brand-red-dark"
+      }`}
+    >
+      <UserIcon className="h-[21px] w-[21px]" />
+    </Link>
   );
 }
 

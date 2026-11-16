@@ -13,7 +13,6 @@ Copy `.env.example` to `.env.local` and configure:
 | `SHOPIFY_REVALIDATION_SECRET` | Yes | Webhook signing secret from **Settings → Notifications → Webhooks** used to verify `X-Shopify-Hmac-Sha256`. |
 | `NEXT_PUBLIC_SITE_URL` | Yes | Canonical public URL of the storefront (e.g. `https://muthamilarignarpathipagam.com`). |
 | `SHOPIFY_VENDOR_FILTER` | Optional | **TEMPORARY** vendor filter. Set to `"Muthamilarignar Pathipagam"` while sharing a multi-vendor Shopify store; leave empty (`SHOPIFY_VENDOR_FILTER=`) to disable vendor filtering. |
-| `FREE_SHIPPING_THRESHOLD` | Optional | Free-shipping progress bar threshold in INR (`500` by default). |
 
 ### Required Storefront API Access & Metafields
 

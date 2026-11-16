@@ -12,7 +12,6 @@ import {
   cartLinesRemove,
   cartLinesUpdate,
   getCartIdFromCookies,
-  getFreeShippingThresholdRupees,
   loadAndSanitizeCart,
   resolveVariantForCart,
   setCartIdOnResponse,
@@ -96,7 +95,6 @@ function errorResponse(err: unknown) {
 }
 
 export async function GET() {
-  const freeShippingThresholdRupees = getFreeShippingThresholdRupees();
   try {
     const cartId = await getCartIdFromCookies();
     let cart: ShopifyCart | null = null;
@@ -112,7 +110,7 @@ export async function GET() {
 
     const recommendations = await loadRecommendations(cart);
     const res = NextResponse.json(
-      { cart, recommendations, freeShippingThresholdRupees },
+      { cart, recommendations },
       { headers: NO_STORE_HEADERS },
     );
     if (shouldReplaceCookie && cart?.id) {
@@ -125,7 +123,6 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const freeShippingThresholdRupees = getFreeShippingThresholdRupees();
   let body: any;
   try {
     body = await request.json();
@@ -221,7 +218,7 @@ export async function POST(request: NextRequest) {
       }
 
       const res = NextResponse.json(
-        { cart, freeShippingThresholdRupees },
+        { cart },
         { headers: NO_STORE_HEADERS },
       );
       setCartIdOnResponse(res, cart.id);
@@ -255,7 +252,7 @@ export async function POST(request: NextRequest) {
         if (!targetLine) {
           // Stale/non-existent variant line was sanitized; return updated cart & replace cookie
           const res = NextResponse.json(
-            { cart: current, freeShippingThresholdRupees },
+            { cart: current },
             { headers: NO_STORE_HEADERS },
           );
           setCartIdOnResponse(res, current.id);
@@ -280,7 +277,7 @@ export async function POST(request: NextRequest) {
       }
 
       const res = NextResponse.json(
-        { cart, freeShippingThresholdRupees },
+        { cart },
         { headers: NO_STORE_HEADERS },
       );
       setCartIdOnResponse(res, cart.id);
@@ -294,7 +291,7 @@ export async function POST(request: NextRequest) {
       }
       const cart = await cartLinesRemove(cartId, [lineId]);
       const res = NextResponse.json(
-        { cart, freeShippingThresholdRupees },
+        { cart },
         { headers: NO_STORE_HEADERS },
       );
       setCartIdOnResponse(res, cart.id);
@@ -317,7 +314,6 @@ export async function POST(request: NextRequest) {
             {
               error: `Coupon "${rawCode.toUpperCase()}" is invalid or not applicable to your cart.`,
               cart,
-              freeShippingThresholdRupees,
             },
             { status: 400, headers: NO_STORE_HEADERS },
           );
@@ -325,7 +321,7 @@ export async function POST(request: NextRequest) {
       }
 
       const res = NextResponse.json(
-        { cart, freeShippingThresholdRupees },
+        { cart },
         { headers: NO_STORE_HEADERS },
       );
       setCartIdOnResponse(res, cart.id);

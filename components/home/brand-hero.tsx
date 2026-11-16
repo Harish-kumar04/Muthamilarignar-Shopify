@@ -67,9 +67,9 @@ export default function BrandHero({
       en: "Subject Categories",
     },
     {
-      value: "₹500+",
-      ta: "இலவச விநியோகம்",
-      en: "Free Pan-India Shipping",
+      value: "Pan-India",
+      ta: "இந்தியா முழுவதும் டெலிவரி உண்டு",
+      en: "Pan-India delivery available",
     },
     {
       value: "COD",

@@ -18,6 +18,15 @@ export function CartIcon({ className = "h-5 w-5" }: IconProps) {
   );
 }
 
+export function UserIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...base} className={className} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M5 20a7 7 0 0 1 14 0" />
+    </svg>
+  );
+}
+
 export function ChevronLeftIcon({ className = "h-5 w-5" }: IconProps) {
   return (
     <svg {...base} className={className} fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">

@@ -17,7 +17,7 @@ export const revalidate = 3600;
 export function generateMetadata(): Metadata {
   const title = `வினா-விடை | Frequently Asked Questions — ${BRAND.nameTa} | ${BRAND.nameEn}`;
   const description =
-    "Direct answers on ordering from Muthamilarignar Pathipagam, Cash on Delivery (COD), delivery estimates, free delivery above ₹500, and official publisher editions.";
+    "Direct answers on ordering from Muthamilarignar Pathipagam, Cash on Delivery (COD), Pan-India delivery available, delivery estimates, and official publisher editions.";
   const url = `${SITE_URL}/faq`;
   const shareLogo = getShareLogoUrl();
   return {

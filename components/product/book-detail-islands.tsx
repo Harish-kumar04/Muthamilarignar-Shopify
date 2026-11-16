@@ -540,8 +540,6 @@ export function PincodeCheckIsland({ unitPriceCents }: { unitPriceCents: number 
     setResult({ ok: true, region: isTnOrPy ? "tn" : "india" });
   };
 
-  const freeDeliveryEligible = unitPriceCents >= 50000;
-
   return (
     <div className="mt-6 rounded-2xl border border-black/10 bg-[#FAFAFA] p-4 sm:p-5">
       <p className="text-[13.5px] font-bold text-black">
@@ -590,9 +588,10 @@ export function PincodeCheckIsland({ unitPriceCents }: { unitPriceCents: number 
                 )}
           </p>
           <p className="mt-0.5 text-[12px] text-green-800">
-            {freeDeliveryEligible
-              ? t("இலவச விநியோகம் + ரொக்கப் பணம் (COD) வசதி உண்டு", "Eligible for FREE delivery + Cash on Delivery (COD)")
-              : t("₹500-க்கு மேல் இலவச விநியோகம் • ரொக்கப் பணம் (COD) வசதி உண்டு", "Free delivery on orders above ₹500 • Cash on Delivery (COD) available")}
+            {t(
+              "இந்தியா முழுவதும் டெலிவரி உண்டு • ரொக்கப் பணம் (COD) வசதி உண்டு",
+              "Pan-India delivery available • Cash on Delivery (COD) available",
+            )}
           </p>
         </div>
       )}

@@ -304,8 +304,8 @@ export function getAnnouncement(store?: any): AnnouncementConfig {
   }
   return {
     enabled: true,
-    ta: "₹500-க்கு மேல் இலவச விநியோகம் • ரொக்கப் பணம் செலுத்தும் வசதி (COD) • 100% அதிகாரப்பூர்வப் பதிப்புகள்",
-    en: "Free Pan-India Delivery above ₹500 • Cash on Delivery (COD) • 100% Official Publisher Editions",
+    ta: "இந்தியா முழுவதும் டெலிவரி உண்டு • ரொக்கப் பணம் செலுத்தும் வசதி (COD) • 100% அதிகாரப்பூர்வப் பதிப்புகள்",
+    en: "Pan-India Delivery Available • Cash on Delivery (COD) • 100% Official Publisher Editions",
     link: null,
   };
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import LanguageToggle from "./language-toggle";
-import { CartButton, HeaderNav, type NavItem } from "./header/header-islands";
+import { AccountButton, CartButton, HeaderNav, type NavItem } from "./header/header-islands";
 import HeaderLogo from "./header/header-logo";
 import HeaderSearch, { type SearchBookItem } from "./header/header-search";
 import {
@@ -15,7 +15,6 @@ import {
 const NAV: NavItem[] = [
   { path: "", ta: "முகப்பு", en: "Home" },
   { path: "/books", ta: "நூல்கள்", en: "Books" },
-  { path: "/account", ta: "கணக்கு", en: "Account" },
 ];
 
 export default function StorefrontHeader({
@@ -32,10 +31,10 @@ export default function StorefrontHeader({
   const showAnnouncement = announcement ? announcement.enabled : true;
   const annTa =
     announcement?.ta ||
-    "₹500-க்கு மேல் இலவச விநியோகம் • ரொக்கப் பணம் செலுத்தும் வசதி (COD) • 100% அதிகாரப்பூர்வப் பதிப்புகள்";
+    "இந்தியா முழுவதும் டெலிவரி உண்டு • ரொக்கப் பணம் செலுத்தும் வசதி (COD) • 100% அதிகாரப்பூர்வப் பதிப்புகள்";
   const annEn =
     announcement?.en ||
-    "Free Pan-India Delivery above ₹500 • Cash on Delivery (COD) • 100% Official Publisher Editions";
+    "Pan-India Delivery Available • Cash on Delivery (COD) • 100% Official Publisher Editions";
   const annHref = announcement?.link ? resolveLink(announcement.link) : null;
 
   const tickerText = (
@@ -93,7 +92,7 @@ export default function StorefrontHeader({
 
       {/* 2. Sticky Header Bar — accommodates 56px mobile / 72px desktop logo with zero overlap */}
       <header className="sticky top-0 z-40 w-full border-b border-black/[0.08] bg-white/95 backdrop-blur-md shadow-sm">
-        <div className="container-site flex items-center justify-between gap-3 py-2 md:gap-5 lg:gap-6 lg:py-2.5">
+        <div className="container-site flex items-center justify-between gap-2 py-2 md:gap-5 lg:gap-6 lg:py-2.5">
           <HeaderLogo logoUrl={logoUrl} />
 
           <div className="hidden min-w-0 flex-1 md:mx-2 md:block md:max-w-md">
@@ -102,8 +101,9 @@ export default function StorefrontHeader({
 
           <HeaderNav items={NAV} variant="desktop" />
 
-          <div className="ml-auto flex flex-shrink-0 items-center gap-2 sm:gap-2.5 md:ml-0">
+          <div className="ml-auto flex flex-shrink-0 items-center gap-1.5 sm:gap-2.5 md:ml-0">
             <LanguageToggle />
+            <AccountButton />
             <CartButton />
           </div>
         </div>

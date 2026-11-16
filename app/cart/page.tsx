@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "@/components/ui/img";
 import PenLoader from "@/components/ui/pen-loader";
-import FreeShippingBar from "@/components/cart/free-shipping-bar";
 import ProductCard, { toCardProduct } from "@/components/product/product-card";
 import { SectionHeading } from "@/components/brand/patterns";
 import { toast } from "@/components/toaster";
@@ -36,7 +35,6 @@ export default function CartPage() {
   const { t, localizeName, localizeSubName } = useLanguage();
   const [cart, setCart] = useState<ShopifyCart | null>(null);
   const [recommendations, setRecommendations] = useState<CartRecommendation[]>([]);
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState(500);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +50,6 @@ export default function CartPage() {
     try {
       const res = await fetchCartState();
       setCart(res.cart);
-      setFreeShippingThreshold(res.freeShippingThresholdRupees || 500);
       if (Array.isArray(res.recommendations)) {
         setRecommendations(res.recommendations);
       }
@@ -218,7 +215,6 @@ export default function CartPage() {
       ? cart.totalCents
       : Math.max(0, subtotalCents - discountCents);
   const appliedCode = cart?.discountCodes?.find((d) => d.applicable) || null;
-  const thresholdCents = Math.round(freeShippingThreshold * 100);
   const hasUnavailableLine = lines.some((l) =>
     isVariantOutOfStock(l.availableForSale, l.quantityAvailable),
   );
@@ -278,13 +274,8 @@ export default function CartPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
-          {/* Items + Free-Shipping Progress */}
-          <div className="space-y-6 lg:col-span-2">
-            <FreeShippingBar
-              subtotalCents={subtotalCents}
-              thresholdRupees={freeShippingThreshold}
-            />
-
+          {/* Items */}
+          <div className="lg:col-span-2">
             <div className="divide-y divide-black/[0.08] rounded-2xl border border-black/[0.08] bg-white px-5 shadow-card">
               {lines.map((line) => {
                 const primaryTitle = localizeName(line.title);
@@ -515,9 +506,7 @@ export default function CartPage() {
               <div className="flex justify-between text-black/75">
                 <span>{t("அஞ்சல் / கூரியர் கட்டணம்", "Shipping")}</span>
                 <span className="font-semibold text-black/75">
-                  {totalCents >= thresholdCents
-                    ? t("இலவசம் (₹0)", "FREE (₹0)")
-                    : t("அடுத்த பக்கத்தில்", "Calculated at checkout")}
+                  {t("அடுத்த பக்கத்தில்", "Calculated at checkout")}
                 </span>
               </div>
             </div>

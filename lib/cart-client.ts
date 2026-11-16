@@ -19,7 +19,6 @@ export interface CartRecommendation {
 export interface CartApiResponse {
   cart: ShopifyCart | null;
   recommendations?: CartRecommendation[];
-  freeShippingThresholdRupees: number;
 }
 
 export function isShopifyCatalogId(id: unknown): boolean {

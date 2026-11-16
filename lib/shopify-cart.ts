@@ -67,13 +67,6 @@ export interface ShopifyCart {
   lines: ShopifyCartLine[];
 }
 
-export function getFreeShippingThresholdRupees(): number {
-  const raw = (process.env.FREE_SHIPPING_THRESHOLD ?? "").trim();
-  if (!raw) return 500;
-  const parsed = Number.parseFloat(raw);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 500;
-}
-
 export function getShopifyHostedAccountUrls(): {
   domain: string;
   accountUrl: string;

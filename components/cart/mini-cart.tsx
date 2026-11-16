@@ -17,7 +17,6 @@ import Sunburst from "@/components/brand/sunburst";
 import { CartIcon, CloseIcon } from "@/components/brand/icons";
 import Img from "@/components/ui/img";
 import PenLoader from "@/components/ui/pen-loader";
-import FreeShippingBar from "@/components/cart/free-shipping-bar";
 import { toast } from "@/components/toaster";
 
 type PendingLineOp = {
@@ -44,7 +43,6 @@ export default function MiniCart({
   const [error, setError] = useState<string | null>(null);
   const [cart, setCart] = useState<ShopifyCart | null>(null);
   const [recommendations, setRecommendations] = useState<CartRecommendation[]>([]);
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState(500);
 
   const [pendingOp, setPendingOp] = useState<PendingLineOp | null>(null);
   const [addingRecId, setAddingRecId] = useState<string | null>(null);
@@ -60,7 +58,6 @@ export default function MiniCart({
     try {
       const res = await fetchCartState();
       setCart(res.cart);
-      setFreeShippingThreshold(res.freeShippingThresholdRupees || 500);
       if (Array.isArray(res.recommendations)) {
         setRecommendations(res.recommendations);
       }
@@ -321,16 +318,6 @@ export default function MiniCart({
             <CloseIcon className="h-5 w-5" />
           </button>
         </div>
-
-        {/* Free-Shipping Progress Bar */}
-        {lines.length > 0 && (
-          <div className="border-b border-black/[0.06] px-5 py-3">
-            <FreeShippingBar
-              subtotalCents={subtotalCents}
-              thresholdRupees={freeShippingThreshold}
-            />
-          </div>
-        )}
 
         {/* Items + Recommendations */}
         <div className="flex-1 overflow-y-auto px-5 py-4">

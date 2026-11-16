@@ -38,18 +38,9 @@ export const STORE_FAQS: FaqEntry[] = [
     questionTa: "நூல்கள் எத்தனை நாட்களில் விநியோகிக்கப்படும்?",
     questionEn: "What is the delivery time for book orders?",
     answerTa:
-      "முத்தமிழறிஞர் பதிப்பக நூல்கள் இந்தியா முழுவதும் பாதுகாப்பான பேக்கேஜிங்கில் அனுப்பப்படுகின்றன; துல்லியமான விநியோக கால அளவை அறிய செக்அவுட் (Checkout) பக்கத்தைப் பார்க்கவும்.",
+      "இந்தியா முழுவதும் டெலிவரி உண்டு. முத்தமிழறிஞர் பதிப்பக நூல்கள் பாதுகாப்பான பேக்கேஜிங்கில் அனுப்பப்படுகின்றன; துல்லியமான விநியோக கால அளவை அறிய செக்அவுட் (Checkout) பக்கத்தைப் பார்க்கவும்.",
     answerEn:
-      "Orders from Muthamilarignar Pathipagam are shipped pan-India in protective packaging; see checkout for exact delivery estimates.",
-  },
-  {
-    id: "free-delivery",
-    questionTa: "₹500-க்கு மேல் ஆர்டர் செய்தால் இலவச விநியோகம் உள்ளதா?",
-    questionEn: "Is free delivery available above ₹500?",
-    answerTa:
-      "ஆம், ₹500 மற்றும் அதற்கு மேற்பட்ட மதிப்புள்ள ஆர்டர்களுக்கு இந்தியா முழுவதும் இலவச விநியோகம் வழங்கப்படுகிறது.",
-    answerEn:
-      "Yes, orders totaling ₹500 and above automatically qualify for free delivery across India.",
+      "Pan-India delivery available. Orders from Muthamilarignar Pathipagam are shipped in protective packaging; see checkout for exact delivery estimates.",
   },
   {
     id: "book-authenticity",
@@ -194,9 +185,9 @@ export const POLICIES: Record<PolicyDoc["slug"], PolicyDoc> = {
     titleTa: "விநியோகக் கொள்கை",
     titleEn: "Shipping & Delivery Policy",
     summaryEn:
-      "Muthamilarignar Pathipagam dispatches authentic printed books from Chennai within 24–48 business hours. Delivery takes 3–6 business days in Tamil Nadu and 5–8 business days across India, with free shipping on orders of ₹500 or more.",
+      "Muthamilarignar Pathipagam dispatches authentic printed books from Chennai within 24–48 business hours. Pan-India delivery available (3–6 business days in Tamil Nadu and 5–8 business days across India).",
     summaryTa:
-      "முத்தமிழறிஞர் பதிப்பக நூல்கள் சென்னையிலிருந்து 24–48 வேலை மணி நேரத்திற்குள் அனுப்பப்படுகின்றன. தமிழ்நாட்டிற்குள் 3–6 வேலை நாட்களிலும் பிற மாநிலங்களுக்கு 5–8 வேலை நாட்களிலும் விநியோகம் செய்யப்படுகிறது; ₹500-க்கு மேல் இலவச விநியோகம் உண்டு.",
+      "முத்தமிழறிஞர் பதிப்பக நூல்கள் சென்னையிலிருந்து 24–48 வேலை மணி நேரத்திற்குள் அனுப்பப்படுகின்றன. இந்தியா முழுவதும் டெலிவரி உண்டு (தமிழ்நாட்டிற்குள் 3–6 வேலை நாட்கள், பிற மாநிலங்களுக்கு 5–8 வேலை நாட்கள்).",
     sections: [
       {
         hTa: "1. அனுப்புதல் மற்றும் விநியோகக் கால அளவு",
@@ -205,10 +196,10 @@ export const POLICIES: Record<PolicyDoc["slug"], PolicyDoc> = {
         pEn: "All confirmed orders are packed in moisture-resistant protective sleeves and dispatched from our Teynampet, Chennai fulfillment desk within 24–48 business hours. Transit takes 3–6 business days across Tamil Nadu and 5–8 business days across the rest of India.",
       },
       {
-        hTa: "2. விநியோகக் கட்டணம் மற்றும் இலவச விநியோகம்",
-        hEn: "2. Shipping Charges & Free Delivery Threshold",
-        pTa: "₹500 மற்றும் அதற்கு மேற்பட்ட மதிப்புள்ள ஆர்டர்களுக்கு இந்தியா முழுவதும் விநியோகம் முற்றிலும் இலவசம். ₹500-க்கும் குறைவான ஆர்டர்களுக்கு நிலையான விநியோகக் கட்டணம் செக்அவுட் பக்கத்தில் வெளிப்படையாகக் காட்டப்படும்.",
-        pEn: "Orders totaling ₹500 or above receive free pan-India shipping automatically. Orders below ₹500 carry a flat transparent shipping fee displayed in your Order Summary prior to payment.",
+        hTa: "2. விநியோகக் கட்டணம் மற்றும் இந்தியா முழுவதும் டெலிவரி",
+        hEn: "2. Shipping Charges & Pan-India Delivery",
+        pTa: "இந்தியா முழுவதும் டெலிவரி உண்டு. விநியோகக் கட்டணம் உங்கள் ஆர்டர் மற்றும் முகவரியைப் பொறுத்து செக்அவுட் (Checkout) பக்கத்தில் கட்டணம் செலுத்தும் முன் வெளிப்படையாகக் காட்டப்படும்.",
+        pEn: "Pan-India delivery available. Applicable shipping charges are calculated and displayed transparently at checkout prior to payment.",
       },
       {
         hTa: "3. கண்காணிப்பு மற்றும் உதவி",

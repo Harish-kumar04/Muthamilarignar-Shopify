@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import {
   getCartIdFromCookies,
-  getFreeShippingThresholdRupees,
   loadAndSanitizeCart,
   setCartIdOnResponse,
 } from "@/lib/shopify-cart";
@@ -9,12 +8,11 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const freeShippingThresholdRupees = getFreeShippingThresholdRupees();
   try {
     const cartId = await getCartIdFromCookies();
     if (!cartId) {
       return NextResponse.json(
-        { count: 0, totalCents: 0, freeShippingThresholdRupees },
+        { count: 0, totalCents: 0 },
         {
           headers: {
             "Cache-Control": "private, no-store, no-cache, must-revalidate",
@@ -30,7 +28,6 @@ export async function GET() {
       {
         count: cart?.totalQuantity ?? 0,
         totalCents: cart?.subtotalCents ?? cart?.totalCents ?? 0,
-        freeShippingThresholdRupees,
       },
       {
         headers: {
@@ -44,7 +41,7 @@ export async function GET() {
     return res;
   } catch {
     return NextResponse.json(
-      { count: 0, totalCents: 0, freeShippingThresholdRupees },
+      { count: 0, totalCents: 0 },
       {
         status: 200,
         headers: {

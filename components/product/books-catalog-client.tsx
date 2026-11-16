@@ -310,26 +310,14 @@ export default function BooksCatalogClient({
   const hasPrevPage = Boolean(cursor);
 
   return (
-    <div className="container-site py-10 sm:py-14">
-      <header className="mb-8">
-        <p className="eyebrow">
-          <T ta="முத்தமிழறிஞர் பதிப்பகம்" en="Muthamilarignar Pathipagam" />
-        </p>
-        <h1 className="mt-2 text-[32px] font-extrabold leading-[1.1] tracking-tight text-black sm:text-[44px] lg:text-[52px]">
-          <T ta="அனைத்து நூல்கள்" en="All books" />
-        </h1>
-        <div aria-hidden="true" className="mt-3 h-1 w-14 rounded-full bg-brand-red" />
-        <p className="mt-3 max-w-2xl text-[15px] text-black/70 sm:text-[16px]">
-          <T
-            ta="முத்தமிழறிஞர் பதிப்பகத்தின் அதிகாரப்பூர்வ வெளியீடுகள் — திராவிட இயக்க வரலாறு, சமூகநீதி, திராவிட மாடல் மற்றும் கலைஞர் படைப்புகள்."
-            en="Official publications from Muthamilarignar Pathipagam — Dravidian history, social justice, the Dravidian Model and Kalaignar's works."
-          />
-        </p>
-      </header>
+    <div className="container-site pt-4 pb-10 sm:pt-5 sm:pb-14">
+      <h1 className="sr-only">
+        <T ta="அனைத்து நூல்கள்" en="All books" />
+      </h1>
 
-      {/* Search and Sort Row */}
-      <div className="mb-6 flex flex-col items-center gap-3 sm:flex-row">
-        <div className="relative w-full flex-1">
+      {/* Row 1: Search and Sort on the same row */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="relative min-w-0 flex-1">
           <label htmlFor="catalog-search" className="sr-only">
             {t("நூல்களைத் தேடுக", "Search books")}
           </label>
@@ -342,7 +330,7 @@ export default function BooksCatalogClient({
               "நூல் பெயர் அல்லது ஆசிரியர் மூலம் தேடுக…",
               "Search in Tamil or English by title or author…",
             )}
-            className="h-12 w-full rounded-full border border-black/20 bg-white pl-11 pr-4 text-[14.5px] text-black placeholder:text-black/55 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+            className="h-11 w-full rounded-full border border-black/20 bg-white pl-10 pr-3.5 text-[14px] text-black placeholder:text-black/55 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20 sm:h-12 sm:pl-11 sm:pr-4 sm:text-[14.5px]"
           />
           <svg
             viewBox="0 0 24 24"
@@ -351,7 +339,7 @@ export default function BooksCatalogClient({
             strokeWidth="2"
             strokeLinecap="round"
             aria-hidden="true"
-            className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55"
+            className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55 sm:left-4"
           >
             <circle cx="11" cy="11" r="8" />
             <path d="M21 21l-4.35-4.35" />
@@ -359,20 +347,20 @@ export default function BooksCatalogClient({
         </div>
 
         {/* Sort selector */}
-        <div ref={sortRef} className="relative w-full sm:w-auto">
+        <div ref={sortRef} className="relative flex-shrink-0">
           <button
             type="button"
             onClick={() => setSortOpen((v) => !v)}
             aria-haspopup="listbox"
             aria-expanded={sortOpen}
-            className={`flex h-12 w-full items-center justify-between gap-2.5 rounded-full border px-5 text-[14px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-brand-red/20 sm:w-auto ${
+            className={`flex h-11 items-center justify-between gap-1.5 rounded-full border px-3.5 text-[13px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-brand-red/20 sm:h-12 sm:gap-2.5 sm:px-5 sm:text-[14px] ${
               sortBy !== "default"
                 ? "border-brand-red bg-brand-red/5 text-brand-red-dark"
                 : "border-black/20 bg-white text-black hover:border-black/40"
             }`}
           >
-            <span className="truncate">
-              <span className="mr-1 font-medium text-black/65">
+            <span className="max-w-[112px] truncate sm:max-w-none">
+              <span className="mr-1 hidden font-medium text-black/65 sm:inline">
                 {t("வரிசை:", "Sort:")}
               </span>
               <span>{selectedSortLabel}</span>
@@ -395,7 +383,7 @@ export default function BooksCatalogClient({
             <ul
               role="listbox"
               aria-label={t("வரிசைப்படுத்து", "Sort options")}
-              className="absolute right-0 z-30 mt-2 w-full overflow-hidden rounded-2xl border border-black/10 bg-white py-1.5 shadow-xl sm:w-64"
+              className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-black/10 bg-white py-1.5 shadow-xl sm:w-64"
             >
               {sortOptions.map((opt) => {
                 const active = opt.value === sortBy;
@@ -425,19 +413,19 @@ export default function BooksCatalogClient({
         </div>
       </div>
 
-      {/* Category Chips and Toggles Row */}
-      <div className="mb-8 space-y-3">
+      {/* Row 2: Single compact horizontally-scrollable row for category chips + On Sale / In Stock toggles */}
+      <div
+        role="group"
+        aria-label={t("வடிகட்டிகள்", "Catalog filters")}
+        className="no-scrollbar mt-2.5 mb-3.5 flex items-center gap-2 overflow-x-auto py-0.5 sm:gap-2.5"
+      >
         {categories.length > 0 && (
-          <div
-            role="group"
-            aria-label={t("நூல் வகைகள்", "Categories")}
-            className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1"
-          >
+          <>
             <button
               type="button"
               onClick={() => selectCategory("all")}
               aria-pressed={selectedCategory === "all"}
-              className={pill(selectedCategory === "all")}
+              className={`flex-shrink-0 ${pill(selectedCategory === "all")}`}
             >
               {t("அனைத்தும்", "All")}
             </button>
@@ -452,53 +440,51 @@ export default function BooksCatalogClient({
                   type="button"
                   onClick={() => selectCategory(key)}
                   aria-pressed={active}
-                  className={pill(active)}
+                  className={`flex-shrink-0 ${pill(active)}`}
                 >
                   {localizeName(cat.name)}
                 </button>
               );
             })}
-          </div>
+            <span aria-hidden="true" className="h-5 w-px flex-shrink-0 bg-black/15" />
+          </>
         )}
 
-        {/* Filters: On Sale & In Stock */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <button
-            type="button"
-            onClick={toggleSale}
-            aria-pressed={saleOnly}
-            className={`inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
-              saleOnly
-                ? "bg-[#D11D1A] text-white shadow-glow"
-                : "border border-black/20 bg-white text-black/80 hover:border-brand-red-dark hover:text-brand-red-dark"
-            }`}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="h-4 w-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-            </svg>
-            {t("சலுகை நூல்கள் மட்டும்", "On Sale Only")}
-          </button>
+        <button
+          type="button"
+          onClick={toggleSale}
+          aria-pressed={saleOnly}
+          className={`inline-flex min-h-[44px] flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
+            saleOnly
+              ? "bg-[#D11D1A] text-white shadow-glow"
+              : "border border-black/20 bg-white text-black/80 hover:border-brand-red-dark hover:text-brand-red-dark"
+          }`}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="h-4 w-4 flex-shrink-0">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+          {t("சலுகை நூல்கள் மட்டும்", "On Sale Only")}
+        </button>
 
-          <button
-            type="button"
-            onClick={toggleInStock}
-            aria-pressed={inStockOnly}
-            className={`inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
-              inStockOnly
-                ? "bg-black text-white"
-                : "border border-black/20 bg-white text-black/80 hover:border-black/50"
-            }`}
-          >
-            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-green-600" />
-            {t("கையிருப்பில் உள்ளவை மட்டும்", "In Stock Only")}
-          </button>
+        <button
+          type="button"
+          onClick={toggleInStock}
+          aria-pressed={inStockOnly}
+          className={`inline-flex min-h-[44px] flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
+            inStockOnly
+              ? "bg-black text-white"
+              : "border border-black/20 bg-white text-black/80 hover:border-black/50"
+          }`}
+        >
+          <span aria-hidden="true" className="h-2 w-2 flex-shrink-0 rounded-full bg-green-600" />
+          {t("கையிருப்பில் உள்ளவை மட்டும்", "In Stock Only")}
+        </button>
 
-          {loading && (
-            <span className="ml-2 inline-flex items-center gap-2 text-[13px] font-medium text-black/65">
-              <PenLoader size="sm" label={t("ஏற்றுகிறது", "Loading")} />
-            </span>
-          )}
-        </div>
+        {loading && (
+          <span className="ml-1 inline-flex flex-shrink-0 items-center gap-2 text-[13px] font-medium text-black/65">
+            <PenLoader size="sm" label={t("ஏற்றுகிறது", "Loading")} />
+          </span>
+        )}
       </div>
 
       <h2 className="sr-only">{t("நூல் பட்டியல்", "Books catalog")}</h2>

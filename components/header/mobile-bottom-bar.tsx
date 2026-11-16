@@ -137,6 +137,25 @@ export default function MobileBottomBar() {
             </button>
           );
         }
+        if (tab.path === "/account") {
+          return (
+            <Link
+              key={tab.path}
+              href="/account"
+              prefetch={false}
+              aria-label="Account / கணக்கு"
+              title="Account / கணக்கு"
+              aria-current={active ? "page" : undefined}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${
+                active
+                  ? "border-brand-red bg-brand-red-light text-brand-red-dark"
+                  : "border-black/15 text-black hover:border-brand-red hover:text-brand-red-dark"
+              }`}
+            >
+              {tab.icon}
+            </Link>
+          );
+        }
         return (
           <Link
             key={tab.path}

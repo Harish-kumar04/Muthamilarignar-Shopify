@@ -1,32 +1,83 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { T } from "@/components/i18n/t";
 import { KALAIGNAR_ABOUT_COPY } from "@/lib/i18n";
 
+const SECTION_ID = "kalaignar-books-banner";
 const SECOND_PARA_ID = "kalaignar-about-para-2";
 
 /**
- * Crawlable bilingual "About Muthamizh Arignar Kalaignar" block inside the
- * Kalaignar portrait banner on `/`.
+ * Crawlable bilingual "Muthamizh Arignar Kalaignar" About block inside the
+ * Kalaignar portrait section on `/`.
  *
+ * - Dynamically syncs `--ann-bar-h` and `--site-header-h` CSS variables from the live
+ *   announcement bar and sticky header DOM elements via ResizeObserver (no magic numbers).
  * - Both paragraphs are always rendered into the SSR HTML for search engines & AI crawlers.
- * - Desktop (`>=768px`, `md:`): both paragraphs are always visible.
- * - Mobile (`<768px`): shows paragraph 1 plus an accessible `aria-expanded` toggle for paragraph 2.
+ * - Desktop & tablet (`>=768px`, `md:`): shows both paragraphs, hides Read more toggle.
+ * - Phones (`<768px`): shows paragraph 1 plus an accessible `aria-expanded` Read more toggle.
  */
 export default function KalaignarAboutBlock() {
   const [expanded, setExpanded] = useState(false);
 
+  useEffect(() => {
+    const sec = document.getElementById(SECTION_ID);
+    if (!sec) return;
+
+    const syncHeights = () => {
+      const annEl = document.querySelector<HTMLElement>(
+        '[aria-label="Store announcement"]',
+      );
+      const headerEl = document.querySelector<HTMLElement>("header");
+      const annH = annEl ? annEl.getBoundingClientRect().height : 0;
+      const headerH = headerEl ? headerEl.getBoundingClientRect().height : 0;
+      sec.style.setProperty("--ann-bar-h", `${annH}px`);
+      sec.style.setProperty("--site-header-h", `${headerH}px`);
+    };
+
+    syncHeights();
+
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(syncHeights)
+        : null;
+    const annEl = document.querySelector<HTMLElement>(
+      '[aria-label="Store announcement"]',
+    );
+    const headerEl = document.querySelector<HTMLElement>("header");
+    if (ro) {
+      if (annEl) ro.observe(annEl);
+      if (headerEl) ro.observe(headerEl);
+    }
+    window.addEventListener("resize", syncHeights);
+
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", syncHeights);
+    };
+  }, []);
+
   return (
-    <div className="mt-6 max-w-[60ch] border-t border-black/10 pt-5">
-      <h3 className="text-[18px] font-bold leading-snug text-black sm:text-[19px]">
+    <div>
+      <h2
+        style={{ fontSize: "clamp(20px, 2vw, 28px)" }}
+        className="font-extrabold leading-[1.2] tracking-tight text-black"
+      >
         <T
           ta={KALAIGNAR_ABOUT_COPY.heading.ta}
           en={KALAIGNAR_ABOUT_COPY.heading.en}
         />
-      </h3>
+      </h2>
 
-      <div className="mt-2.5 text-[17px] leading-[1.7] text-black/80">
+      <div aria-hidden="true" className="mt-2 h-1 w-12 rounded-full bg-brand-red" />
+
+      <div
+        style={{
+          fontSize: "clamp(15.5px, 1.1vw + 6px, 18px)",
+          lineHeight: 1.6,
+        }}
+        className="mt-3 text-black/80"
+      >
         <p>
           <T
             ta={KALAIGNAR_ABOUT_COPY.paragraph1.ta}
@@ -36,7 +87,7 @@ export default function KalaignarAboutBlock() {
 
         <p
           id={SECOND_PARA_ID}
-          className={expanded ? "mt-3 block" : "mt-3 hidden md:block"}
+          className={expanded ? "mt-[10px] block" : "mt-[10px] hidden md:block"}
         >
           <T
             ta={KALAIGNAR_ABOUT_COPY.paragraph2.ta}

@@ -24,11 +24,15 @@ export function splitBilingual(raw?: string | null, sep: "|" | "||" = "|"): [str
 export const LANG_BOOT_SCRIPT =
   "try{var l=localStorage.getItem('mp-lang');if(l==='en'||l==='ta')document.documentElement.lang=l}catch(e){}";
 
-/** Centralized bilingual copy for the home-page About Muthamizh Arignar Kalaignar block. */
+/** Centralized bilingual copy for the home-page Muthamizh Arignar Kalaignar portrait section. */
 export const KALAIGNAR_ABOUT_COPY = {
+  srOnlyHeading: {
+    ta: "கலைஞர் மற்றும் திராவிட இயக்கத் தமிழ் நூல்கள்",
+    en: "Kalaignar & Dravidian Movement Tamil Books",
+  },
   heading: {
-    ta: "முத்தமிழறிஞர் கலைஞர் பற்றி",
-    en: "About Muthamizh Arignar Kalaignar",
+    ta: "முத்தமிழறிஞர் கலைஞர்",
+    en: "Muthamizh Arignar Kalaignar",
   },
   paragraph1: {
     ta: "முத்தமிழறிஞர் கலைஞர் மு. கருணாநிதி, 1924 ஜூன் 3 அன்று இன்றைய நாகப்பட்டினம் மாவட்டத்தில் உள்ள திருக்குவளையில் பிறந்தார். எழுத்தாளராகவும் திரைக்கதை வசன ஆசிரியராகவும் தமது பயணத்தைத் தொடங்கினார். 1969 முதல் 2018 வரை திராவிட முன்னேற்றக் கழகத்தின் தலைவராக இருந்தார். தமிழ்நாட்டின் முதலமைச்சராக ஐந்து முறை பொறுப்பு வகித்தார்.",
@@ -45,5 +49,9 @@ export const KALAIGNAR_ABOUT_COPY = {
   readLess: {
     ta: "சுருக்குக",
     en: "Read less",
+  },
+  viewBooks: {
+    ta: "நூல்களைக் காண்க",
+    en: "View books",
   },
 } as const;

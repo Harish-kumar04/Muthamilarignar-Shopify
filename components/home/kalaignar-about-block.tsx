@@ -73,10 +73,10 @@ export default function KalaignarAboutBlock() {
 
       <div
         style={{
-          fontSize: "clamp(15.5px, 1.1vw + 6px, 18px)",
-          lineHeight: 1.6,
+          fontSize: "clamp(15px, 1vw + 4px, 17px)",
+          lineHeight: 1.58,
         }}
-        className="mt-3 text-black/80"
+        className="mt-3 max-w-[64ch] text-black/80"
       >
         <p>
           <T

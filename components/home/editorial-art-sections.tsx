@@ -17,15 +17,19 @@ const STALIN_ART_URL =
 const KALAIGNAR_SECTION_VARS: CSSProperties = {
   ["--kalaignar-sec-h" as string]:
     "calc(100svh - var(--ann-bar-h, 2rem) - var(--site-header-h, 6.125rem))",
+  ["--kalaignar-img-max-h" as string]:
+    "clamp(260px, calc(var(--kalaignar-sec-h) - 40px), 560px)",
+  ["--kalaignar-img-max-w" as string]:
+    "calc(var(--kalaignar-img-max-h) * 1120 / 1404)",
 };
 
 /**
  * Full-width editorial section showcasing Asset B (1120x1404 pencil portrait of Kalaignar)
  * alongside the bilingual "Muthamizh Arignar Kalaignar" biography and "View books" CTA.
  *
- * Desktop/tablet (`>=768px`): fits cleanly in one screen (`100svh` minus announcement bar
- * and sticky header via CSS variables), two vertically-centred columns (~40% portrait / ~60% text),
- * with portrait `max-height = section height - 32px` and `object-fit: contain`.
+ * Desktop/tablet (`>=768px`): uses `min-height: var(--kalaignar-sec-h)` so it fills one
+ * screen cleanly while expanding naturally on shorter/zoomed windows (never cropping the
+ * portrait or the "View books" button), with valid CSS `calc()` portrait `max-height` and `object-fit: contain`.
  * Mobile (`<768px`): stacked layout with Read more toggle.
  */
 export function KalaignarArtworkBanner() {
@@ -34,7 +38,7 @@ export function KalaignarArtworkBanner() {
       id="kalaignar-books-banner"
       aria-label="முத்தமிழறிஞர் கலைஞர் | Muthamizh Arignar Kalaignar"
       style={KALAIGNAR_SECTION_VARS}
-      className="pattern-red-dots relative overflow-hidden border-y border-black/[0.08] bg-white py-5 md:flex md:h-[var(--kalaignar-sec-h)] md:items-center md:py-4"
+      className="pattern-red-dots relative overflow-hidden border-y border-black/[0.08] bg-white py-6 md:flex md:min-h-[var(--kalaignar-sec-h)] md:items-center md:py-5"
     >
       <h1 className="sr-only">
         <T
@@ -45,25 +49,26 @@ export function KalaignarArtworkBanner() {
 
       <SunburstBackdrop position="right" />
 
-      <div className="container-site relative md:h-full">
-        <div className="grid grid-cols-1 items-center gap-6 md:h-full md:grid-cols-[40%_minmax(0,1fr)] md:gap-8 lg:gap-10">
-          {/* Portrait Artwork Column (~40% on desktop, max-height = section height - 32px, object-contain) */}
-          <div className="mx-auto flex w-full max-w-[320px] items-center justify-center sm:max-w-[360px] md:h-full md:max-w-none">
-            <Img
-              src={cloudinaryImageUrl(KALAIGNAR_SPEECH_ART_URL, 840)}
-              alt="மேடையில் ஒலிவாங்கி முன் உரையாற்றும் முத்தமிழறிஞர் கலைஞர் ஓவியம் | Pencil sketch illustration of Kalaignar speaking at a microphone"
-              width={1120}
-              height={1404}
-              sizes="(max-width: 767px) 84vw, 38vw"
-              className="h-auto w-auto max-w-full rounded-2xl border border-black/[0.08] bg-white p-1.5 object-contain shadow-card md:max-h-[calc(var(--kalaignar-sec-h)-32px)]"
-            />
+      <div className="container-site relative w-full">
+        <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-[40%_minmax(0,1fr)] md:gap-8 lg:gap-10">
+          {/* Portrait Artwork Column (~40% on desktop, max-height = section height - 40px, object-contain) */}
+          <div className="mx-auto flex w-full max-w-[300px] items-center justify-center sm:max-w-[340px] md:max-w-none">
+            <div className="relative aspect-[1120/1404] w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-card md:max-w-[var(--kalaignar-img-max-w)]">
+              <Img
+                src={cloudinaryImageUrl(KALAIGNAR_SPEECH_ART_URL, 840)}
+                alt="மேடையில் ஒலிவாங்கி முன் உரையாற்றும் முத்தமிழறிஞர் கலைஞர் ஓவியம் | Pencil sketch illustration of Kalaignar speaking at a microphone"
+                fill
+                sizes="(max-width: 767px) 320px, 38vw"
+                className="object-contain p-1.5"
+              />
+            </div>
           </div>
 
           {/* Biography + View Books Button (~60% on desktop, vertically centred) */}
           <div className="flex flex-col justify-center">
             <KalaignarAboutBlock />
 
-            <div className="mt-3.5 md:mt-4">
+            <div className="mt-4">
               <Link
                 href="/books"
                 prefetch={false}

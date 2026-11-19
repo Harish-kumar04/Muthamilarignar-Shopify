@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "test": "node --test scripts/test-hero-carousel.mjs",
     "verify:cart": "node scripts/verify-shopify-cart.mjs"
   },
   "dependencies": {

@@ -158,6 +158,21 @@ html:not([lang="en"]) .i18n-en {
   animation: pen-glide 1.2s ease-in-out infinite;
 }
 
+@keyframes hero-book-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -3px, 0);
+  }
+}
+
+.hero-book-float {
+  animation: hero-book-float 4.2s ease-in-out infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pen-ink {
     animation: none !important;
@@ -167,6 +182,15 @@ html:not([lang="en"]) .i18n-en {
   .pen-nib {
     animation: none !important;
     transform: none !important;
+  }
+  .hero-book-float {
+    animation: none !important;
+    transform: none !important;
+  }
+  .hero-carousel-fade {
+    transition-property: opacity !important;
+    transition-duration: 180ms !important;
+    transition-timing-function: ease-out !important;
   }
   *,
   *::before,

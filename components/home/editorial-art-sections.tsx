@@ -4,13 +4,17 @@ import { T } from "@/components/i18n/t";
 import { ArrowRightIcon } from "@/components/brand/icons";
 import { SunburstBackdrop } from "@/components/brand/patterns";
 import { KALAIGNAR_ABOUT_COPY } from "@/lib/i18n";
-import { cloudinaryImageUrl } from "@/lib/site-defaults";
+import { DEFAULT_LOGO_URL, cloudinaryImageUrl } from "@/lib/site-defaults";
 
 /** Pencil sketch of Kalaignar speaking at a microphone (intrinsic 1120x1404). */
 const KALAIGNAR_SPEECH_ART_URL =
   "https://res.cloudinary.com/dikaxqooz/image/upload/v1790526460/1_cavhvy.webp";
 
-/** Monochrome seated portrait sketch of Udhayanidhi Stalin (intrinsic 1122x1402). */
+/** Portrait illustration of M. K. Stalin (intrinsic 735x919, 4:5 ratio). */
+const STALIN_ART_URL =
+  "https://res.cloudinary.com/dikaxqooz/image/upload/v1794754146/M_K_Stalin_Art_fqp4fs.jpg";
+
+/** Monochrome seated portrait sketch of Udhayanidhi Stalin (intrinsic 1122x1402, 4:5 ratio). */
 const UDHAYANIDHI_SEATED_PORTRAIT_URL =
   "https://res.cloudinary.com/dikaxqooz/image/upload/v1795543292/Monochrome_Seated_Portrait_Sketch_sbtcsz.png";
 
@@ -64,26 +68,48 @@ function BlockHeading({ heading, role }: { heading: Bi; role?: Bi }) {
   );
 }
 
-function LeaderCard({ heading, role, body }: { heading: Bi; role?: Bi; body: Bi }) {
+function LeaderCard({
+  heading,
+  role,
+  body,
+  imageSrc,
+  imageAlt,
+}: {
+  heading: Bi;
+  role?: Bi;
+  body: Bi;
+  imageSrc?: string | null;
+  imageAlt?: string;
+}) {
   return (
-    <article className="min-w-0 rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7">
-      <BlockHeading heading={heading} role={role} />
-      <p className={`mt-3 ${BODY_TEXT_CLASS}`}>
-        <T ta={body.ta} en={body.en} />
-      </p>
+    <article className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-card">
+      {imageSrc ? (
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#FAFAFA]">
+          <Img
+            src={cloudinaryImageUrl(imageSrc, 800)}
+            alt={imageAlt || ""}
+            fill
+            sizes="(max-width: 767px) 90vw, 45vw"
+            className="object-cover object-top"
+          />
+        </div>
+      ) : null}
+      <div className="flex flex-1 flex-col p-5 sm:p-7">
+        <BlockHeading heading={heading} role={role} />
+        <p className={`mt-3 ${BODY_TEXT_CLASS}`}>
+          <T ta={body.ta} en={body.en} />
+        </p>
+      </div>
     </article>
   );
 }
 
-const STALIN_ART_URL =
-  "https://res.cloudinary.com/dikaxqooz/image/upload/v1794754146/M_K_Stalin_Art_fqp4fs.jpg";
-
 /**
  * Home-page About / leaders section (Server Component, zero client JS):
- * 1. Muthamizharignar Kalaignar — framed Kalaignar portrait beside the text (above it on mobile)
- * 2. Hon'ble M.K. Stalin and 3. Hon'ble Udhayanidhi Stalin — text cards (no images)
- * 4. Muthamizharignar Pathippagam — text beside a framed Udhayanidhi Stalin portrait (above it on mobile)
- * Height grows naturally with content; portraits are lazy-loaded (below the fold, never LCP).
+ * 1. Muthamizharignar Kalaignar — framed Kalaignar sketch beside text (above it on mobile)
+ * 2. Hon'ble M.K. Stalin & 3. Hon'ble Udhayanidhi Stalin — cards with 4:5 top photos
+ * 4. Muthamizharignar Pathippagam — text beside framed Pathipagam logo (above on mobile)
+ * Height grows naturally with content; all images are lazy-loaded (below the fold, never LCP).
  */
 export function KalaignarArtworkBanner() {
   const { kalaignar, stalin, udhayanidhi, pathippagam } = KALAIGNAR_ABOUT_COPY;
@@ -120,17 +146,25 @@ export function KalaignarArtworkBanner() {
           </div>
         </article>
 
-        {/* Blocks 2 & 3: Leaders (text only) */}
-        <div className="mt-10 grid grid-cols-1 gap-5 sm:mt-12 md:grid-cols-2 md:gap-6">
-          <LeaderCard heading={stalin.heading} role={stalin.role} body={stalin.body} />
+        {/* Blocks 2 & 3: Leaders (4:5 top photo, aligned height) */}
+        <div className="mt-10 grid grid-cols-1 items-stretch gap-5 sm:mt-12 md:grid-cols-2 md:gap-6">
+          <LeaderCard
+            heading={stalin.heading}
+            role={stalin.role}
+            body={stalin.body}
+            imageSrc={STALIN_ART_URL}
+            imageAlt="மாண்புமிகு மு.க.ஸ்டாலின் / M.K. Stalin"
+          />
           <LeaderCard
             heading={udhayanidhi.heading}
             role={udhayanidhi.role}
             body={udhayanidhi.body}
+            imageSrc={UDHAYANIDHI_SEATED_PORTRAIT_URL}
+            imageAlt="மாண்புமிகு உதயநிதி ஸ்டாலின் / Udhayanidhi Stalin"
           />
         </div>
 
-        {/* Block 4: Muthamizharignar Pathippagam — text beside Udhayanidhi Stalin portrait (portrait above text on mobile) */}
+        {/* Block 4: Muthamizharignar Pathippagam — text beside Pathipagam logo card (logo above text on mobile) */}
         <article className="mt-5 grid grid-cols-1 items-center gap-6 rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7 md:mt-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-10 lg:gap-12">
           <div className="min-w-0 md:order-1">
             <BlockHeading heading={pathippagam.heading} />
@@ -139,12 +173,19 @@ export function KalaignarArtworkBanner() {
             </p>
           </div>
 
-          <PortraitFrame
-            src={UDHAYANIDHI_SEATED_PORTRAIT_URL}
-            alt={pathippagam.imageAlt}
-            aspectClass="aspect-[1122/1402]"
-            className="order-first md:order-2"
-          />
+          <div className="mx-auto w-full max-w-[300px] sm:max-w-[340px] md:max-w-[400px] order-first md:order-2">
+            <div className="relative aspect-[1122/1402] w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-6 sm:p-8 shadow-card flex items-center justify-center">
+              <div className="relative h-full w-full">
+                <Img
+                  src={cloudinaryImageUrl(DEFAULT_LOGO_URL, 800)}
+                  alt="முத்தமிழறிஞர் பதிப்பகம் / Muthamizharignar Pathippagam logo"
+                  fill
+                  sizes="(max-width: 640px) 300px, (max-width: 767px) 340px, 400px"
+                  className="object-contain"
+                />
+              </div>
+            </div>
+          </div>
         </article>
 
         <div className="mt-8">

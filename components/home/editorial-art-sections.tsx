@@ -1,44 +1,65 @@
-import type { CSSProperties } from "react";
 import Link from "next/link";
 import Img from "@/components/ui/img";
 import { T } from "@/components/i18n/t";
 import { ArrowRightIcon } from "@/components/brand/icons";
 import { SunburstBackdrop } from "@/components/brand/patterns";
-import KalaignarAboutBlock from "@/components/home/kalaignar-about-block";
 import { KALAIGNAR_ABOUT_COPY } from "@/lib/i18n";
 import { cloudinaryImageUrl } from "@/lib/site-defaults";
 
-const KALAIGNAR_SPEECH_ART_URL =
-  "https://res.cloudinary.com/dikaxqooz/image/upload/v1790526460/1_cavhvy.webp";
+/** Monochrome seated portrait sketch of Kalaignar (intrinsic 1122x1402). */
+const KALAIGNAR_SEATED_PORTRAIT_URL =
+  "https://res.cloudinary.com/dikaxqooz/image/upload/v1795543292/Monochrome_Seated_Portrait_Sketch_sbtcsz.png";
+
+type Bi = { readonly ta: string; readonly en: string };
+
+const BODY_TEXT_CLASS =
+  "text-[16px] leading-[1.7] text-black/80 sm:text-[17px] [&_.i18n-ta]:text-[17px]";
+
+function BlockHeading({ heading, role }: { heading: Bi; role?: Bi }) {
+  return (
+    <>
+      <h2 className="text-[22px] font-extrabold leading-[1.25] tracking-tight text-black sm:text-[26px]">
+        <T ta={heading.ta} en={heading.en} />
+      </h2>
+      {role && (
+        <p className="mt-1 text-[14.5px] font-bold text-brand-red-dark sm:text-[15px]">
+          <T ta={role.ta} en={role.en} />
+        </p>
+      )}
+      <div aria-hidden="true" className="mt-2.5 h-1 w-12 rounded-full bg-brand-red" />
+    </>
+  );
+}
+
+function LeaderCard({ heading, role, body }: { heading: Bi; role?: Bi; body: Bi }) {
+  return (
+    <article className="min-w-0 rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7">
+      <BlockHeading heading={heading} role={role} />
+      <p className={`mt-3 ${BODY_TEXT_CLASS}`}>
+        <T ta={body.ta} en={body.en} />
+      </p>
+    </article>
+  );
+}
 
 const STALIN_ART_URL =
   "https://res.cloudinary.com/dikaxqooz/image/upload/v1794754146/M_K_Stalin_Art_fqp4fs.jpg";
 
-const KALAIGNAR_SECTION_VARS: CSSProperties = {
-  ["--kalaignar-sec-h" as string]:
-    "calc(100svh - var(--ann-bar-h, 2rem) - var(--site-header-h, 6.125rem))",
-  ["--kalaignar-img-max-h" as string]:
-    "clamp(260px, calc(var(--kalaignar-sec-h) - 40px), 560px)",
-  ["--kalaignar-img-max-w" as string]:
-    "calc(var(--kalaignar-img-max-h) * 1120 / 1404)",
-};
-
 /**
- * Full-width editorial section showcasing Asset B (1120x1404 pencil portrait of Kalaignar)
- * alongside the bilingual "Muthamizh Arignar Kalaignar" biography and "View books" CTA.
- *
- * Desktop/tablet (`>=768px`): uses `min-height: var(--kalaignar-sec-h)` so it fills one
- * screen cleanly while expanding naturally on shorter/zoomed windows (never cropping the
- * portrait or the "View books" button), with valid CSS `calc()` portrait `max-height` and `object-fit: contain`.
- * Mobile (`<768px`): stacked layout with Read more toggle.
+ * Home-page About / leaders section (Server Component, zero client JS):
+ * 1. Muthamizharignar Kalaignar — text beside a framed monochrome portrait (portrait above text on mobile)
+ * 2. Hon'ble M.K. Stalin and 3. Hon'ble Udhayanidhi Stalin — text cards (no images)
+ * 4. Muthamizharignar Pathippagam — full-width text card
+ * Height grows naturally with content; the portrait is lazy-loaded (below the fold, never LCP).
  */
 export function KalaignarArtworkBanner() {
+  const { kalaignar, stalin, udhayanidhi, pathippagam } = KALAIGNAR_ABOUT_COPY;
+
   return (
     <section
       id="kalaignar-books-banner"
-      aria-label="முத்தமிழறிஞர் கலைஞர் | Muthamizh Arignar Kalaignar"
-      style={KALAIGNAR_SECTION_VARS}
-      className="pattern-red-dots relative overflow-hidden border-y border-black/[0.08] bg-white py-6 md:flex md:min-h-[var(--kalaignar-sec-h)] md:items-center md:py-5"
+      aria-label="முத்தமிழறிஞர் கலைஞர் | Muthamizharignar Kalaignar"
+      className="pattern-red-dots relative overflow-hidden border-y border-black/[0.08] bg-white py-10 sm:py-14"
     >
       <h1 className="sr-only">
         <T
@@ -49,39 +70,56 @@ export function KalaignarArtworkBanner() {
 
       <SunburstBackdrop position="right" />
 
-      <div className="container-site relative w-full">
-        <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-[40%_minmax(0,1fr)] md:gap-8 lg:gap-10">
-          {/* Portrait Artwork Column (~40% on desktop, max-height = section height - 40px, object-contain) */}
-          <div className="mx-auto flex w-full max-w-[300px] items-center justify-center sm:max-w-[340px] md:max-w-none">
-            <div className="relative aspect-[1120/1404] w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-card md:max-w-[var(--kalaignar-img-max-w)]">
+      <div className="container-site relative">
+        {/* Block 1: Kalaignar — framed portrait beside text (desktop), above text (mobile) */}
+        <article className="grid grid-cols-1 items-center gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-10 lg:gap-12">
+          <div className="mx-auto w-full max-w-[300px] sm:max-w-[340px] md:max-w-[400px]">
+            <div className="relative aspect-[1122/1402] w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-card">
               <Img
-                src={cloudinaryImageUrl(KALAIGNAR_SPEECH_ART_URL, 840)}
-                alt="மேடையில் ஒலிவாங்கி முன் உரையாற்றும் முத்தமிழறிஞர் கலைஞர் ஓவியம் | Pencil sketch illustration of Kalaignar speaking at a microphone"
+                src={cloudinaryImageUrl(KALAIGNAR_SEATED_PORTRAIT_URL, 800)}
+                alt={`${kalaignar.imageAlt.ta} / ${kalaignar.imageAlt.en}`}
                 fill
-                sizes="(max-width: 767px) 320px, 38vw"
+                sizes="(max-width: 640px) 300px, (max-width: 767px) 340px, 400px"
                 className="object-contain p-1.5"
               />
             </div>
           </div>
 
-          {/* Biography + View Books Button (~60% on desktop, vertically centred) */}
-          <div className="flex flex-col justify-center">
-            <KalaignarAboutBlock />
-
-            <div className="mt-4">
-              <Link
-                href="/books"
-                prefetch={false}
-                className="btn-red h-11 px-6 text-[15px] shadow-glow"
-              >
-                <T
-                  ta={KALAIGNAR_ABOUT_COPY.viewBooks.ta}
-                  en={KALAIGNAR_ABOUT_COPY.viewBooks.en}
-                />
-                <ArrowRightIcon className="h-4 w-4" />
-              </Link>
-            </div>
+          <div className="min-w-0">
+            <BlockHeading heading={kalaignar.heading} />
+            <p className={`mt-3 max-w-[68ch] ${BODY_TEXT_CLASS}`}>
+              <T ta={kalaignar.body.ta} en={kalaignar.body.en} />
+            </p>
           </div>
+        </article>
+
+        {/* Blocks 2 & 3: Leaders (text only) */}
+        <div className="mt-10 grid grid-cols-1 gap-5 sm:mt-12 md:grid-cols-2 md:gap-6">
+          <LeaderCard heading={stalin.heading} role={stalin.role} body={stalin.body} />
+          <LeaderCard
+            heading={udhayanidhi.heading}
+            role={udhayanidhi.role}
+            body={udhayanidhi.body}
+          />
+        </div>
+
+        {/* Block 4: Muthamizharignar Pathippagam */}
+        <div className="mt-5 md:mt-6">
+          <LeaderCard heading={pathippagam.heading} body={pathippagam.body} />
+        </div>
+
+        <div className="mt-8">
+          <Link
+            href="/books"
+            prefetch={false}
+            className="btn-red h-11 px-6 text-[15px] shadow-glow"
+          >
+            <T
+              ta={KALAIGNAR_ABOUT_COPY.viewBooks.ta}
+              en={KALAIGNAR_ABOUT_COPY.viewBooks.en}
+            />
+            <ArrowRightIcon className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </section>

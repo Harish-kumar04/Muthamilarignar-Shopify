@@ -8,7 +8,6 @@ import CategoryTiles from "@/components/home/category-tiles";
 import TabbedBooks from "@/components/home/tabbed-books";
 import {
   DarkBrandBannerStrip,
-  DravidianLegacyFeature,
   KalaignarArtworkBanner,
 } from "@/components/home/editorial-art-sections";
 import PublisherStory from "@/components/home/publisher-story";
@@ -16,7 +15,6 @@ import Testimonials from "@/components/home/testimonials";
 import FaqSection from "@/components/home/faq-section";
 import { NewsletterSection } from "@/components/home/why-newsletter";
 import {
-  DiagonalStripeDivider,
   SectionHeading,
   SunburstBackdrop,
 } from "@/components/brand/patterns";
@@ -293,12 +291,7 @@ export default async function HomePage() {
       {/* 8. Short "About the publisher / முத்தமிழறிஞர் பதிப்பகம்" Strip (Asset A once) */}
       <PublisherStory logoUrl={logoUrl} />
 
-      {/* 9. "Kalaignar legacy / திராவிட இயக்க மரபு" Feature Section (Asset C: M. K. Stalin Art) */}
-      <DravidianLegacyFeature />
-
-      <DiagonalStripeDivider />
-
-      {/* 10. Reader Testimonials */}
+      {/* 9. Reader Testimonials */}
       <Testimonials />
 
       {/* 11. Crawlable 6-Question FAQ Section + Matching FAQPage JSON-LD */}

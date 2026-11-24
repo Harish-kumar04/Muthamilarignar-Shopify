@@ -82,10 +82,10 @@ function LeaderCard({
   imageAlt?: string;
 }) {
   return (
-    <article className="flex min-w-0 flex-col rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7">
+    <article className="grid grid-cols-1 items-center gap-6 rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-10 lg:gap-12">
       {imageSrc ? (
-        <div className="mb-5 flex justify-center">
-          <div className="relative aspect-[4/5] w-full max-w-[260px] overflow-hidden rounded-2xl border border-black/[0.08] bg-[#FAFAFA] md:max-w-[320px]">
+        <div className="order-first mx-auto w-full max-w-[260px] md:order-1 md:max-w-[320px]">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-[#FAFAFA]">
             <Img
               src={cloudinaryImageUrl(imageSrc, 640)}
               alt={imageAlt || ""}
@@ -96,9 +96,9 @@ function LeaderCard({
           </div>
         </div>
       ) : null}
-      <div className="flex flex-1 flex-col">
+      <div className="min-w-0 md:order-2">
         <BlockHeading heading={heading} role={role} />
-        <p className={`mt-3 ${BODY_TEXT_CLASS}`}>
+        <p className={`mt-3 max-w-[68ch] ${BODY_TEXT_CLASS}`}>
           <T ta={body.ta} en={body.en} />
         </p>
       </div>
@@ -148,8 +148,8 @@ export function KalaignarArtworkBanner() {
           </div>
         </article>
 
-        {/* Blocks 2 & 3: Leaders (4:5 top photo, aligned height) */}
-        <div className="mt-10 grid grid-cols-1 items-stretch gap-5 sm:mt-12 md:grid-cols-2 md:gap-6">
+        {/* Blocks 2 & 3: Leaders (one by one) */}
+        <div className="mt-5 flex flex-col gap-5 sm:gap-6 md:mt-6">
           <LeaderCard
             heading={stalin.heading}
             role={stalin.role}

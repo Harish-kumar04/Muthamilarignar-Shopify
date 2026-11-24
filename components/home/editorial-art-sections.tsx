@@ -6,14 +6,47 @@ import { SunburstBackdrop } from "@/components/brand/patterns";
 import { KALAIGNAR_ABOUT_COPY } from "@/lib/i18n";
 import { cloudinaryImageUrl } from "@/lib/site-defaults";
 
-/** Monochrome seated portrait sketch of Kalaignar (intrinsic 1122x1402). */
-const KALAIGNAR_SEATED_PORTRAIT_URL =
+/** Pencil sketch of Kalaignar speaking at a microphone (intrinsic 1120x1404). */
+const KALAIGNAR_SPEECH_ART_URL =
+  "https://res.cloudinary.com/dikaxqooz/image/upload/v1790526460/1_cavhvy.webp";
+
+/** Monochrome seated portrait sketch of Udhayanidhi Stalin (intrinsic 1122x1402). */
+const UDHAYANIDHI_SEATED_PORTRAIT_URL =
   "https://res.cloudinary.com/dikaxqooz/image/upload/v1795543292/Monochrome_Seated_Portrait_Sketch_sbtcsz.png";
 
 type Bi = { readonly ta: string; readonly en: string };
 
 const BODY_TEXT_CLASS =
   "text-[16px] leading-[1.7] text-black/80 sm:text-[17px] [&_.i18n-ta]:text-[17px]";
+
+/** Framed, lazy-loaded monochrome portrait with a reserved aspect ratio (no layout shift). */
+function PortraitFrame({
+  src,
+  alt,
+  aspectClass,
+  className = "",
+}: {
+  src: string;
+  alt: Bi;
+  aspectClass: string;
+  className?: string;
+}) {
+  return (
+    <div className={`mx-auto w-full max-w-[300px] sm:max-w-[340px] md:max-w-[400px] ${className}`}>
+      <div
+        className={`relative ${aspectClass} w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-card`}
+      >
+        <Img
+          src={cloudinaryImageUrl(src, 800)}
+          alt={`${alt.ta} / ${alt.en}`}
+          fill
+          sizes="(max-width: 640px) 300px, (max-width: 767px) 340px, 400px"
+          className="object-contain p-1.5"
+        />
+      </div>
+    </div>
+  );
+}
 
 function BlockHeading({ heading, role }: { heading: Bi; role?: Bi }) {
   return (
@@ -47,10 +80,10 @@ const STALIN_ART_URL =
 
 /**
  * Home-page About / leaders section (Server Component, zero client JS):
- * 1. Muthamizharignar Kalaignar — text beside a framed monochrome portrait (portrait above text on mobile)
+ * 1. Muthamizharignar Kalaignar — framed Kalaignar portrait beside the text (above it on mobile)
  * 2. Hon'ble M.K. Stalin and 3. Hon'ble Udhayanidhi Stalin — text cards (no images)
- * 4. Muthamizharignar Pathippagam — full-width text card
- * Height grows naturally with content; the portrait is lazy-loaded (below the fold, never LCP).
+ * 4. Muthamizharignar Pathippagam — text beside a framed Udhayanidhi Stalin portrait (above it on mobile)
+ * Height grows naturally with content; portraits are lazy-loaded (below the fold, never LCP).
  */
 export function KalaignarArtworkBanner() {
   const { kalaignar, stalin, udhayanidhi, pathippagam } = KALAIGNAR_ABOUT_COPY;
@@ -73,17 +106,11 @@ export function KalaignarArtworkBanner() {
       <div className="container-site relative">
         {/* Block 1: Kalaignar — framed portrait beside text (desktop), above text (mobile) */}
         <article className="grid grid-cols-1 items-center gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-10 lg:gap-12">
-          <div className="mx-auto w-full max-w-[300px] sm:max-w-[340px] md:max-w-[400px]">
-            <div className="relative aspect-[1122/1402] w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-card">
-              <Img
-                src={cloudinaryImageUrl(KALAIGNAR_SEATED_PORTRAIT_URL, 800)}
-                alt={`${kalaignar.imageAlt.ta} / ${kalaignar.imageAlt.en}`}
-                fill
-                sizes="(max-width: 640px) 300px, (max-width: 767px) 340px, 400px"
-                className="object-contain p-1.5"
-              />
-            </div>
-          </div>
+          <PortraitFrame
+            src={KALAIGNAR_SPEECH_ART_URL}
+            alt={kalaignar.imageAlt}
+            aspectClass="aspect-[1120/1404]"
+          />
 
           <div className="min-w-0">
             <BlockHeading heading={kalaignar.heading} />
@@ -103,10 +130,22 @@ export function KalaignarArtworkBanner() {
           />
         </div>
 
-        {/* Block 4: Muthamizharignar Pathippagam */}
-        <div className="mt-5 md:mt-6">
-          <LeaderCard heading={pathippagam.heading} body={pathippagam.body} />
-        </div>
+        {/* Block 4: Muthamizharignar Pathippagam — text beside Udhayanidhi Stalin portrait (portrait above text on mobile) */}
+        <article className="mt-5 grid grid-cols-1 items-center gap-6 rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7 md:mt-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-10 lg:gap-12">
+          <div className="min-w-0 md:order-1">
+            <BlockHeading heading={pathippagam.heading} />
+            <p className={`mt-3 max-w-[68ch] ${BODY_TEXT_CLASS}`}>
+              <T ta={pathippagam.body.ta} en={pathippagam.body.en} />
+            </p>
+          </div>
+
+          <PortraitFrame
+            src={UDHAYANIDHI_SEATED_PORTRAIT_URL}
+            alt={pathippagam.imageAlt}
+            aspectClass="aspect-[1122/1402]"
+            className="order-first md:order-2"
+          />
+        </article>
 
         <div className="mt-8">
           <Link

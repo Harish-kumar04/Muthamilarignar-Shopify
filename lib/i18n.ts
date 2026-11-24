@@ -81,6 +81,10 @@ export const KALAIGNAR_ABOUT_COPY = {
       ta: "திராவிட முன்னேற்றக் கழக இளைஞர் அணியின் பதிப்பகம். உதயநிதி ஸ்டாலின் தலைமையில், கழக இளைஞர் அணி முன்னெடுத்துள்ள முக்கியமான கருத்தியல் முயற்சி. 2023-ஆம் ஆண்டு தைத் திருநாள் அன்று, கழகத் தலைவர் அவர்களால் தொடங்கிவைக்கப்பட்டது. திராவிட இயக்க வரலாறு, சமூக நீதி, இடஒதுக்கீடு, மொழியுரிமை, மாநில சுயாட்சி, திராவிட மாடல் உள்ளிட்ட கருத்துகளை இளைய தலைமுறையிடம் கொண்டுசேர்க்கும் நோக்கில் செயல்படுகிறது. திராவிட இயக்கக் கொள்கைகள், வரலாறு, அரசியல் தொடர்பான நூல்களை வெளியிட்டுவருகிறது.",
       en: "The publishing house of the Dravida Munnetra Kazhagam Youth Wing, an important ideological initiative taken up by the Youth Wing under the leadership of Udhayanidhi Stalin. It was launched on Thai Thirunaal in 2023 by the party President. It works to take ideas such as Dravidian movement history, social justice, reservation, language rights, state autonomy and the Dravidian Model to the younger generation, and publishes books on Dravidian movement principles, history and politics.",
     },
+    imageAlt: {
+      ta: "உதயநிதி ஸ்டாலின்",
+      en: "Udhayanidhi Stalin",
+    },
   },
   viewBooks: {
     ta: "நூல்களைக் காண்க",

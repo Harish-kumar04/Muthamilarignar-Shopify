@@ -82,19 +82,21 @@ function LeaderCard({
   imageAlt?: string;
 }) {
   return (
-    <article className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-card">
+    <article className="flex min-w-0 flex-col rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7">
       {imageSrc ? (
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#FAFAFA]">
-          <Img
-            src={cloudinaryImageUrl(imageSrc, 800)}
-            alt={imageAlt || ""}
-            fill
-            sizes="(max-width: 767px) 90vw, 45vw"
-            className="object-cover object-top"
-          />
+        <div className="mb-5 flex justify-center">
+          <div className="relative aspect-[4/5] w-full max-w-[260px] overflow-hidden rounded-2xl border border-black/[0.08] bg-[#FAFAFA] md:max-w-[320px]">
+            <Img
+              src={cloudinaryImageUrl(imageSrc, 640)}
+              alt={imageAlt || ""}
+              fill
+              sizes="(max-width: 768px) 260px, 320px"
+              className="object-contain object-center p-1.5"
+            />
+          </div>
         </div>
       ) : null}
-      <div className="flex flex-1 flex-col p-5 sm:p-7">
+      <div className="flex flex-1 flex-col">
         <BlockHeading heading={heading} role={role} />
         <p className={`mt-3 ${BODY_TEXT_CLASS}`}>
           <T ta={body.ta} en={body.en} />
@@ -173,15 +175,15 @@ export function KalaignarArtworkBanner() {
             </p>
           </div>
 
-          <div className="mx-auto w-full max-w-[300px] sm:max-w-[340px] md:max-w-[400px] order-first md:order-2">
-            <div className="relative aspect-[1122/1402] w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-6 sm:p-8 shadow-card flex items-center justify-center">
+          <div className="order-first mx-auto w-full max-w-[260px] md:order-2 md:max-w-[320px]">
+            <div className="relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-6 shadow-card sm:p-8">
               <div className="relative h-full w-full">
                 <Img
-                  src={cloudinaryImageUrl(DEFAULT_LOGO_URL, 800)}
+                  src={cloudinaryImageUrl(DEFAULT_LOGO_URL, 640)}
                   alt="முத்தமிழறிஞர் பதிப்பகம் / Muthamizharignar Pathippagam logo"
                   fill
-                  sizes="(max-width: 640px) 300px, (max-width: 767px) 340px, 400px"
-                  className="object-contain"
+                  sizes="(max-width: 768px) 260px, 320px"
+                  className="object-contain object-center"
                 />
               </div>
             </div>

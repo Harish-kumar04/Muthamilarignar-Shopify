@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BiName, T } from "../i18n/t";
 
-/** Trust strip showing only real features: Cash on Delivery, Secure online payment. */
+/** Trust strip showing only real features: Cash on Delivery, safe packaging, official editions, fast delivery. */
 export function TrustBar() {
   const items = [
     {
@@ -18,13 +18,13 @@ export function TrustBar() {
     {
       icon: (
         <svg className="h-6 w-6 text-brand-red flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       ),
-      ta: "பாதுகாப்பான இணையப் பரிவர்த்தனை",
-      en: "Secure Online Payment",
-      sub_ta: "UPI, ஜிபே, வங்கி அட்டை & நெட் பேங்கிங்",
-      sub_en: "UPI, Cards, Net Banking via Razorpay",
+      ta: "பாதுகாப்பான பேக்கேஜிங்",
+      en: "Safe, Protective Packaging",
+      sub_ta: "நூல்கள் சேதமடையாமல் பாதுகாப்பாக வரும்",
+      sub_en: "Damage-free, tamper-proof delivery",
     },
     {
       icon: (

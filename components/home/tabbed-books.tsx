@@ -35,15 +35,15 @@ export default function TabbedBooks({
     },
     {
       key: "bestsellers",
-      ta: "சிறந்த விற்பனை",
-      en: "Best Sellers",
+      ta: "முக்கிய வெளியீடுகள்",
+      en: "Essential Titles",
       href: "/books",
     },
     {
       key: "kalaignar",
-      ta: "கலைஞர் படைப்புகள்",
-      en: "Kalaignar Works",
-      href: "/categories/kalaignar-works",
+      ta: "கலைஞர் குறித்த நூல்கள்",
+      en: "Books on Kalaignar",
+      href: "/books",
     },
   ];
 

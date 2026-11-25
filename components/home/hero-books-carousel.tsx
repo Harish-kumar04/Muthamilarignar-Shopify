@@ -24,6 +24,7 @@ import {
   prevSlideIndex,
   type CarouselSlot,
 } from "@/lib/hero-book-carousel";
+import { isFeaturedBook } from "@/lib/featured-book";
 import { splitBilingual } from "@/lib/i18n";
 
 const AUTOPLAY_MS = 4000;
@@ -302,7 +303,7 @@ export default function HeroBooksCarousel({
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onKeyDown={handleKeyDown}
-      className="relative mx-auto w-full max-w-[440px] select-none touch-pan-y sm:max-w-[480px] lg:max-w-[520px]"
+      className="relative mx-auto w-full max-w-[27.5rem] select-none touch-pan-y sm:max-w-[30rem] lg:max-w-[32.5rem]"
     >
       {/* Fixed aspect-ratio stage reserves space upfront (zero CLS) */}
       <div className="relative aspect-[10/8.7] w-full sm:aspect-[10/8.3]">
@@ -317,16 +318,16 @@ export default function HeroBooksCarousel({
         />
 
         {/* Revolutionary Red Arch Backdrop (stationary) */}
-        <HeroRedArch className="absolute inset-x-0 bottom-1 mx-auto h-[83%] w-full max-w-[450px]" />
+        <HeroRedArch className="absolute inset-x-0 bottom-1 mx-auto h-[83%] w-full max-w-[28.125rem]" />
 
-        {/* Floating Chip 1 (Top-Left): Best Seller — updates & cross-fades with front book */}
+        {/* Floating Chip 1 (Top-Left): updates & cross-fades with front book */}
         <Link
           href={activeHref}
           prefetch={false}
           onClick={(e) => {
             if (didDragRef.current) e.preventDefault();
           }}
-          className="hero-carousel-fade absolute left-0 top-1 z-30 flex min-h-[44px] max-w-[208px] items-center gap-2 rounded-2xl border border-black/10 bg-white px-3 py-2 shadow-lg transition-[transform,opacity] duration-300 hover:-translate-y-0.5 sm:left-2 sm:top-3 sm:max-w-[232px] sm:px-3.5 sm:py-2.5"
+          className="hero-carousel-fade absolute left-0 top-1 z-30 flex min-h-[44px] max-w-[13rem] items-center gap-2 rounded-2xl border border-black/10 bg-white px-3 py-2 shadow-lg transition-[transform,opacity] duration-300 hover:-translate-y-0.5 sm:left-2 sm:top-3 sm:max-w-[14.5rem] sm:px-3.5 sm:py-2.5"
         >
           <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#D11D1A] text-white">
             <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
@@ -334,8 +335,12 @@ export default function HeroBooksCarousel({
             </svg>
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[10.5px] font-extrabold uppercase tracking-wider text-brand-red-dark">
-              <T ta="சிறந்த வெளியீடு" en="Best Seller" />
+            <p className="text-[0.65625rem] font-extrabold uppercase tracking-wider text-brand-red-dark">
+              {isFeaturedBook(activeBook) ? (
+                <T ta="சிறப்பு நூல்" en="Featured Title" />
+              ) : (
+                <T ta="அதிகாரப்பூர்வப் பதிப்பு" en="Official Edition" />
+              )}
             </p>
             <div className="grid grid-cols-1 grid-rows-1">
               {books.map((book, idx) => {

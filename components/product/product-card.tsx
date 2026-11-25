@@ -204,19 +204,19 @@ export default function ProductCard({
       <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4">
         <div>
           <Link href={bookHref} prefetch={false}>
-            <h3 className="line-clamp-2 text-[14.5px] font-bold leading-snug text-black transition-colors group-hover:text-brand-red-dark sm:text-[15.5px]">
+            <h3 className="line-clamp-2 text-[0.90625rem] font-bold leading-snug text-black transition-colors group-hover:text-brand-red-dark sm:text-[0.96875rem]">
               <BiName value={product.name} />
             </h3>
           </Link>
 
           {hasDistinctSub && (
-            <p className="mt-0.5 line-clamp-1 text-[12px] font-medium text-black/65">
+            <p className="mt-0.5 line-clamp-1 text-[0.75rem] font-medium text-black/65">
               <BiSubName value={product.name} />
             </p>
           )}
 
           {product.author && (
-            <p className="mt-1 line-clamp-1 text-[11.5px] text-black/60">{product.author}</p>
+            <p className="mt-1 line-clamp-1 text-[0.71875rem] text-black/60">{product.author}</p>
           )}
 
           {/* Optional Real Rating */}
@@ -237,11 +237,11 @@ export default function ProductCard({
           {/* Price + Stock Badge Row */}
           <div className="flex flex-wrap items-baseline justify-between gap-1.5">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-[19px] font-extrabold text-brand-red sm:text-[20px]">
+              <span className="text-[1.1875rem] font-extrabold text-brand-red sm:text-[1.25rem]">
                 {rupees(price)}
               </span>
               {onSale && (
-                <span className="text-[12.5px] font-medium text-black/55 line-through">
+                <span className="text-[0.78125rem] font-medium text-black/55 line-through">
                   {rupees(product.price_cents)}
                 </span>
               )}

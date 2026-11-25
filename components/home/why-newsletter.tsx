@@ -10,10 +10,10 @@ const REASONS = [
     den: "Every book comes straight from Muthamilarignar Pathipagam, with original cover art and archival print quality.",
   },
   {
-    ta: "பாதுகாப்பான கட்டணம்",
-    en: "Secure checkout & COD",
-    dta: "UPI, கார்டு, நெட்பேங்கிங் அல்லது புத்தகம் வரும்போது பணம் செலுத்தும் வசதி (COD).",
-    den: "Pay by UPI, card or net banking — or cash on delivery.",
+    ta: "ரொக்கப் பணம் செலுத்தும் வசதி (COD)",
+    en: "Cash on Delivery (COD)",
+    dta: "புத்தகம் உங்கள் இல்லம் வந்து சேர்ந்தவுடன் பணம் செலுத்தும் வசதி (COD).",
+    den: "Pay safely at your doorstep with Cash on Delivery (COD).",
   },
   {
     ta: "இந்தியா முழுவதும் விநியோகம்",

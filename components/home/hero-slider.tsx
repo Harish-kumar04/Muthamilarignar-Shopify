@@ -57,20 +57,20 @@ function SlideCta({ slide, className }: { slide: SlideView; className: string })
 function SlideText({ slide }: { slide: SlideView }) {
   return (
     <div className="max-w-xl">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#D11D1A] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
-        <T ta="சிறப்புச் சலுகை" en="Publisher Highlight" />
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#D11D1A] px-3 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-white">
+        <T ta="சிறப்புத் தொகுப்பு" en="Featured Collection" />
       </span>
       {(slide.title_ta || slide.title_en) && (
-        <h2 className="mt-3 text-[26px] font-extrabold leading-[1.15] tracking-tight text-black sm:text-[36px] lg:text-[44px]">
+        <h2 className="mt-3 text-[1.625rem] font-extrabold leading-[1.15] tracking-tight text-black sm:text-[2.25rem] lg:text-[2.75rem]">
           <T ta={slide.title_ta || slide.title_en} en={slide.title_en || slide.title_ta} />
         </h2>
       )}
       {(slide.subtitle_ta || slide.subtitle_en) && (
-        <p className="mt-3 text-[15px] leading-relaxed text-black/75 sm:text-[17px]">
+        <p className="mt-3 text-[0.9375rem] leading-relaxed text-black/75 sm:text-[1.0625rem]">
           <T ta={slide.subtitle_ta || slide.subtitle_en} en={slide.subtitle_en || slide.subtitle_ta} />
         </p>
       )}
-      <SlideCta slide={slide} className="btn-black mt-6 h-12 px-7 text-[14.5px]" />
+      <SlideCta slide={slide} className="btn-black mt-6 h-12 px-7 text-[0.90625rem]" />
     </div>
   );
 }
@@ -78,9 +78,10 @@ function SlideText({ slide }: { slide: SlideView }) {
 function BrandSlide({ slide }: { slide: SlideView }) {
   const covers = slide.covers ?? [];
   const tilt = ["-rotate-6 translate-y-4", "z-10 scale-105", "rotate-6 translate-y-4"];
+  const coverHref = slide.href || "/books";
   return (
     <div className="pattern-red-dots relative h-full w-full bg-[#FAFAFA]">
-      <Sunburst className="pointer-events-none absolute -bottom-2 right-[5%] w-[640px] max-w-none opacity-[0.06]" />
+      <Sunburst className="pointer-events-none absolute -bottom-2 right-[5%] w-[40rem] max-w-none opacity-[0.06]" />
       <div className="container-site relative flex h-full items-center pb-10">
         <div className="grid w-full grid-cols-1 items-center gap-8 lg:grid-cols-12">
           <div className="lg:col-span-6">
@@ -89,9 +90,12 @@ function BrandSlide({ slide }: { slide: SlideView }) {
           {covers.length > 0 && (
             <div className="hidden items-end justify-center lg:col-span-6 lg:flex">
               {covers.slice(0, 3).map((c, i) => (
-                <div
+                <Link
                   key={c.src}
-                  className={`relative -mx-3 aspect-[3/4] w-[165px] overflow-hidden rounded-xl border-2 border-white bg-white shadow-glow-lg ${tilt[i] ?? ""}`}
+                  href={coverHref}
+                  prefetch={false}
+                  aria-label={c.alt || "Featured book cover"}
+                  className={`relative -mx-3 aspect-[3/4] w-[10rem] overflow-hidden rounded-xl border-2 border-white bg-white shadow-glow-lg transition-transform hover:scale-105 ${tilt[i] ?? ""}`}
                 >
                   <Img
                     src={c.src}
@@ -100,7 +104,7 @@ function BrandSlide({ slide }: { slide: SlideView }) {
                     sizes="170px"
                     className="object-cover"
                   />
-                </div>
+                </Link>
               ))}
             </div>
           )}

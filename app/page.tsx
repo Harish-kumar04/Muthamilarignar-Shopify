@@ -4,14 +4,11 @@ import BrandHero from "@/components/home/brand-hero";
 import FeaturedBookSpotlight from "@/components/home/featured-book-spotlight";
 import HeroSlider, { type SlideView } from "@/components/home/hero-slider";
 import { TrustBar } from "@/components/home/highlights";
-import CategoryTiles from "@/components/home/category-tiles";
 import TabbedBooks from "@/components/home/tabbed-books";
 import {
   DarkBrandBannerStrip,
   KalaignarArtworkBanner,
 } from "@/components/home/editorial-art-sections";
-import PublisherStory from "@/components/home/publisher-story";
-import Testimonials from "@/components/home/testimonials";
 import FaqSection from "@/components/home/faq-section";
 import { NewsletterSection } from "@/components/home/why-newsletter";
 import {
@@ -111,7 +108,7 @@ const fetchHomeData = cache(async () => {
 export async function generateMetadata(): Promise<Metadata> {
   const title = `${BRAND.nameTa} | ${BRAND.nameEn} — Official Tamil & English Bookstore`;
   const description =
-    "முத்தமிழறிஞர் பதிப்பகம் — திராவிட இயக்க வரலாறு, சமூகநீதி மற்றும் கலைஞர் படைப்புகள் | Official Bookstore of Muthamilarignar Pathipagam with Pan-India COD & online delivery.";
+    "முத்தமிழறிஞர் பதிப்பகம் — திராவிட இயக்கம், சமூகநீதி மற்றும் கலைஞர் குறித்த நூல்கள் | Official Bookstore of Muthamilarignar Pathipagam with Pan-India Cash on Delivery (COD).";
   const url = SITE_URL;
   const ogImg = getShareLogoUrl();
   return {
@@ -185,9 +182,19 @@ export default async function HomePage() {
   const total = cards.length;
 
   const { slides, isDefault } = getSlides();
-  const sliderPool = withCovers.slice(3);
   const slideViews: SlideView[] = slides.map((s, i) => {
-    const href = resolveLink(s.link);
+    const href = resolveLink(s.link) || "/books";
+    const start = withCovers.length > 0 ? (i * 3) % withCovers.length : 0;
+    const covers =
+      isDefault && withCovers.length > 0
+        ? Array.from({ length: Math.min(3, withCovers.length) }, (_, idx) => {
+            const c = withCovers[(start + idx) % withCovers.length];
+            return {
+              src: c.image_url as string,
+              alt: splitBilingual(c.name, "|").join(" — "),
+            };
+          })
+        : undefined;
     return {
       image_url: s.image_url || null,
       mobile_image_url: s.mobile_image_url || null,
@@ -199,12 +206,7 @@ export default async function HomePage() {
       button_en: s.button_en || "",
       href,
       external: href ? isExternal(href) : false,
-      covers: isDefault
-        ? sliderPool.slice(i * 3, i * 3 + 3).map((c) => ({
-            src: c.image_url as string,
-            alt: splitBilingual(c.name, "|").join(" — "),
-          }))
-        : undefined,
+      covers,
     };
   });
 
@@ -262,10 +264,7 @@ export default async function HomePage() {
       {/* 3. Trust Badges */}
       <TrustBar />
 
-      {/* 4. Category Tiles from Shopify Collections */}
-      <CategoryTiles categories={categories} />
-
-      {/* 5. Tabbed Product Rows (New Arrivals | Best Sellers | Kalaignar Works) */}
+      {/* 4. Tabbed Product Rows (New Arrivals | Essential Titles | Books on Kalaignar) */}
       <TabbedBooks
         totalCount={total}
         backdrop={<SunburstBackdrop position="top-right" />}
@@ -282,19 +281,13 @@ export default async function HomePage() {
         }}
       />
 
-      {/* 6. Featured Editorial Promo Banner (Asset B: Kalaignar Sketch) */}
+      {/* 5. Featured Editorial Promo Banner (Asset B: Kalaignar Sketch) */}
       <KalaignarArtworkBanner />
 
-      {/* 7. Featured Collections Slider */}
+      {/* 6. Featured Collections Slider */}
       <HeroSlider slides={slideViews} />
 
-      {/* 8. Short "About the publisher / முத்தமிழறிஞர் பதிப்பகம்" Strip (Asset A once) */}
-      <PublisherStory logoUrl={logoUrl} />
-
-      {/* 9. Reader Testimonials */}
-      <Testimonials />
-
-      {/* 11. Crawlable 6-Question FAQ Section + Matching FAQPage JSON-LD */}
+      {/* 7. Crawlable 6-Question FAQ Section + Matching FAQPage JSON-LD */}
       <FaqSection faqs={STORE_FAQS} />
 
       {/* 12. Dark Brand Strip showcasing Asset D (White Logo Banner) */}

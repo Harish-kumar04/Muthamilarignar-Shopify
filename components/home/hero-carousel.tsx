@@ -99,7 +99,7 @@ export default function HeroCarousel({ children }: { children: ReactNode }) {
             role="group"
             aria-roledescription="slide"
             aria-label={`${i + 1} / ${count}`}
-            className="relative h-[370px] w-full shrink-0 snap-start snap-always overflow-hidden sm:h-[410px] lg:h-[450px]"
+            className="relative h-[370px] w-full shrink-0 snap-start snap-always overflow-hidden sm:h-[410px] lg:h-[26rem]"
           >
             {slide}
           </div>

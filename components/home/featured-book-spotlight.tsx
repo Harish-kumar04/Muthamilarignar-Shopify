@@ -99,7 +99,7 @@ export default function FeaturedBookSpotlight({
           <div className="h-1.5 w-full bg-gradient-to-r from-black via-brand-red to-black" aria-hidden="true" />
           <div className="grid grid-cols-1 items-center gap-8 p-6 sm:p-10 lg:grid-cols-12 lg:gap-12 lg:p-12">
             {/* Big Cover (>= 2x normal book card dimensions, 1017x1547 intrinsic) */}
-            <div className="mx-auto w-full max-w-[310px] sm:max-w-[420px] lg:col-span-6 lg:max-w-[500px]">
+            <div className="mx-auto w-full max-w-[19.375rem] sm:max-w-[26.25rem] lg:col-span-6 lg:max-w-[29rem]">
               <div className="relative overflow-hidden rounded-2xl border border-black/10 bg-[#FAFAFA] p-3 shadow-sm sm:p-4">
                 <div className="pointer-events-none absolute left-3.5 top-3.5 z-10 flex flex-col items-start gap-1.5">
                   <span
@@ -139,7 +139,7 @@ export default function FeaturedBookSpotlight({
               </div>
 
               <Link href={bookHref} prefetch={false} className="group block">
-                <h2 className="mt-4 text-[28px] font-extrabold leading-[1.15] tracking-tight text-black transition-colors group-hover:text-brand-red-dark sm:text-[36px] lg:text-[42px]">
+                <h2 className="mt-4 text-[1.75rem] font-extrabold leading-[1.15] tracking-tight text-black transition-colors group-hover:text-brand-red-dark sm:text-[2.25rem] lg:text-[2.625rem]">
                   <BiName value={book.name} />
                 </h2>
               </Link>

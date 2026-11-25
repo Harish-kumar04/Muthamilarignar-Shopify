@@ -21,7 +21,7 @@ const UDHAYANIDHI_SEATED_PORTRAIT_URL =
 type Bi = { readonly ta: string; readonly en: string };
 
 const BODY_TEXT_CLASS =
-  "text-[16px] leading-[1.7] text-black/80 sm:text-[17px] [&_.i18n-ta]:text-[17px]";
+  "text-base leading-[1.7] text-black/80 sm:text-[1.0625rem] [&_.i18n-ta]:text-[1.0625rem]";
 
 /** Framed, lazy-loaded monochrome portrait with a reserved aspect ratio (no layout shift). */
 function PortraitFrame({
@@ -36,7 +36,7 @@ function PortraitFrame({
   className?: string;
 }) {
   return (
-    <div className={`mx-auto w-full max-w-[300px] sm:max-w-[340px] md:max-w-[400px] ${className}`}>
+    <div className={`mx-auto w-full max-w-[18.75rem] sm:max-w-[21.25rem] md:max-w-[25rem] ${className}`}>
       <div
         className={`relative ${aspectClass} w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-card`}
       >
@@ -55,11 +55,11 @@ function PortraitFrame({
 function BlockHeading({ heading, role }: { heading: Bi; role?: Bi }) {
   return (
     <>
-      <h2 className="text-[22px] font-extrabold leading-[1.25] tracking-tight text-black sm:text-[26px]">
+      <h2 className="text-[1.375rem] font-extrabold leading-[1.25] tracking-tight text-black sm:text-[1.625rem]">
         <T ta={heading.ta} en={heading.en} />
       </h2>
       {role && (
-        <p className="mt-1 text-[14.5px] font-bold text-brand-red-dark sm:text-[15px]">
+        <p className="mt-1 text-[0.90625rem] font-bold text-brand-red-dark sm:text-[0.9375rem]">
           <T ta={role.ta} en={role.en} />
         </p>
       )}
@@ -84,7 +84,7 @@ function LeaderCard({
   return (
     <article className="grid grid-cols-1 items-center gap-6 rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-10 lg:gap-12">
       {imageSrc ? (
-        <div className="order-first mx-auto w-full max-w-[260px] md:order-1 md:max-w-[320px]">
+        <div className="order-first mx-auto w-full max-w-[16.25rem] md:order-1 md:max-w-[20rem]">
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-[#FAFAFA]">
             <Img
               src={cloudinaryImageUrl(imageSrc, 640)}
@@ -175,7 +175,7 @@ export function KalaignarArtworkBanner() {
             </p>
           </div>
 
-          <div className="order-first mx-auto w-full max-w-[260px] md:order-2 md:max-w-[320px]">
+          <div className="order-first mx-auto w-full max-w-[16.25rem] md:order-2 md:max-w-[20rem]">
             <div className="relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-6 shadow-card sm:p-8">
               <div className="relative h-full w-full">
                 <Img

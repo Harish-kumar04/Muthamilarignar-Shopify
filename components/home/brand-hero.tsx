@@ -39,11 +39,17 @@ export default function BrandHero({
       ta: "வெளியிடப்பட்ட நூல்கள்",
       en: "Published Titles",
     },
-    {
-      value: categoryCount > 0 ? `${categoryCount}` : "—",
-      ta: "நூல் பிரிவுகள்",
-      en: "Subject Categories",
-    },
+    categoryCount > 1
+      ? {
+          value: `${categoryCount}`,
+          ta: "நூல் பிரிவுகள்",
+          en: "Subject Categories",
+        }
+      : {
+          value: "100%",
+          ta: "நேரடிப் பதிப்பக வெளியீடுகள்",
+          en: "Official Publisher Editions",
+        },
     {
       value: "Pan-India",
       ta: "இந்தியா முழுவதும் டெலிவரி உண்டு",
@@ -67,7 +73,7 @@ export default function BrandHero({
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-8">
           {/* Left Column: Bilingual H1 + Pill CTAs */}
           <div className="lg:col-span-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-brand-red/25 bg-brand-red-light px-3.5 py-1.5 text-[12px] font-bold text-brand-red-dark">
+            <div className="inline-flex items-center gap-2 rounded-full border border-brand-red/25 bg-brand-red-light px-3.5 py-1.5 text-[0.75rem] font-bold text-brand-red-dark">
               <span className="h-2 w-2 rounded-full bg-brand-red" aria-hidden="true" />
               <T
                 ta="முத்தமிழறிஞர் பதிப்பகம் • அதிகாரப்பூர்வ இணைய நூலகம்"
@@ -75,19 +81,19 @@ export default function BrandHero({
               />
             </div>
 
-            <h1 className="mt-4 text-[32px] font-extrabold leading-[1.12] tracking-tight text-black sm:text-[46px] lg:text-[56px]">
+            <h1 className="mt-4 text-[2rem] font-extrabold leading-[1.12] tracking-tight text-black sm:text-[2.875rem] lg:text-[3.5rem]">
               <T
                 ta="அறிவாற்றலும் சமூகநீதிச் சிந்தனையும் ஒவ்வொரு பக்கத்திலும்."
-                en="Dravidian History, Social Justice & Kalaignar’s Timeless Works."
+                en="Books on the Dravidian Movement, Social Justice & Kalaignar."
               />
             </h1>
 
             <div aria-hidden="true" className="mt-4 h-1.5 w-16 rounded-full bg-brand-red" />
 
-            <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-black/80 sm:text-[17.5px]">
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-black/80 sm:text-[1.09375rem]">
               <T
-                ta="திராவிட இயக்க வரலாறு, மாநில சுயாட்சி, மொழி உரிமை மற்றும் முத்தமிழறிஞர் கலைஞர் அவர்களின் அரிய படைப்புகளை நேரடிப் பதிப்பகத் தரத்தில் உங்கள் இல்லத்திற்கே பெறுங்கள்."
-                en="Order authentic printed editions on Dravidian movement history, state autonomy, language rights, and the literary legacy of Muthamilarignar Kalaignar — shipped across India."
+                ta="திராவிட இயக்கம், சமூகநீதி மற்றும் முத்தமிழறிஞர் கலைஞர் குறித்த நூல்களை நேரடிப் பதிப்பகத் தரத்தில் உங்கள் இல்லத்திற்கே பெறுங்கள்."
+                en="Order authentic printed editions of books about the Dravidian movement, social justice and Kalaignar — shipped across India."
               />
             </p>
 
@@ -95,7 +101,7 @@ export default function BrandHero({
             <div className="mt-7 flex flex-wrap items-center gap-3.5 sm:mt-8">
               <Link
                 href="/books"
-                className="btn-red h-12 px-7 text-[15.5px] shadow-glow sm:h-[52px] sm:px-8 sm:text-[16px]"
+                className="btn-red h-12 px-7 text-[0.96875rem] shadow-glow sm:h-[3.25rem] sm:px-8 sm:text-base"
               >
                 <T ta="நூல்களைக் காண்க" en="Browse books" />
                 <ArrowRightIcon className="h-4 w-4" />

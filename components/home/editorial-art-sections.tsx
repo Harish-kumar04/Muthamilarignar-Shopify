@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import Img from "@/components/ui/img";
 import { T } from "@/components/i18n/t";
@@ -23,35 +24,6 @@ type Bi = { readonly ta: string; readonly en: string };
 const BODY_TEXT_CLASS =
   "text-base leading-[1.7] text-black/80 sm:text-[1.0625rem] [&_.i18n-ta]:text-[1.0625rem]";
 
-/** Framed, lazy-loaded monochrome portrait with a reserved aspect ratio (no layout shift). */
-function PortraitFrame({
-  src,
-  alt,
-  aspectClass,
-  className = "",
-}: {
-  src: string;
-  alt: Bi;
-  aspectClass: string;
-  className?: string;
-}) {
-  return (
-    <div className={`mx-auto w-full max-w-[18.75rem] sm:max-w-[21.25rem] md:max-w-[25rem] ${className}`}>
-      <div
-        className={`relative ${aspectClass} w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-card`}
-      >
-        <Img
-          src={cloudinaryImageUrl(src, 800)}
-          alt={`${alt.ta} / ${alt.en}`}
-          fill
-          sizes="(max-width: 640px) 300px, (max-width: 767px) 340px, 400px"
-          className="object-contain p-1.5"
-        />
-      </div>
-    </div>
-  );
-}
-
 function BlockHeading({ heading, role }: { heading: Bi; role?: Bi }) {
   return (
     <>
@@ -68,39 +40,71 @@ function BlockHeading({ heading, role }: { heading: Bi; role?: Bi }) {
   );
 }
 
-function LeaderCard({
+/**
+ * Shared full-width card for the alternating (zig-zag) About / leaders list:
+ * - Mobile (< md): image on top, text below
+ * - Desktop (md+): flex-row (image left) or flex-row-reverse (image right)
+ * - Identical fixed 4:5 frame (220px mobile / 260px desktop) for all four rows
+ */
+function AboutEditorialCard({
   heading,
   role,
   body,
   imageSrc,
   imageAlt,
+  reverse = false,
+  isLogo = false,
+  footer,
 }: {
   heading: Bi;
   role?: Bi;
   body: Bi;
-  imageSrc?: string | null;
-  imageAlt?: string;
+  imageSrc: string;
+  imageAlt: string;
+  reverse?: boolean;
+  isLogo?: boolean;
+  footer?: ReactNode;
 }) {
   return (
-    <article className="grid grid-cols-1 items-center gap-6 rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-10 lg:gap-12">
-      {imageSrc ? (
-        <div className="order-first mx-auto w-full max-w-[16.25rem] md:order-1 md:max-w-[20rem]">
-          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-[#FAFAFA]">
+    <article
+      className={`flex w-full flex-col items-center gap-6 rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7 md:gap-10 lg:gap-12 ${
+        reverse ? "md:flex-row-reverse" : "md:flex-row"
+      }`}
+    >
+      <div className="flex shrink-0 justify-center">
+        <div
+          className={`relative aspect-[4/5] w-[220px] overflow-hidden rounded-2xl border border-black/[0.08] bg-white md:w-[260px] ${
+            isLogo ? "p-5" : ""
+          }`}
+        >
+          {isLogo ? (
+            <div className="relative h-full w-full">
+              <Img
+                src={cloudinaryImageUrl(imageSrc, 520)}
+                alt={imageAlt}
+                fill
+                sizes="(max-width: 768px) 220px, 260px"
+                className="object-contain object-center"
+              />
+            </div>
+          ) : (
             <Img
-              src={cloudinaryImageUrl(imageSrc, 640)}
-              alt={imageAlt || ""}
+              src={cloudinaryImageUrl(imageSrc, 520)}
+              alt={imageAlt}
               fill
-              sizes="(max-width: 768px) 260px, 320px"
+              sizes="(max-width: 768px) 220px, 260px"
               className="object-contain object-center p-1.5"
             />
-          </div>
+          )}
         </div>
-      ) : null}
-      <div className="min-w-0 md:order-2">
+      </div>
+
+      <div className="min-w-0 flex-1">
         <BlockHeading heading={heading} role={role} />
-        <p className={`mt-3 max-w-[68ch] ${BODY_TEXT_CLASS}`}>
+        <p className={`mt-3 max-w-[65ch] ${BODY_TEXT_CLASS}`}>
           <T ta={body.ta} en={body.en} />
         </p>
+        {footer ? <div className="mt-6">{footer}</div> : null}
       </div>
     </article>
   );
@@ -108,10 +112,12 @@ function LeaderCard({
 
 /**
  * Home-page About / leaders section (Server Component, zero client JS):
- * 1. Muthamizharignar Kalaignar — framed Kalaignar sketch beside text (above it on mobile)
- * 2. Hon'ble M.K. Stalin & 3. Hon'ble Udhayanidhi Stalin — cards with 4:5 top photos
- * 4. Muthamizharignar Pathippagam — text beside framed Pathipagam logo (above on mobile)
- * Height grows naturally with content; all images are lazy-loaded (below the fold, never LCP).
+ * Alternating (zig-zag) full-width cards on desktop; image-above-text on mobile.
+ * 1. Muthamizharignar Kalaignar (image LEFT)
+ * 2. Hon'ble M.K. Stalin (image RIGHT)
+ * 3. Hon'ble Udhayanidhi Stalin (image LEFT)
+ * 4. Muthamizharignar Pathippagam (logo RIGHT + View books CTA under text)
+ * All images are lazy-loaded (below the fold, never LCP) with reserved 4:5 frames.
  */
 export function KalaignarArtworkBanner() {
   const { kalaignar, stalin, udhayanidhi, pathippagam } = KALAIGNAR_ABOUT_COPY;
@@ -132,76 +138,56 @@ export function KalaignarArtworkBanner() {
       <SunburstBackdrop position="right" />
 
       <div className="container-site relative">
-        {/* Block 1: Kalaignar — framed portrait beside text (desktop), above text (mobile) */}
-        <article className="grid grid-cols-1 items-center gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-10 lg:gap-12">
-          <PortraitFrame
-            src={KALAIGNAR_SPEECH_ART_URL}
-            alt={kalaignar.imageAlt}
-            aspectClass="aspect-[1120/1404]"
+        <div className="flex flex-col gap-6 sm:gap-7">
+          {/* Row 1: Kalaignar — image LEFT, text RIGHT */}
+          <AboutEditorialCard
+            heading={kalaignar.heading}
+            body={kalaignar.body}
+            imageSrc={KALAIGNAR_SPEECH_ART_URL}
+            imageAlt={`${kalaignar.imageAlt.ta} / ${kalaignar.imageAlt.en}`}
           />
 
-          <div className="min-w-0">
-            <BlockHeading heading={kalaignar.heading} />
-            <p className={`mt-3 max-w-[68ch] ${BODY_TEXT_CLASS}`}>
-              <T ta={kalaignar.body.ta} en={kalaignar.body.en} />
-            </p>
-          </div>
-        </article>
-
-        {/* Blocks 2 & 3: Leaders (one by one) */}
-        <div className="mt-5 flex flex-col gap-5 sm:gap-6 md:mt-6">
-          <LeaderCard
+          {/* Row 2: M.K. Stalin — text LEFT, image RIGHT */}
+          <AboutEditorialCard
             heading={stalin.heading}
             role={stalin.role}
             body={stalin.body}
             imageSrc={STALIN_ART_URL}
             imageAlt="மாண்புமிகு மு.க.ஸ்டாலின் / M.K. Stalin"
+            reverse
           />
-          <LeaderCard
+
+          {/* Row 3: Udhayanidhi Stalin — image LEFT, text RIGHT */}
+          <AboutEditorialCard
             heading={udhayanidhi.heading}
             role={udhayanidhi.role}
             body={udhayanidhi.body}
             imageSrc={UDHAYANIDHI_SEATED_PORTRAIT_URL}
             imageAlt="மாண்புமிகு உதயநிதி ஸ்டாலின் / Udhayanidhi Stalin"
           />
-        </div>
 
-        {/* Block 4: Muthamizharignar Pathippagam — text beside Pathipagam logo card (logo above text on mobile) */}
-        <article className="mt-5 grid grid-cols-1 items-center gap-6 rounded-2xl border border-black/10 bg-white p-5 shadow-card sm:p-7 md:mt-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-10 lg:gap-12">
-          <div className="min-w-0 md:order-1">
-            <BlockHeading heading={pathippagam.heading} />
-            <p className={`mt-3 max-w-[68ch] ${BODY_TEXT_CLASS}`}>
-              <T ta={pathippagam.body.ta} en={pathippagam.body.en} />
-            </p>
-          </div>
-
-          <div className="order-first mx-auto w-full max-w-[16.25rem] md:order-2 md:max-w-[20rem]">
-            <div className="relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-6 shadow-card sm:p-8">
-              <div className="relative h-full w-full">
-                <Img
-                  src={cloudinaryImageUrl(DEFAULT_LOGO_URL, 640)}
-                  alt="முத்தமிழறிஞர் பதிப்பகம் / Muthamizharignar Pathippagam logo"
-                  fill
-                  sizes="(max-width: 768px) 260px, 320px"
-                  className="object-contain object-center"
+          {/* Row 4: Muthamizharignar Pathippagam — text LEFT, logo RIGHT + CTA under text */}
+          <AboutEditorialCard
+            heading={pathippagam.heading}
+            body={pathippagam.body}
+            imageSrc={DEFAULT_LOGO_URL}
+            imageAlt="முத்தமிழறிஞர் பதிப்பகம் / Muthamizharignar Pathippagam logo"
+            reverse
+            isLogo
+            footer={
+              <Link
+                href="/books"
+                prefetch={false}
+                className="btn-red h-11 px-6 text-[15px] shadow-glow"
+              >
+                <T
+                  ta={KALAIGNAR_ABOUT_COPY.viewBooks.ta}
+                  en={KALAIGNAR_ABOUT_COPY.viewBooks.en}
                 />
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <div className="mt-8">
-          <Link
-            href="/books"
-            prefetch={false}
-            className="btn-red h-11 px-6 text-[15px] shadow-glow"
-          >
-            <T
-              ta={KALAIGNAR_ABOUT_COPY.viewBooks.ta}
-              en={KALAIGNAR_ABOUT_COPY.viewBooks.en}
-            />
-            <ArrowRightIcon className="h-4 w-4" />
-          </Link>
+                <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            }
+          />
         </div>
       </div>
     </section>

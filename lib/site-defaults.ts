@@ -31,7 +31,7 @@ export const LOGO_HEIGHT = 1596;
 export interface SocialConfig {
   facebook: string;
   email: string;
-  /** International digits only, e.g. 919003324473 */
+  /** International digits only, e.g. 918220451520 */
   whatsapp: string;
   whatsappDisplay: string;
   whatsappButtonEnabled: boolean;
@@ -41,8 +41,8 @@ export interface SocialConfig {
 export const DEFAULT_SOCIAL: SocialConfig = {
   facebook: "https://www.facebook.com/p/Muthamilarignar-Pathipagam-61555144442937/",
   email: "muthamilarignar@gmail.com",
-  whatsapp: "919003324473",
-  whatsappDisplay: "90033 24473",
+  whatsapp: "918220451520",
+  whatsappDisplay: "82204 51520",
   whatsappButtonEnabled: true,
   whatsappMessage: "வணக்கம், நூல்கள் பற்றி அறிய விரும்புகிறேன்.",
 };
@@ -90,7 +90,7 @@ export const DEFAULT_SLIDES: HomeSlide[] = [
     title_en: "Muthamilarignar Pathipagam",
     subtitle_ta: "திராவிட இயக்கம், சமூகநீதி மற்றும் கலைஞர் குறித்த நூல்கள் — அதிகாரப்பூர்வ இணைய நூலகம்.",
     subtitle_en: "Books about the Dravidian movement, social justice and Kalaignar — the official online bookstore.",
-    button_ta: "நூல்களைக் காண்க",
+    button_ta: "நூல்களைப் பார்வையிடுங்கள்",
     button_en: "Browse books",
     link: "/books",
     active: true,
@@ -100,7 +100,7 @@ export const DEFAULT_SLIDES: HomeSlide[] = [
     title_en: "Dravidian Model & Social Justice",
     subtitle_ta: "இடஒதுக்கீடு, மாநில சுயாட்சி, மொழி உரிமை — சிந்தனையைத் தூண்டும் நூல்கள்.",
     subtitle_en: "Reservation, state autonomy and language rights — books that make you think.",
-    button_ta: "நூல்களைக் காண்க",
+    button_ta: "நூல்களைப் பார்வையிடுங்கள்",
     button_en: "Browse books",
     link: "/books",
     active: true,
@@ -149,7 +149,7 @@ export const DEFAULT_POPUP: PopupConfig = {
   title_en: "New releases",
   text_ta: "முத்தமிழறிஞர் பதிப்பகத்தின் புதிய நூல்களைக் காணுங்கள்.",
   text_en: "Discover the latest books from Muthamilarignar Pathipagam.",
-  button_ta: "நூல்களைக் காண்க",
+  button_ta: "நூல்களைப் பார்வையிடுங்கள்",
   button_en: "Browse books",
   link: "/products",
   delay_seconds: 4,

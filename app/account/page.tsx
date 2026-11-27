@@ -5,7 +5,7 @@ import { getShopifyHostedAccountUrls } from "@/lib/shopify-cart";
 import { BRAND, DEFAULT_SOCIAL, whatsappHref } from "@/lib/site-defaults";
 
 export const metadata: Metadata = {
-  title: `வாசகர் கணக்கு | Customer Account — ${BRAND.nameTa} | ${BRAND.nameEn}`,
+  title: `என் கணக்கு | Customer Account — ${BRAND.nameTa} | ${BRAND.nameEn}`,
   robots: { index: false, follow: false },
 };
 
@@ -16,7 +16,7 @@ export default function AccountPage() {
     <div className="container-site max-w-4xl py-12 sm:py-16">
       <header className="mb-10">
         <p className="eyebrow">
-          <T ta="வாசகர் கணக்கு" en="Reader Account" />
+          <T ta="என் கணக்கு" en="Reader Account" />
         </p>
         <h1 className="mt-2 text-[32px] font-extrabold leading-tight tracking-tight text-black sm:text-[42px]">
           <T ta="உங்கள் கணக்கில் உள்நுழைக" en="Sign in to Your Account" />
@@ -48,7 +48,7 @@ export default function AccountPage() {
               href={hosted.loginUrl}
               className="btn-red h-12 flex-shrink-0 px-7 text-[15px] font-bold shadow-glow"
             >
-              <T ta="கணக்கில் உள்நுழைக →" en="Sign in on Shopify →" />
+              <T ta="உள்நுழைக →" en="Sign in on Shopify →" />
             </a>
           </div>
         ) : (

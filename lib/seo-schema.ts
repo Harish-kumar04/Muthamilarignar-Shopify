@@ -19,19 +19,19 @@ export const PUBLISHER_ENTITY = {
   nameEn: BRAND.nameEn,
   legalName: `${BRAND.nameTa} | ${BRAND.nameEn}`,
   email: DEFAULT_SOCIAL.email,
-  phoneE164: "+91-90033-24473",
+  phoneE164: "+91-8220451520",
   phoneDisplay: DEFAULT_SOCIAL.whatsappDisplay,
   whatsappDigits: DEFAULT_SOCIAL.whatsapp,
   sameAs: [DEFAULT_SOCIAL.facebook],
   address: {
-    streetAddress: "Anna Arivalayam Campus, Teynampet",
+    streetAddress: "Anbagam, 614, Anna Salai, Teynampet",
     addressLocality: "Chennai",
     addressRegion: "Tamil Nadu",
     postalCode: "600018",
     addressCountry: "IN",
   },
-  addressLineTa: "அண்ணா அறிவாலய வளாகம், தேனாம்பேட்டை, சென்னை – 600018, தமிழ்நாடு, இந்தியா",
-  addressLineEn: "Anna Arivalayam Campus, Teynampet, Chennai – 600018, Tamil Nadu, India",
+  addressLineTa: "முத்தமிழறிஞர் பதிப்பகம், திமுக இளைஞர் அணி, அன்பகம், 614, அண்ணா சாலை, தேனாம்பேட்டை, சென்னை - 600 018",
+  addressLineEn: "Muthamizharingnar Publication, DMK Youth Wing, Anbagam, 614, Anna Salai, Teynampet, Chennai - 600 018",
 } as const;
 
 export function absoluteUrl(src?: string | null): string | undefined {

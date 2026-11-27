@@ -231,7 +231,7 @@ export function DravidianLegacyFeature() {
                 prefetch={false}
                 className="btn-black h-12 px-7 text-[15.5px]"
               >
-                <T ta="நூல்களைக் காண்க" en="View books" />
+                <T ta="நூல்களைப் பார்வையிடுங்கள்" en="View books" />
                 <ArrowRightIcon className="h-4 w-4" />
               </Link>
             </div>

@@ -477,7 +477,7 @@ export default function BooksCatalogClient({
           }`}
         >
           <span aria-hidden="true" className="h-2 w-2 flex-shrink-0 rounded-full bg-green-600" />
-          {t("கையிருப்பில் உள்ளவை மட்டும்", "In Stock Only")}
+          {t("பிரதிகள் உள்ளவை மட்டும்", "In Stock Only")}
         </button>
 
         {loading && (

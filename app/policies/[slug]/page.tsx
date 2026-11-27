@@ -146,12 +146,19 @@ export default function PolicyPage({
         <h2 className="text-[16px] font-extrabold text-black">
           <T ta="தொடர்பு முகவரி" en="Publisher Contact & Grievance Redressal" />
         </h2>
-        <p className="mt-2">
+        <p className="mt-2 whitespace-pre-line">
           <strong>{PUBLISHER_ENTITY.nameTa} ({PUBLISHER_ENTITY.nameEn})</strong>
           <br />
-          {PUBLISHER_ENTITY.addressLineEn}
+          <T
+            ta={PUBLISHER_ENTITY.addressLineTa}
+            en={"Muthamizharingnar Publication\nDMK Youth Wing\nAnbagam, 614, Anna Salai,\nTeynampet, Chennai - 600 018"}
+          />
           <br />
-          Phone / WhatsApp: +91 {PUBLISHER_ENTITY.phoneDisplay} • Email: {PUBLISHER_ENTITY.email}
+          Phone / WhatsApp:{" "}
+          <a href={`tel:+${PUBLISHER_ENTITY.whatsappDigits}`} className="hover:underline">
+            +91 {PUBLISHER_ENTITY.phoneDisplay}
+          </a>{" "}
+          • Email: {PUBLISHER_ENTITY.email}
         </p>
       </footer>
     </div>

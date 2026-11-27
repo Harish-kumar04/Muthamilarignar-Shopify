@@ -339,7 +339,7 @@ export default function HeroBooksCarousel({
               {isFeaturedBook(activeBook) ? (
                 <T ta="சிறப்பு நூல்" en="Featured Title" />
               ) : (
-                <T ta="அதிகாரப்பூர்வப் பதிப்பு" en="Official Edition" />
+                <T ta="அதிகாரப்பூர்வ வெளியீடு" en="Official Edition" />
               )}
             </p>
             <div className="grid grid-cols-1 grid-rows-1">

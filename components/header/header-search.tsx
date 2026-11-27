@@ -114,7 +114,7 @@ export default function HeaderSearch({
       <form onSubmit={handleSubmit} role="search" className="relative flex items-center">
         <input
           type="search"
-          aria-label={t("நூல் அல்லது ஆசிரியர் தேடுக", "Search books or author")}
+          aria-label={t("நூல் / ஆசிரியர் பெயரைத் தேடுங்கள்", "Search books or author")}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -123,7 +123,7 @@ export default function HeaderSearch({
           onFocus={() => {
             if (query.trim().length >= 2) setIsOpen(true);
           }}
-          placeholder={t("நூல் அல்லது ஆசிரியர் தேடுக…", "Search books or author…")}
+          placeholder={t("நூல் / ஆசிரியர் பெயரைத் தேடுங்கள்...", "Search books or author…")}
           className="h-11 w-full rounded-full border border-black/20 bg-[#FAFAFA] pl-10 pr-4 text-[14.5px] text-black placeholder:text-black/55 focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-red/20 transition-all"
         />
         <svg

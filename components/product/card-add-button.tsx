@@ -55,7 +55,7 @@ export default function CardAddButton({
             isSpotlight ? "h-12 px-6 text-[15px]" : "h-11 px-3 text-[12.5px]"
           }`}
         >
-          {t("கையிருப்பில் இல்லை", "Out of stock")}
+          {t("பிரதிகள் தீர்ந்துவிட்டன", "Out of stock")}
         </button>
       </div>
     );
@@ -155,13 +155,13 @@ export default function CardAddButton({
           onClick={handleBuyNow}
           disabled={adding || buying || !canPurchase}
           aria-busy={buying || undefined}
-          aria-label={`${t("இப்போதே வாங்கு", "Buy now")} — ${localizeName(productName)}`}
+          aria-label={`${t("உடனே வாங்க", "Buy now")} — ${localizeName(productName)}`}
           className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#D11D1A] px-6 text-[15px] font-bold text-white shadow-glow transition-all hover:bg-brand-red-dark active:scale-[0.98] disabled:opacity-60"
         >
           {buying ? (
             <PenLoader size="sm" tone="light" label={t("வாங்குகிறது", "Redirecting to checkout")} />
           ) : (
-            <span className="truncate">{t("இப்போதே வாங்கு", "Buy now")}</span>
+            <span className="truncate">{t("உடனே வாங்க", "Buy now")}</span>
           )}
         </button>
 
@@ -170,7 +170,7 @@ export default function CardAddButton({
           onClick={handleAdd}
           disabled={adding || buying || !canPurchase}
           aria-busy={adding || undefined}
-          aria-label={`${t("கூடையில் சேர்", "Add to cart")} — ${localizeName(productName)}`}
+          aria-label={`${t("நூலைத் தேர்ந்தெடு", "Add to cart")} — ${localizeName(productName)}`}
           className={`inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-6 text-[15px] font-bold transition-all active:scale-[0.98] ${
             success && !adding
               ? "bg-green-700 text-white"
@@ -184,7 +184,7 @@ export default function CardAddButton({
           ) : (
             <>
               <CartIcon className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">{t("கூடையில் சேர்", "Add to cart")}</span>
+              <span className="truncate">{t("நூலைத் தேர்ந்தெடு", "Add to cart")}</span>
             </>
           )}
         </button>
@@ -199,7 +199,7 @@ export default function CardAddButton({
         onClick={handleAdd}
         disabled={adding || buying || !canPurchase}
         aria-busy={adding || undefined}
-        aria-label={`${t("கூடையில் சேர்", "Add to cart")} — ${localizeName(productName)}`}
+        aria-label={`${t("நூலைத் தேர்ந்தெடு", "Add to cart")} — ${localizeName(productName)}`}
         className={`inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full px-3 text-[12.5px] font-bold transition-colors ${
           success && !adding
             ? "bg-green-700 text-white"
@@ -213,7 +213,7 @@ export default function CardAddButton({
         ) : (
           <>
             <CartIcon className="h-3.5 w-3.5 flex-shrink-0" />
-            <span className="truncate">{t("கூடையில் சேர்", "Add to cart")}</span>
+            <span className="truncate">{t("நூலைத் தேர்ந்தெடு", "Add to cart")}</span>
           </>
         )}
       </button>
@@ -223,13 +223,13 @@ export default function CardAddButton({
         onClick={handleBuyNow}
         disabled={adding || buying || !canPurchase}
         aria-busy={buying || undefined}
-        aria-label={`${t("இப்போதே வாங்கு", "Buy now")} — ${localizeName(productName)}`}
+        aria-label={`${t("உடனே வாங்க", "Buy now")} — ${localizeName(productName)}`}
         className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full bg-black px-3 text-[12.5px] font-bold text-white transition-colors hover:bg-[#D11D1A] disabled:opacity-60"
       >
         {buying ? (
           <PenLoader size="sm" tone="light" label={t("வாங்குகிறது", "Redirecting to checkout")} />
         ) : (
-          <span className="truncate">{t("இப்போதே வாங்கு", "Buy now")}</span>
+          <span className="truncate">{t("உடனே வாங்க", "Buy now")}</span>
         )}
       </button>
     </div>

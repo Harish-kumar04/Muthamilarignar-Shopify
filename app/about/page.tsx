@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const shareLogo = getShareLogoUrl();
   const title = `எங்களைப் பற்றி | About ${BRAND.nameTa} (${BRAND.nameEn})`;
   const description =
-    "Official publisher profile for Muthamilarignar Pathipagam (முத்தமிழறிஞர் பதிப்பகம்), Anna Arivalayam Campus, Teynampet, Chennai — publishing Dravidian history, social justice, and Kalaignar's works.";
+    "Official publisher profile for Muthamilarignar Pathipagam (முத்தமிழறிஞர் பதிப்பகம்), Anbagam, 614, Anna Salai, Teynampet, Chennai - 600 018 — publishing Dravidian history, social justice, and Kalaignar's works.";
   const url = `${SITE_URL}/about`;
   return {
     title,
@@ -89,7 +89,7 @@ export default async function AboutPublisherPage() {
 
           <div className="mt-6 space-y-4 text-[15.5px] leading-relaxed text-black/80">
             <p>
-              <strong>Muthamilarignar Pathipagam ({PUBLISHER_ENTITY.nameTa})</strong> is an official Tamil and English book publishing house based at Anna Arivalayam Campus, Teynampet, Chennai – 600018, Tamil Nadu, India. With {totalBooks}+ active print editions, the press preserves and distributes foundational works on Dravidian movement history, social justice, constitutional federalism, language rights, the Dravidian Model of governance, and the literary legacy of Muthamilarignar Dr. Kalaignar M. Karunanidhi.
+              <strong>Muthamilarignar Pathipagam ({PUBLISHER_ENTITY.nameTa})</strong> is an official Tamil and English book publishing house based at Muthamizharingnar Publication, DMK Youth Wing, Anbagam, 614, Anna Salai, Teynampet, Chennai - 600 018. With {totalBooks}+ active print editions, the press preserves and distributes foundational works on Dravidian movement history, social justice, constitutional federalism, language rights, the Dravidian Model of governance, and the literary legacy of Muthamilarignar Dr. Kalaignar M. Karunanidhi.
             </p>
             <p>
               முத்தமிழறிஞர் பதிப்பகம் தமிழ் மொழி, சமூகநீதி, சுயமரியாதை இயக்கம், மாநில சுயாட்சி மற்றும் முத்தமிழறிஞர் கலைஞர் அவர்களின் காலத்தால் அழியாத படைப்புகளைத் தரமான அச்சிலும் எளிய விலையிலும் வாசகர்கள், மாணவர்கள் மற்றும் ஆய்வாளர்களிடம் கொண்டு சேர்க்கும் நோக்குடன் செயல்படுகிறது.
@@ -116,7 +116,7 @@ export default async function AboutPublisherPage() {
                   </p>
                 </div>
                 <span className="mt-4 text-[13px] font-bold text-brand-red-dark">
-                  <T ta="நூல்களைக் காண்க →" en="View author page →" />
+                  <T ta="நூல்களைப் பார்வையிடுங்கள் →" en="View author page →" />
                 </span>
               </Link>
             ))}
@@ -146,14 +146,17 @@ export default async function AboutPublisherPage() {
               </div>
               <div>
                 <dt className="text-xs font-bold uppercase tracking-wider text-black/55">Address</dt>
-                <dd className="font-medium text-black/85">
-                  <T ta={PUBLISHER_ENTITY.addressLineTa} en={PUBLISHER_ENTITY.addressLineEn} />
+                <dd className="whitespace-pre-line font-medium text-black/85">
+                  <T
+                    ta={PUBLISHER_ENTITY.addressLineTa}
+                    en={"Muthamizharingnar Publication\nDMK Youth Wing\nAnbagam, 614, Anna Salai,\nTeynampet, Chennai - 600 018"}
+                  />
                 </dd>
               </div>
               <div>
                 <dt className="text-xs font-bold uppercase tracking-wider text-black/55">Phone / WhatsApp</dt>
                 <dd className="font-semibold text-black">
-                  <a href={`tel:${PUBLISHER_ENTITY.phoneE164}`} className="hover:text-brand-red-dark">
+                  <a href={`tel:+${PUBLISHER_ENTITY.whatsappDigits}`} className="hover:text-brand-red-dark">
                     +91 {PUBLISHER_ENTITY.phoneDisplay}
                   </a>
                 </dd>

@@ -76,7 +76,7 @@ export default function StorefrontHeader({
 
             <div className="hidden flex-shrink-0 items-center gap-4 text-[12px] text-white/80 md:flex">
               <a
-                href={`tel:${social.whatsapp}`}
+                href={`tel:+${social.whatsapp}`}
                 className="transition-colors hover:text-white"
               >
                 +91 {social.whatsappDisplay}

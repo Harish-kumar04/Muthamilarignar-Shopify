@@ -36,8 +36,8 @@ export default function WishlistButton({
     toast({
       kind: "success",
       title: next
-        ? t("விருப்பப் பட்டியலில் சேர்க்கப்பட்டது", "Saved to wishlist")
-        : t("விருப்பப் பட்டியலிலிருந்து நீக்கப்பட்டது", "Removed from wishlist"),
+        ? t("படிக்க விரும்பும் நூல்களில் சேர்க்கப்பட்டது", "Saved to wishlist")
+        : t("படிக்க விரும்பும் நூல்களிலிருந்து நீக்கப்பட்டது", "Removed from wishlist"),
       description: localizeName(productName),
     });
   };
@@ -47,10 +47,11 @@ export default function WishlistButton({
       type="button"
       onClick={handleToggle}
       aria-pressed={saved}
+      title={t("படிக்க விரும்பும் நூல்கள்", "Wishlist")}
       aria-label={
         saved
-          ? `${t("விருப்பப் பட்டியலிலிருந்து நீக்கு", "Remove from wishlist")} — ${localizeName(productName)}`
-          : `${t("விருப்பப் பட்டியலில் சேர்", "Save to wishlist")} — ${localizeName(productName)}`
+          ? `${t("படிக்க விரும்பும் நூல்களிலிருந்து நீக்குக", "Remove from wishlist")} — ${localizeName(productName)}`
+          : `${t("படிக்க விரும்பும் நூல்கள்", "Save to wishlist")} — ${localizeName(productName)}`
       }
       className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition-all ${
         saved

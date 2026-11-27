@@ -94,7 +94,7 @@ export default function StorefrontFooter({
                 <li><Link href="/policies/returns" prefetch={false} className={linkCls}><T ta="மாற்று & பணம் திரும்ப" en="Returns & refunds" /></Link></li>
                 <li><Link href="/policies/privacy" prefetch={false} className={linkCls}><T ta="தனியுரிமைக் கொள்கை" en="Privacy policy" /></Link></li>
                 <li><Link href="/policies/terms" prefetch={false} className={linkCls}><T ta="விதிமுறைகள்" en="Terms & conditions" /></Link></li>
-                <li><Link href="/account" prefetch={false} className={linkCls}><T ta="வாசகர் கணக்கு" en="Reader account" /></Link></li>
+                <li><Link href="/account" prefetch={false} className={linkCls}><T ta="என் கணக்கு" en="Reader account" /></Link></li>
               </ul>
             </div>
 
@@ -102,10 +102,10 @@ export default function StorefrontFooter({
               <p className="mb-4 text-[12px] font-bold uppercase tracking-[0.16em] text-[#FF6B68]">
                 <T ta="தொடர்புக்கு" en="Contact" />
               </p>
-              <p className="mb-3 text-[13.5px] leading-relaxed text-white/80">
+              <p className="mb-3 whitespace-pre-line text-[13.5px] leading-relaxed text-white/80">
                 <T
-                  ta="அண்ணா அறிவாலய வளாகம், தேனாம்பேட்டை, சென்னை – 600018, தமிழ்நாடு"
-                  en="Anna Arivalayam Campus, Teynampet, Chennai – 600018, Tamil Nadu, India"
+                  ta="முத்தமிழறிஞர் பதிப்பகம், திமுக இளைஞர் அணி, அன்பகம், 614, அண்ணா சாலை, தேனாம்பேட்டை, சென்னை - 600 018"
+                  en={"Muthamizharingnar Publication\nDMK Youth Wing\nAnbagam, 614, Anna Salai,\nTeynampet, Chennai - 600 018"}
                 />
               </p>
               <ul className="space-y-2 text-[14.5px]">

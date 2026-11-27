@@ -222,14 +222,14 @@ export default function CartPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <header className="mb-8">
-        <p className="eyebrow">{t("உங்கள் புத்தகக் கூடை", "Your Book Cart")}</p>
+        <p className="eyebrow">{t("தேர்ந்தெடுத்த நூல்கள்", "Your Book Cart")}</p>
         <h1 className="mt-2 text-[32px] font-extrabold tracking-tight text-black sm:text-[42px]">
           {isInitialLoading
-            ? t("உங்கள் புத்தகக் கூடை", "Your Book Cart")
+            ? t("தேர்ந்தெடுத்த நூல்கள்", "Your Book Cart")
             : isEmpty
-              ? t("உங்கள் கூடை காலியாக உள்ளது.", "Your cart is empty.")
+              ? t("தேர்ந்தெடுத்த நூல்கள் எதுவும் இல்லை.", "Your cart is empty.")
               : t(
-                  `கூடை — ${itemCount} நூல்கள்`,
+                  `தேர்ந்தெடுத்த நூல்கள் — ${itemCount} நூல்கள்`,
                   `Cart — ${itemCount} book${itemCount === 1 ? "" : "s"}`,
                 )}
         </h1>
@@ -257,8 +257,8 @@ export default function CartPage() {
         </div>
       ) : isInitialLoading ? (
         <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-black/15 bg-[#FAFAFA] px-6 py-20 text-center text-[15px] text-black/70">
-          <PenLoader size="lg" label={t("உங்கள் கூடை ஏற்றப்படுகிறது", "Loading your cart")} />
-          <span>{t("உங்கள் கூடை ஏற்றப்படுகிறது…", "Loading your cart…")}</span>
+          <PenLoader size="lg" label={t("தேர்ந்தெடுத்த நூல்கள் ஏற்றப்படுகிறது", "Loading your cart")} />
+          <span>{t("தேர்ந்தெடுத்த நூல்கள் ஏற்றப்படுகிறது…", "Loading your cart…")}</span>
         </div>
       ) : isEmpty ? (
         <div className="rounded-2xl border border-dashed border-black/20 bg-[#FAFAFA] px-6 py-20 text-center">
@@ -348,7 +348,7 @@ export default function CartPage() {
                       {lineOutOfStock && (
                         <p className="mt-1 text-[12.5px] font-bold text-brand-red-dark">
                           {t(
-                            "தற்போது கையிருப்பில் இல்லை — தொடர நீக்கவும்",
+                            "தற்போது பிரதிகள் தீர்ந்துவிட்டன — தொடர நீக்கவும்",
                             "Currently out of stock — remove to proceed",
                           )}
                         </p>
@@ -415,7 +415,7 @@ export default function CartPage() {
           {/* Summary */}
           <aside className="h-fit rounded-2xl border border-black/10 bg-[#FAFAFA] p-6 shadow-card lg:sticky lg:top-24">
             <h2 className="text-[17px] font-extrabold text-black">
-              {t("ஆர்டர் சுருக்கம்", "Order Summary")}
+              {t("நூல் விவரம் & கட்டணம்", "Order Summary")}
             </h2>
 
             {/* Coupon Box */}
@@ -521,7 +521,7 @@ export default function CartPage() {
               onClick={handleCheckout}
               disabled={redirectingCheckout || hasUnavailableLine || !cart?.checkoutUrl}
               aria-busy={redirectingCheckout || undefined}
-              className="btn-red mt-6 h-12 w-full text-[14.5px] font-bold shadow-glow disabled:cursor-not-allowed disabled:opacity-50"
+              className="btn-red mt-6 min-h-[48px] w-full px-4 py-2.5 text-center text-[14.5px] font-bold leading-snug tracking-tight shadow-glow disabled:cursor-not-allowed disabled:opacity-50"
             >
               {redirectingCheckout ? (
                 <PenLoader
@@ -530,7 +530,7 @@ export default function CartPage() {
                   label={t("செலுத்தும் பக்கத்திற்குத் தொடர்கிறது", "Redirecting to checkout")}
                 />
               ) : (
-                t("ஆர்டர் செய்யத் தொடர்க →", "Checkout →")
+                t("வாங்குவதை உறுதி செய்யுங்கள்", "Checkout →")
               )}
             </button>
 

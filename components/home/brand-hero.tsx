@@ -92,7 +92,7 @@ export default function BrandHero({
 
             <p className="mt-4 max-w-xl text-base leading-relaxed text-black/80 sm:text-[1.09375rem]">
               <T
-                ta="திராவிட இயக்கம், சமூகநீதி மற்றும் முத்தமிழறிஞர் கலைஞர் குறித்த நூல்களை நேரடிப் பதிப்பகத் தரத்தில் உங்கள் இல்லத்திற்கே பெறுங்கள்."
+                ta="திராவிட இயக்கம், சமூகநீதி மற்றும் முத்தமிழறிஞர் கலைஞர் குறித்த நூல்களைப் பதிப்பகத்திலிருந்து நேரடியாக உங்கள் இல்லத்திற்கே பெறுங்கள்."
                 en="Order authentic printed editions of books about the Dravidian movement, social justice and Kalaignar — shipped across India."
               />
             </p>
@@ -103,7 +103,7 @@ export default function BrandHero({
                 href="/books"
                 className="btn-red h-12 px-7 text-[0.96875rem] shadow-glow sm:h-[3.25rem] sm:px-8 sm:text-base"
               >
-                <T ta="நூல்களைக் காண்க" en="Browse books" />
+                <T ta="நூல்களைப் பார்வையிடுங்கள்" en="Browse books" />
                 <ArrowRightIcon className="h-4 w-4" />
               </Link>
             </div>

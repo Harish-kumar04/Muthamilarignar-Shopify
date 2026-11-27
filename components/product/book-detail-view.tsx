@@ -213,11 +213,11 @@ export default function BookDetailView({
               {inStock ? (
                 <span className="ml-1 inline-flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 px-3 py-1 text-[12.5px] font-bold text-green-800">
                   <span className="h-2 w-2 rounded-full bg-green-600" aria-hidden="true" />
-                  <T ta="கையிருப்பில் உள்ளது" en="In Stock & Ready to Ship" />
+                  <T ta="பிரதிகள் உள்ளன" en="In Stock & Ready to Ship" />
                 </span>
               ) : (
                 <span className="ml-1 inline-flex items-center gap-1.5 rounded-full bg-brand-red-light border border-brand-red/25 px-3 py-1 text-[12.5px] font-bold text-brand-red-dark">
-                  <T ta="கையிருப்பில் இல்லை" en="Currently Out of Stock" />
+                  <T ta="பிரதிகள் தீர்ந்துவிட்டன" en="Currently Out of Stock" />
                 </span>
               )}
             </div>

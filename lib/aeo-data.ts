@@ -20,7 +20,7 @@ export const STORE_FAQS: FaqEntry[] = [
     questionTa: "இணையதளத்தில் நூல்களை ஆர்டர் செய்வது எப்படி?",
     questionEn: "How do I order books on this website?",
     answerTa:
-      "விரும்பிய நூலைத் தேர்ந்தெடுத்து 'கூடையில் சேர்' (Add to Cart) அல்லது 'இப்போதே வாங்குக' (Buy Now) பொத்தானை அழுத்தி, செக்அவுட் பக்கத்தில் உங்கள் முகவரி விவரங்களை உள்ளிட்டு ஆர்டர் செய்யலாம்.",
+      "விரும்பிய நூலைத் தேர்ந்தெடுத்து 'நூலைத் தேர்ந்தெடு' (Add to Cart) அல்லது 'உடனே வாங்க' (Buy Now) பொத்தானை அழுத்தி, செக்அவுட் பக்கத்தில் உங்கள் முகவரி விவரங்களை உள்ளிட்டு ஆர்டர் செய்யலாம்.",
     answerEn:
       "Select any title, click Add to Cart or Buy Now, and enter your delivery address and contact details at checkout to place your order.",
   },
@@ -56,9 +56,9 @@ export const STORE_FAQS: FaqEntry[] = [
     questionTa: "முத்தமிழறிஞர் பதிப்பகத்தைத் தொடர்புகொள்வது அல்லது WhatsApp எண் எது?",
     questionEn: "How can I contact Muthamilarignar Pathipagam or reach WhatsApp support?",
     answerTa:
-      "உதவிக்கு +91 90033 24473 என்ற WhatsApp / தொலைபேசி எண்ணிலோ அல்லது muthamilarignar@gmail.com என்ற மின்னஞ்சலிலோ தொடர்புகொள்ளலாம் (அண்ணா அறிவாலய வளாகம், தேனாம்பேட்டை, சென்னை – 600018).",
+      "உதவிக்கு +91 82204 51520 என்ற WhatsApp / தொலைபேசி எண்ணிலோ அல்லது muthamilarignar@gmail.com என்ற மின்னஞ்சலிலோ தொடர்புகொள்ளலாம் (முத்தமிழறிஞர் பதிப்பகம், திமுக இளைஞர் அணி, அன்பகம், 614, அண்ணா சாலை, தேனாம்பேட்டை, சென்னை - 600 018).",
     answerEn:
-      "Contact Muthamilarignar Pathipagam on WhatsApp or phone at +91 90033 24473, or email muthamilarignar@gmail.com (Anna Arivalayam Campus, Teynampet, Chennai – 600018).",
+      "Contact Muthamilarignar Pathipagam on WhatsApp or phone at +91 82204 51520, or email muthamilarignar@gmail.com (Muthamizharingnar Publication, DMK Youth Wing, Anbagam, 614, Anna Salai, Teynampet, Chennai - 600 018).",
   },
 ];
 
@@ -204,8 +204,8 @@ export const POLICIES: Record<PolicyDoc["slug"], PolicyDoc> = {
       {
         hTa: "3. கண்காணிப்பு மற்றும் உதவி",
         hEn: "3. Order Tracking & Support",
-        pTa: "நூல் அனுப்பப்பட்டவுடன் கண்காணிப்பு விவரம் வழங்கப்படும். உதவிக்கு WhatsApp: +91 90033 24473 அல்லது muthamilarignar@gmail.com வழியாகத் தொடர்புகொள்ளலாம்.",
-        pEn: "Tracking updates are shared once dispatched. For delivery assistance, reach Muthamilarignar Pathipagam at +91 90033 24473 (WhatsApp) or muthamilarignar@gmail.com.",
+        pTa: "நூல் அனுப்பப்பட்டவுடன் கண்காணிப்பு விவரம் வழங்கப்படும். உதவிக்கு WhatsApp: +91 82204 51520 அல்லது muthamilarignar@gmail.com வழியாகத் தொடர்புகொள்ளலாம்.",
+        pEn: "Tracking updates are shared once dispatched. For delivery assistance, reach Muthamilarignar Pathipagam at +91 82204 51520 (WhatsApp) or muthamilarignar@gmail.com.",
       },
     ],
   },

@@ -293,7 +293,7 @@ export default function MiniCart({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={t("உங்கள் கூடை", "Shopping cart")}
+        aria-label={t("தேர்ந்தெடுத்த நூல்கள்", "Shopping cart")}
         className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
       >
         {/* Header */}
@@ -301,7 +301,7 @@ export default function MiniCart({
           <div className="flex items-center gap-2">
             <CartIcon className="h-5 w-5 text-brand-red" />
             <h2 className="text-[17px] font-bold text-black">
-              {t("கூடை", "Cart")}
+              {t("தேர்ந்தெடுத்த நூல்கள்", "Cart")}
               {(cart?.totalQuantity ?? 0) > 0 && (
                 <span className="ml-2 text-[13px] font-normal text-black/65">
                   ({cart?.totalQuantity} {t("நூல்கள்", "books")})
@@ -334,18 +334,18 @@ export default function MiniCart({
             </div>
           ) : loading && lines.length === 0 ? (
             <div className="flex h-44 flex-col items-center justify-center gap-3 text-sm text-black/70">
-              <PenLoader size="md" label={t("கூடை ஏற்றப்படுகிறது", "Loading cart")} />
-              <span>{t("கூடை ஏற்றப்படுகிறது…", "Loading cart…")}</span>
+              <PenLoader size="md" label={t("தேர்ந்தெடுத்த நூல்கள் ஏற்றப்படுகிறது", "Loading cart")} />
+              <span>{t("தேர்ந்தெடுத்த நூல்கள் ஏற்றப்படுகிறது…", "Loading cart…")}</span>
             </div>
           ) : lines.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Sunburst className="h-16 w-32 text-brand-red/15" />
               <p className="mt-4 text-[16px] font-bold text-black">
-                {t("கூடை காலியாக உள்ளது", "Your cart is empty")}
+                {t("தேர்ந்தெடுத்த நூல்கள் எதுவும் இல்லை", "Your cart is empty")}
               </p>
               <p className="mt-1 text-[13px] text-black/65">
                 {t(
-                  "நூல்களைத் தேர்வு செய்து கூடையில் சேர்க்கவும்",
+                  "நூல்களைத் தேர்வு செய்து பட்டியலில் சேர்க்கவும்",
                   "Explore our books and add them to your cart",
                 )}
               </p>
@@ -354,7 +354,7 @@ export default function MiniCart({
                 onClick={() => setIsOpen(false)}
                 className="btn-red mt-5 h-11 px-6 text-[13.5px]"
               >
-                {t("நூல்களைக் காண்க", "Browse books")}
+                {t("நூல்களைப் பார்வையிடுங்கள்", "Browse books")}
               </Link>
             </div>
           ) : (
@@ -422,7 +422,7 @@ export default function MiniCart({
                           </p>
                           {lineOutOfStock && (
                             <p className="mt-0.5 text-[11.5px] font-bold text-brand-red-dark">
-                              {t("கையிருப்பில் இல்லை", "Out of stock")}
+                              {t("பிரதிகள் தீர்ந்துவிட்டன", "Out of stock")}
                             </p>
                           )}
                         </div>
@@ -638,21 +638,21 @@ export default function MiniCart({
               <Link
                 href="/cart"
                 onClick={() => setIsOpen(false)}
-                className="btn-outline h-11 px-3 text-[13px] font-bold"
+                className="btn-outline min-h-[44px] px-2.5 py-1.5 text-center text-[12.5px] font-bold leading-tight tracking-tight"
               >
-                {t("கூடையைக் காண்க", "View cart")}
+                {t("தேர்ந்தெடுத்த நூல்கள்", "View cart")}
               </Link>
               <button
                 type="button"
                 onClick={handleCheckout}
                 disabled={redirectingCheckout || hasUnavailableLine || !cart?.checkoutUrl}
                 aria-busy={redirectingCheckout || undefined}
-                className="btn-red h-11 px-3 text-[13.5px] font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                className="btn-red min-h-[44px] px-2.5 py-1.5 text-center text-[12.5px] font-bold leading-tight tracking-tight disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {redirectingCheckout ? (
                   <PenLoader size="sm" tone="light" label={t("தொடர்கிறது", "Redirecting")} />
                 ) : (
-                  t("பணம் செலுத்த", "Checkout")
+                  t("வாங்குவதை உறுதி செய்யுங்கள்", "Checkout")
                 )}
               </button>
             </div>

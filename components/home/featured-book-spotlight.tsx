@@ -193,13 +193,13 @@ export default function FeaturedBookSpotlight({
                         en={`Only ${qtyAvailable} left`}
                       />
                     ) : (
-                      <T ta="கையிருப்பில்" en="In stock" />
+                      <T ta="பிரதிகள் உள்ளன" en="In stock" />
                     )}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-red/10 px-3 py-1 text-[13px] font-bold text-brand-red-dark">
                     <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-red" />
-                    <T ta="கையிருப்பில் இல்லை" en="Out of stock" />
+                    <T ta="பிரதிகள் தீர்ந்துவிட்டன" en="Out of stock" />
                   </span>
                 )}
               </div>

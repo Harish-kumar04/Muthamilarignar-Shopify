@@ -159,7 +159,7 @@ export default function ProductCard({
             )}
             {!inStock ? (
               <span className="rounded-full bg-black/85 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
-                <T ta="கையிருப்பில் இல்லை" en="Out of stock" />
+                <T ta="பிரதிகள் தீர்ந்துவிட்டன" en="Out of stock" />
               </span>
             ) : onSale ? (
               <span className="rounded-full bg-[#D11D1A] px-2.5 py-1 text-[11px] font-extrabold tracking-wide text-white shadow-sm">
@@ -262,12 +262,12 @@ export default function ProductCard({
                 {lowStock ? (
                   <T ta={`இன்னும் ${qtyAvailable} மட்டுமே`} en={`Only ${qtyAvailable} left`} />
                 ) : (
-                  <T ta="கையிருப்பில்" en="In stock" />
+                  <T ta="பிரதிகள் உள்ளன" en="In stock" />
                 )}
               </span>
             ) : (
               <span className="text-[11px] font-semibold text-brand-red-dark">
-                <T ta="இருப்பு இல்லை" en="Sold out" />
+                <T ta="பிரதிகள் தீர்ந்துவிட்டன" en="Sold out" />
               </span>
             )}
           </div>

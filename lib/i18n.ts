@@ -83,7 +83,7 @@ export const KALAIGNAR_ABOUT_COPY = {
     },
   },
   viewBooks: {
-    ta: "நூல்களைக் காண்க",
+    ta: "நூல்களைப் பார்வையிடுங்கள்",
     en: "View books",
   },
 } as const;

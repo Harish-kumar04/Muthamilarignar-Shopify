@@ -71,8 +71,8 @@ export function AccountButton() {
     <Link
       href="/account"
       prefetch={false}
-      aria-label="Account / கணக்கு"
-      title="Account / கணக்கு"
+      aria-label="Account / என் கணக்கு"
+      title="Account / என் கணக்கு"
       className={`relative inline-flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${
         active
           ? "border-brand-red bg-brand-red-light text-brand-red-dark"
@@ -114,7 +114,7 @@ export function CartButton() {
     <button
       type="button"
       onClick={() => openMiniCart()}
-      aria-label={count > 0 ? t(`கூடை — ${label} பொருட்கள்`, `Cart — ${label} items`) : t("கூடை", "Cart")}
+      aria-label={count > 0 ? t(`தேர்ந்தெடுத்த நூல்கள் — ${label} பொருட்கள்`, `Cart — ${label} items`) : t("தேர்ந்தெடுத்த நூல்கள்", "Cart")}
       className={`relative inline-flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${
         active ? "border-brand-red bg-brand-red-light text-brand-red-dark" : "border-black/15 text-black hover:border-brand-red hover:text-brand-red-dark"
       }`}

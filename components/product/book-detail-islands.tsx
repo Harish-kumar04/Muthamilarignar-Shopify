@@ -428,11 +428,11 @@ export function BookPurchaseIslands({
                 {t("சேர்க்கிறது…", "Adding…")}
               </>
             ) : !canPurchase ? (
-              t("கையிருப்பில் இல்லை", "Out of stock")
+              t("பிரதிகள் தீர்ந்துவிட்டன", "Out of stock")
             ) : (
               <>
                 <CartIcon className="h-4 w-4" />
-                {t("கூடையில் சேர்", "Add to cart")}
+                {t("நூலைத் தேர்ந்தெடு", "Add to cart")}
               </>
             )}
           </button>
@@ -450,7 +450,7 @@ export function BookPurchaseIslands({
                 {t("தயாராகிறது…", "Redirecting…")}
               </>
             ) : (
-              t("இப்போதே வாங்குக", "Buy now")
+              t("உடனே வாங்க", "Buy now")
             )}
           </button>
 
@@ -491,9 +491,9 @@ export function BookPurchaseIslands({
               {adding ? (
                 <PenLoader size="sm" label="Adding" />
               ) : !canPurchase ? (
-                t("இருப்பு இல்லை", "Sold out")
+                t("பிரதிகள் தீர்ந்துவிட்டன", "Sold out")
               ) : (
-                t("கூடையில் சேர்", "Add to cart")
+                t("நூலைத் தேர்ந்தெடு", "Add to cart")
               )}
             </button>
             <button
@@ -506,7 +506,7 @@ export function BookPurchaseIslands({
               {buying ? (
                 <PenLoader size="sm" tone="light" label="Redirecting" />
               ) : (
-                t("வாங்குக", "Buy now")
+                t("உடனே வாங்க", "Buy now")
               )}
             </button>
           </div>
